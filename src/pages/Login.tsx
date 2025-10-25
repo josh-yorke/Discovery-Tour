@@ -1,0 +1,76 @@
+import { useForm } from "react-hook-form";
+import Header from "../components/auth/Header";
+import Hero from "../components/auth/Hero";
+import Button from "../components/button/Button";
+import Input from "../components/input/Input";
+import PasswordInput from "../components/input/PasswordInput";
+import { loginSchema, type LoginData } from "../types/auth/loginTypes";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "../hooks/auth/useLogin";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useNavigate } from "react-router";
+
+const Login = () => {
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const {
+    register,
+    reset,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const mutation = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
+      reset();
+      navigate("/dashboard");
+    },
+    onError: (error) => {
+      reset();
+      setError(error.message);
+    },
+  });
+
+  const onSubmit = (data: LoginData) => {
+    mutation.mutate(data);
+  };
+
+  return (
+    <>
+      <div className="w-full h-[100svh] flex flex-col-reverse lg:flex-row items-center justify-center text-sm">
+        <Hero />
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="min-h-[80vh] lg:h-full w-full lg:w-[600px] flex flex-col items-center justify-center p-12 lg:p-20 gap-4"
+        >
+          <Header />
+          <Input
+            type="text"
+            placeholder="enter you e-mail"
+            title="e-mail"
+            error={errors.email && errors.email.message}
+            {...register("email")}
+          />
+          <PasswordInput
+            title="password"
+            placeholder="enter your password"
+            error={errors.password && errors.password.message}
+            {...register("password")}
+          />
+          <p className="text-[#1d2087]">Sign Up?</p>
+          <Button
+            title="Login"
+            style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300"
+          />
+          {error && <p className="text-sm font-normal text-red-700">{error}</p>}
+        </form>
+      </div>
+    </>
+  );
+};
+
+export default Login;
