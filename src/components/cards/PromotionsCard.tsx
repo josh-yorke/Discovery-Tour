@@ -1,9 +1,10 @@
-import { RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
-import IconButton from "../button/IconButton";
-import ImageCard from "./ImageCard";
 import { useNavigate } from "react-router";
+import IconButton from "../button/IconButton";
+import { RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
+import ImageCard from "./ImageCard";
 import LinkText from "../nav/LinkText";
 import StatusText from "./StatusText";
+import Tags from "../tags/Tags";
 
 interface CardProps {
   id: string;
@@ -15,12 +16,13 @@ interface CardProps {
   onDelete: () => void;
 }
 
-const NewsCard = ({
+const PromotionsCard = ({
   id,
   title,
   contents,
-  images,
+  tags,
   status,
+  images,
   onDelete,
 }: CardProps) => {
   const navigate = useNavigate();
@@ -35,17 +37,21 @@ const NewsCard = ({
         <LinkText
           title={title}
           style="uppercase font-bold"
-          url={`/news/view/${id}`}
+          url={`/promotions/view/${id}`}
         />
         <StatusText style="" status={status} textStyle="font-semibold" />
         <p className="text-sm font-normal line-clamp-2">{contents}</p>
-
+        <div className="w-full flex flex-row gap-2">
+          {tags.map((tag: string, id) => (
+            <Tags title={tag} key={id} />
+          ))}
+        </div>
         <div className="w-full flex flex-row items-center justify-end gap-2 pt-6">
           <IconButton
             icon={<RiPencilFill size={16} />}
             title="Edit"
-            action={() => navigate(`/news/edit/${id}`)}
-            style="w-full bg-[#1d2087] hover:bg-[#3b3eac] text-white p-3 rounded-md"
+            action={() => navigate(`/promotions/edit/${id}`)}
+            style="w-full bg-[#1d2087] hover:bg-[#3b3eac] text-white text-black p-3 rounded-md"
           />
           <IconButton
             icon={<RiDeleteBin4Fill size={16} />}
@@ -59,4 +65,4 @@ const NewsCard = ({
   );
 };
 
-export default NewsCard;
+export default PromotionsCard;

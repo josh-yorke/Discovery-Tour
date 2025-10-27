@@ -1,21 +1,21 @@
-import { useParams } from "react-router";
-import Navbar from "../../../components/nav/Navbar";
-import Header from "../../../components/users/Header";
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getOneNews } from "../../../hooks/news/getOneNews";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import { getPromotion } from "../../../hooks/promotions/getPromotion";
 import { fetchImageFiles } from "../../../utils/fetchImageFiles";
+import Navbar from "../../../components/nav/Navbar";
 import PageError from "../../../components/error/PageError";
 import PageLoader from "../../../components/loader/PageLoader";
-import Edit from "../../../components/news/edit/Edit";
+import Header from "../../../components/users/Header";
+import Edit from "../../../components/promotions/edit/Edit";
 
-const EditNews = () => {
+const EditPromotion = () => {
   const { id } = useParams();
   const [images, setImages] = useState<File[]>([]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["post", id],
-    queryFn: () => getOneNews(id),
+    queryFn: () => getPromotion(id),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -42,7 +42,7 @@ const EditNews = () => {
         ) : null
       ) : (
         <>
-          <Header title="Edit News" url="/news" id={data._id} />
+          <Header title="Edit Promotion" url="/promotions" id={data._id} />
           <Edit
             status={data.status}
             id={data._id}
@@ -57,4 +57,4 @@ const EditNews = () => {
   );
 };
 
-export default EditNews;
+export default EditPromotion;

@@ -13,6 +13,11 @@ import EditUser from "./pages/users/edit/EditUser";
 import News from "./pages/news/News";
 import AddNews from "./pages/news/add/AddNews";
 import EditNews from "./pages/news/edit/EditNews";
+import ViewNews from "./pages/news/view/ViewNews";
+import Promotions from "./pages/promotions/Promotions";
+import AddPromotion from "./pages/promotions/add/AddPromotion";
+import EditPromotion from "./pages/promotions/edit/EditPromotion";
+import ViewPromotion from "./pages/promotions/view/ViewPromotion";
 
 const router = createBrowserRouter([
   {
@@ -81,6 +86,46 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditNews />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/news/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewNews />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/promotions",
+    element: (
+      <RouteProtection>
+        <Promotions />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/promotions/add",
+    element: (
+      <RouteProtection>
+        <AddPromotion />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/promotions/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditPromotion />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/promotions/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewPromotion />
       </RouteProtection>
     ),
   },

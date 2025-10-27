@@ -4,54 +4,70 @@ const api = import.meta.env.VITE_API_URL;
 
 interface ImageProps {
   url: string[];
+  style: string;
 }
 
-const ImageCard = ({ url }: ImageProps) => {
+const ImageCard = ({ url, style }: ImageProps) => {
   const [currImage, setCurrImage] = useState(0);
 
   return (
-    <div
-      className="w-full h-[40vh] md:h-[30vh] bg-cover bg-center  "
-      style={{
-        backgroundImage: `url(${api}/images/${encodeURIComponent(
-          url[currImage]
-        )})`,
-      }}
-    >
-      <div className="w-full h-full relative py-10 px-6 bg-gradient-to-r from-black/10 via-black/0 to-black/10">
-        {url.length > 1 && (
-          <>
-            <div className="absolute top-[50%] left-0 h-fit flex items-center justify-center px-4">
-              <RiArrowLeftSLine
-                size={24}
-                className="cursor-pointer"
-                color="white"
-                onClick={() => {
-                  if (currImage === 0) {
-                    setCurrImage(url.length - 1);
-                  } else {
-                    setCurrImage((prev) => prev - 1);
-                  }
-                }}
-              />
-            </div>
-            <div className="absolute top-[50%] right-0 h-fit flex items-center justify-center px-4">
-              <RiArrowRightSLine
-                size={24}
-                className="cursor-pointer"
-                color="white"
-                onClick={() => {
-                  if (currImage === url.length - 1) {
-                    setCurrImage(0);
-                  } else {
-                    setCurrImage((prev) => prev + 1);
-                  }
-                }}
-              />
-            </div>
-          </>
-        )}
+    <div className={`w-full relative overflow-hidden ${style}`}>
+      {/* Image slider */}
+      <div
+        className="w-full h-full flex transition-transform duration-300 ease-in-out"
+        style={{
+          transform: `translateX(-${currImage * 100}%)`,
+        }}
+      >
+        {url.map((img, index) => (
+          <div
+            key={index}
+            className="w-full h-full flex-shrink-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${api}/images/${encodeURIComponent(img)})`,
+            }}
+          />
+        ))}
       </div>
+
+      {/* Navigation arrows */}
+      {url.length > 1 && (
+        <>
+          <div className="absolute top-1/2 left-2 -translate-y-1/2 z-10">
+            <RiArrowLeftSLine
+              size={28}
+              className="cursor-pointer text-white drop-shadow-lg"
+              onClick={() =>
+                setCurrImage((prev) => (prev === 0 ? url.length - 1 : prev - 1))
+              }
+            />
+          </div>
+          <div className="absolute top-1/2 right-2 -translate-y-1/2 z-10">
+            <RiArrowRightSLine
+              size={28}
+              className="cursor-pointer text-white drop-shadow-lg"
+              onClick={() =>
+                setCurrImage((prev) => (prev === url.length - 1 ? 0 : prev + 1))
+              }
+            />
+          </div>
+
+          {/* Navigation dots */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {url.map((_, index) => (
+              <div
+                key={index}
+                onClick={() => setCurrImage(index)}
+                className={`w-2.5 h-2.5 rounded-full cursor-pointer transition-all duration-200 ${
+                  currImage === index
+                    ? "bg-white scale-110"
+                    : "bg-white/50 hover:bg-white/80"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

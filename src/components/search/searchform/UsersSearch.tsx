@@ -30,8 +30,8 @@ const UsersSearch = ({ action, role, status, search }: FormProps) => {
         </button>
       </div>
       <div className="w-full flex flex-row gap-2 items-center justify-center">
-        <Options options={["admin", "user"]} {...role} />
-        <Options options={["active", "pending"]} {...status} />
+        <Options options={["admin", "user"]} {...role} title="Role" />
+        <Options options={["active", "pending"]} {...status} title="Status" />
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"

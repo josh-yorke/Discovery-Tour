@@ -1,30 +1,30 @@
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { FormProvider, useForm } from "react-hook-form";
 import Input from "../../input/Input";
-import TagsInput from "../../input/TagsInput";
 import TextArea from "../../input/TextArea";
+import InputOption from "../../input/InputOption";
+import TagsInput from "../../input/TagsInput";
 import ImageInput from "../../input/ImageInput";
+import Button from "../../button/Button";
 import Modal from "../../modal/Modal";
 import {
-  editNewsSchema,
-  type editNewsData,
-} from "../../../types/news/editNewsTypes";
-import InputOption from "../../input/InputOption";
-import Button from "../../button/Button";
-import { updateNews } from "../../../hooks/news/updateNews";
+  editPromotionSchema,
+  type editPromotionData,
+} from "../../../types/promotions/editPromotionTypes";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
+import { updatePromotion } from "../../../hooks/promotions/updatePromotion";
 
-interface EditInputsProps extends editNewsData {
+interface EditInputsProps extends editPromotionData {
   id: string;
 }
 
-const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
+const Edit = ({ id, tags, title, contents, images }: EditInputsProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const methods = useForm<editNewsData>({
-    resolver: zodResolver(editNewsSchema),
+  const methods = useForm<editPromotionData>({
+    resolver: zodResolver(editPromotionSchema),
     defaultValues: {
       tags: tags,
       title: title,
@@ -42,16 +42,16 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
   } = methods;
 
   const mutation = useMutation<string, Error, { id: string; data: FormData }>({
-    mutationFn: ({ id, data }) => updateNews(id, data),
+    mutationFn: ({ id, data }) => updatePromotion(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["news"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["news", id] });
-      navigate(`/news`);
+      queryClient.invalidateQueries({ queryKey: ["promotions"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["promotion", id] });
+      navigate(`/promotions`);
       reset();
     },
   });
 
-  const onSubmit = (data: editNewsData) => {
+  const onSubmit = (data: editPromotionData) => {
     const formData = new FormData();
 
     formData.append("title", data.title);
@@ -132,7 +132,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
           />
           <Button
             isLoading={mutation.isPending}
-            title="Update news"
+            title="Update promotion"
             style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
           />
         </form>
@@ -141,7 +141,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
       {mutation.isError && (
         <Modal
           success={mutation.isError}
-          action={() => navigate("/news")}
+          action={() => navigate("/promotions")}
           message={mutation.error.message}
         />
       )}
@@ -149,4 +149,4 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
   );
 };
 
-export default EditInputs;
+export default Edit;

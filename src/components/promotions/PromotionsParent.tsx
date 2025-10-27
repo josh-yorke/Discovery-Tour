@@ -1,25 +1,25 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { newsData } from "../../types/news/newsDataTypes";
-import PageLoader from "../loader/PageLoader";
 import { useState } from "react";
-import NewsCard from "../cards/NewsCard";
-import { deleteNews } from "../../hooks/news/deleteNews";
+import type { promotionData } from "../../types/promotions/promotionDataTypes";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import PageLoader from "../loader/PageLoader";
 import Modal from "../modal/Modal";
+import { deletePromotion } from "../../hooks/promotions/deletePromotion";
+import PromotionsCard from "../cards/PromotionsCard";
 
 interface ParentProps {
-  news: newsData[];
+  promotions: promotionData[];
   isLoading: boolean;
 }
 
-const NewsParent = ({ news, isLoading }: ParentProps) => {
+const PromotionsParent = ({ promotions, isLoading }: ParentProps) => {
   const queryClient = useQueryClient();
   const [modal, showModal] = useState(false);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNews(id),
+    mutationFn: (id: string) => deletePromotion(id),
     onSuccess: () => {
       showModal(true);
-      queryClient.invalidateQueries({ queryKey: ["news"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["promotions"], exact: false });
     },
     onError: () => {
       showModal(true);
@@ -27,28 +27,30 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
   });
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this news?")) {
+    if (confirm("Are you sure you want to delete this promotion?")) {
       deleteMutation.mutate(id);
     }
   };
 
   if (isLoading) return <PageLoader />;
 
+  console.log(promotions);
+
   return (
     <>
-      {news && news.length > 0 ? (
+      {promotions && promotions.length > 0 ? (
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {news.map((news: newsData) => (
-            <NewsCard
-              key={news._id}
-              images={news.images}
-              id={news._id}
-              title={news.title}
-              tags={news.tags}
-              contents={news.contents}
-              status={news.status}
+          {promotions.map((promotion: promotionData) => (
+            <PromotionsCard
+              key={promotion._id}
+              images={promotion.images}
+              id={promotion._id}
+              title={promotion.title}
+              tags={promotion.tags}
+              contents={promotion.contents}
+              status={promotion.status}
               onDelete={() => {
-                handleDelete(news._id);
+                handleDelete(promotion._id);
               }}
             />
           ))}
@@ -73,4 +75,4 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
   );
 };
 
-export default NewsParent;
+export default PromotionsParent;

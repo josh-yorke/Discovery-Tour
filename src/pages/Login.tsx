@@ -45,7 +45,7 @@ const Login = () => {
         <Hero />
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="min-h-[80vh] lg:h-full w-full lg:w-[600px] flex flex-col items-center justify-center p-12 lg:p-20 gap-4"
+          className="min-h-[80vh] lg:h-full w-full lg:w-[600px] flex flex-col items-center justify-center p-12 gap-4"
         >
           <Header />
           <Input
@@ -63,6 +63,7 @@ const Login = () => {
           />
           <p className="text-[#1d2087]">Sign Up?</p>
           <Button
+            isLoading={mutation.isPending}
             title="Login"
             style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300"
           />

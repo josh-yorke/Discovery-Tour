@@ -11,7 +11,7 @@ interface FormProps {
   action: () => void;
 }
 
-const NewsSearch = ({ search, status, action }: FormProps) => {
+const PromotionsSearch = ({ search, status, action }: FormProps) => {
   const navigate = useNavigate();
   return (
     <form
@@ -19,10 +19,12 @@ const NewsSearch = ({ search, status, action }: FormProps) => {
       onSubmit={action}
     >
       <div className="">
-        <p className="text-md font-semibold text-[#1d2087]">Manage News</p>
+        <p className="text-md font-semibold text-[#1d2087]">
+          Manage Promotions
+        </p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput placeholder="search for news" {...search} />
+        <SearchInput placeholder="search for promotions" {...search} />
         <button className="p-3.5 rounded-lg bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer">
           <RiSearchLine size={14} color="white" />
         </button>
@@ -32,7 +34,7 @@ const NewsSearch = ({ search, status, action }: FormProps) => {
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"
-          action={() => navigate("/news/add")}
+          action={() => navigate("/promotions/add")}
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-lg"
         />
       </div>
@@ -40,4 +42,4 @@ const NewsSearch = ({ search, status, action }: FormProps) => {
   );
 };
 
-export default NewsSearch;
+export default PromotionsSearch;
