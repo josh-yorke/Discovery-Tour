@@ -18,6 +18,7 @@ import Promotions from "./pages/promotions/Promotions";
 import AddPromotion from "./pages/promotions/add/AddPromotion";
 import EditPromotion from "./pages/promotions/edit/EditPromotion";
 import ViewPromotion from "./pages/promotions/view/ViewPromotion";
+import Company from "./pages/company/Company";
 
 const router = createBrowserRouter([
   {
@@ -126,6 +127,14 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <ViewPromotion />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company",
+    element: (
+      <RouteProtection>
+        <Company />
       </RouteProtection>
     ),
   },

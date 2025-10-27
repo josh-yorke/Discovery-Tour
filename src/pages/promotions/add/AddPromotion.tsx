@@ -6,7 +6,7 @@ const AddPromotion = () => {
   return (
     <>
       <Navbar />
-      <Header title="Add Promotions" url="/promotions" id="" />
+      <Header title="Add Promotion" url="/promotions" id="" />
       <Add />
     </>
   );

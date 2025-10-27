@@ -84,6 +84,7 @@ const Edit = ({
       >
         <div className="w-full grid grid-cols-1 gap-4">
           <Input
+            disabled={false}
             title="First Name"
             type="text"
             placeholder="enter your first name"
@@ -91,6 +92,7 @@ const Edit = ({
             {...register("firstName")}
           />
           <Input
+            disabled={false}
             title="Last Name"
             type="text"
             placeholder="enter your last name"
@@ -98,6 +100,7 @@ const Edit = ({
             {...register("lastName")}
           />
           <Input
+            disabled={false}
             title="Email"
             type="email"
             placeholder="enter your email"
@@ -111,12 +114,14 @@ const Edit = ({
             {...register("password")}
           />
           <InputOption
+            disabled={false}
             options={["admin", "user"]}
             {...register("role")}
             style="w-full bg-black/5"
             title="Role"
           />
           <InputOption
+            disabled={false}
             options={["active", "pending"]}
             {...register("status")}
             style="w-full bg-black/5"

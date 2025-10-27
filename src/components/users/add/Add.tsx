@@ -62,6 +62,7 @@ const Add = () => {
       >
         <div className="w-full grid grid-cols-1 gap-4 items-start justify-center">
           <Input
+            disabled={false}
             title="First Name"
             type="text"
             placeholder="enter your first name"
@@ -69,6 +70,7 @@ const Add = () => {
             {...register("firstName")}
           />
           <Input
+            disabled={false}
             title="Last Name"
             type="text"
             placeholder="enter your last name"
@@ -76,6 +78,7 @@ const Add = () => {
             {...register("lastName")}
           />
           <Input
+            disabled={false}
             title="Email"
             type="email"
             placeholder="enter your email"
@@ -89,12 +92,14 @@ const Add = () => {
             {...register("password")}
           />
           <InputOption
+            disabled={false}
             options={["admin", "user"]}
             {...register("role")}
             style="w-full bg-black/5"
             title="Role"
           />
           <InputOption
+            disabled={false}
             options={["active", "pending"]}
             {...register("status")}
             style="w-full bg-black/5"

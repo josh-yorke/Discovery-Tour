@@ -91,6 +91,7 @@ const Add = () => {
         >
           <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
             <Input
+              disabled={false}
               error={errors.title?.message || ""}
               title="Title"
               placeholder="news title"
@@ -98,19 +99,25 @@ const Add = () => {
               {...register("title")}
             />
             <TextArea
+              disabled={false}
               error={errors.contents?.message || ""}
               title="Contents"
               placeholder="news contents"
               {...register("contents")}
             />
             <InputOption
+              disabled={false}
               style="bg-black/6 w-full"
               title="Status"
               options={["published", "draft"]}
               {...register("status")}
             />
-            <TagsInput error={errors.tags?.[0]?.message || ""} />
+            <TagsInput
+              error={errors.tags?.[0]?.message || ""}
+              disabled={false}
+            />
             <ImageInput
+              disabled={false}
               register={register}
               setValue={setValue}
               error={

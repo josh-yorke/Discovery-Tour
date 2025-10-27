@@ -100,6 +100,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
           className="w-full flex flex-col items-center justify-center p-6 gap-6"
         >
           <Input
+            disabled={false}
             error={errors.title?.message || ""}
             title="Title"
             placeholder="post title"
@@ -108,19 +109,22 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
           />
 
           <TextArea
+            disabled={false}
             title="Contents"
             placeholder="post contents"
             error={errors.contents?.message || ""}
             {...register("contents")}
           />
           <InputOption
+            disabled={true}
             options={["draft", "published"]}
             {...register("status")}
             style="w-full bg-black/6"
             title="Status"
           />
-          <TagsInput error={errors.tags?.[0]?.message || ""} />
+          <TagsInput error={errors.tags?.[0]?.message || ""} disabled={false} />
           <ImageInput
+            disabled={false}
             initialFiles={images}
             register={register}
             setValue={setValue}

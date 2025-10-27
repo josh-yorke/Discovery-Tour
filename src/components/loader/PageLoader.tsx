@@ -1,9 +1,18 @@
 const PageLoader = () => {
   return (
-    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div className="w-full h-[10vh] bg-white rounded-lg animate-pulse duration-300"></div>
-      <div className="w-full h-[10vh] bg-white rounded-lg animate-pulse duration-300"></div>
-      <div className="w-full h-[10vh] bg-white rounded-lg animate-pulse duration-300"></div>
+    <div className="w-full flex flex-row items-center justify-center gap-4 h-[60svh]">
+      <div
+        className="p-2 bg-[#1d2087] rounded-md animate-bounce ease-in-out duration-300"
+        style={{ animationDelay: "0s", animationDuration: "0.6s" }}
+      ></div>
+      <div
+        className="p-2 bg-[#1d2087] rounded-md animate-bounce ease-in-out duration-300"
+        style={{ animationDelay: "0.4s", animationDuration: "0.6s" }}
+      ></div>
+      <div
+        className="p-2 bg-[#1d2087] rounded-md animate-bounce ease-in-out duration-300"
+        style={{ animationDelay: "0.8s", animationDuration: "0.6s" }}
+      ></div>
     </div>
   );
 };

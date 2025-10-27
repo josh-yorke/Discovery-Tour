@@ -1,10 +1,12 @@
 import {
+  RiAppsFill,
+  RiAppsLine,
   RiCloseLine,
-  RiCouponFill,
-  RiCouponLine,
   RiMenuFill,
-  RiNewsFill,
-  RiNewsLine,
+  RiMessage3Fill,
+  RiMessage3Line,
+  RiMoneyDollarCircleFill,
+  RiMoneyDollarCircleLine,
   RiUser4Fill,
   RiUser4Line,
 } from "react-icons/ri";
@@ -31,9 +33,9 @@ const Navbar = () => {
             } flex flex-row items-center justify-center text-sm  gap-2`}
             icon={
               pathname.startsWith("/news") ? (
-                <RiNewsFill size={16} />
+                <RiMessage3Fill size={16} />
               ) : (
-                <RiNewsLine size={16} />
+                <RiMessage3Line size={16} />
               )
             }
             title="News"
@@ -47,12 +49,28 @@ const Navbar = () => {
             } flex flex-row items-center justify-center text-sm  gap-2`}
             icon={
               pathname.startsWith("/promotions") ? (
-                <RiCouponFill size={16} />
+                <RiMoneyDollarCircleFill size={16} />
               ) : (
-                <RiCouponLine size={16} />
+                <RiMoneyDollarCircleLine size={16} />
               )
             }
             title="Promotions"
+          />
+          <LinkButton
+            to="/company"
+            style={`${
+              pathname.startsWith("/company")
+                ? "font-semibold text-[#1d2087]"
+                : "font-normal"
+            } flex flex-row items-center justify-center text-sm  gap-2`}
+            icon={
+              pathname.startsWith("/company") ? (
+                <RiAppsFill size={16} />
+              ) : (
+                <RiAppsLine size={16} />
+              )
+            }
+            title="Company"
           />
           <LinkButton
             to="/users"
@@ -98,9 +116,9 @@ const Navbar = () => {
             } flex flex-row items-center justify-center text-sm  gap-2`}
             icon={
               pathname.startsWith("/news") ? (
-                <RiNewsFill size={16} />
+                <RiMessage3Fill size={16} />
               ) : (
-                <RiNewsLine size={16} />
+                <RiMessage3Line size={16} />
               )
             }
             title="News"
@@ -114,12 +132,28 @@ const Navbar = () => {
             } flex flex-row items-center justify-center text-sm  gap-2`}
             icon={
               pathname.startsWith("/promotions") ? (
-                <RiCouponFill size={16} />
+                <RiMoneyDollarCircleFill size={16} />
               ) : (
-                <RiCouponLine size={16} />
+                <RiMoneyDollarCircleLine size={16} />
               )
             }
             title="Promotions"
+          />
+          <LinkButton
+            to="/company"
+            style={`${
+              pathname.startsWith("/company")
+                ? "font-semibold text-[#1d2087]"
+                : "font-normal"
+            } flex flex-row items-center justify-center text-sm  gap-2`}
+            icon={
+              pathname.startsWith("/company") ? (
+                <RiAppsFill size={16} />
+              ) : (
+                <RiAppsLine size={16} />
+              )
+            }
+            title="Company"
           />
           <LinkButton
             to="/users"

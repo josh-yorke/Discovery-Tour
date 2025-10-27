@@ -7,9 +7,15 @@ interface Props {
   setValue: UseFormSetValue<any>;
   error: string | undefined;
   initialFiles?: File[];
+  disabled: boolean;
 }
 
-const ImageInput = ({ setValue, error, initialFiles = [] }: Props) => {
+const ImageInput = ({
+  disabled,
+  setValue,
+  error,
+  initialFiles = [],
+}: Props) => {
   const [previewFiles, setPreviewFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
@@ -91,6 +97,7 @@ const ImageInput = ({ setValue, error, initialFiles = [] }: Props) => {
         accept="image/*"
         onChange={handleImageChange}
         className="text-sm font-normal px-6 py-3 bg-black/5 rounded-lg"
+        disabled={disabled}
       />
 
       <div className="flex flex-wrap gap-4 mt-4">
@@ -101,13 +108,15 @@ const ImageInput = ({ setValue, error, initialFiles = [] }: Props) => {
               alt={`preview-${index}`}
               className="w-[200px] h-[200px] object-cover object-center rounded-2xl"
             />
-            <button
-              type="button"
-              onClick={() => handleRemove(index)}
-              className="absolute top-4 right-4 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-            >
-              <RiCloseLine size={16} />
-            </button>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => handleRemove(index)}
+                className="absolute top-4 right-4 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+              >
+                <RiCloseLine size={16} />
+              </button>
+            )}
           </div>
         ))}
       </div>

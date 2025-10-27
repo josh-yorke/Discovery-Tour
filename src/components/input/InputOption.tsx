@@ -2,9 +2,16 @@ interface OptionProps {
   options: string[];
   style: string;
   title: string;
+  disabled: boolean;
 }
 
-const InputOption = ({ options, title, style, ...props }: OptionProps) => {
+const InputOption = ({
+  disabled,
+  options,
+  title,
+  style,
+  ...props
+}: OptionProps) => {
   return (
     <div className="w-full flex flex-col items-start justify-center gap-2">
       <p className="text-sm font-semibold">{title}</p>
@@ -12,6 +19,7 @@ const InputOption = ({ options, title, style, ...props }: OptionProps) => {
         <select
           className=" text-xs font-normal outline-none capitalize w-full"
           {...props}
+          disabled={disabled}
         >
           {options.map((option: string, id) => (
             <option value={option} key={id}>

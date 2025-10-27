@@ -44,6 +44,7 @@ const VerifyEmail = ({ message, action, code, onVerify }: ModalProps) => {
           <RiChatCheckFill size={40} className="text-[#1d2087]" />
           <p>{message}</p>
           <Input
+            disabled={false}
             title="Code"
             type="text"
             placeholder="verification code"
@@ -51,6 +52,7 @@ const VerifyEmail = ({ message, action, code, onVerify }: ModalProps) => {
             error={errors.codeInput?.message || ""}
           />
           <Button
+            isLoading={false}
             title="Verify"
             style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300"
           />
