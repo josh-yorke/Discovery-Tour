@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import Navbar from "../../components/nav/Navbar";
+import { useNavigate } from "react-router";
 import { getDetails } from "../../hooks/company/getDetails";
+import { RiAddLine } from "react-icons/ri";
+import ViewAwards from "../../components/company/view/ViewAwards";
 import PageError from "../../components/error/PageError";
 import PageLoader from "../../components/loader/PageLoader";
-import View from "../../components/company/view/View";
 import IconButton from "../../components/button/IconButton";
-import { RiPencilLine } from "react-icons/ri";
-import { useNavigate } from "react-router";
+import Navbar from "../../components/nav/Navbar";
 
-const Company = () => {
+const Awards = () => {
   const navigate = useNavigate();
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["company"],
@@ -21,14 +21,12 @@ const Company = () => {
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] px-6 py-12 gap-12">
         <div className="w-full flex flex-col items-center justify-center gap-2">
-          <p className="text-md font-semibold text-[#1d2087]">
-            Manage Company Details
-          </p>
+          <p className="text-md font-semibold text-[#1d2087]">Manage Awards</p>
           <IconButton
-            action={() => navigate("/company/edit")}
-            title="Edit Details"
+            action={() => navigate("/company/awards/edit")}
+            title="Add Award"
             style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white p-3 rounded-lg"
-            icon={<RiPencilLine size={16} />}
+            icon={<RiAddLine size={16} />}
           />
         </div>
         {isError ? (
@@ -38,14 +36,7 @@ const Company = () => {
         ) : (
           data && (
             <>
-              <View
-                name={data.name}
-                tagline={data.tagline}
-                about={data.about}
-                mission={data.mission}
-                vision={data.vision}
-                coreValues={data.coreValues}
-              />
+              <ViewAwards awards={data.awards} />
             </>
           )
         )}
@@ -54,4 +45,4 @@ const Company = () => {
   );
 };
 
-export default Company;
+export default Awards;

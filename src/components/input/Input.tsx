@@ -19,7 +19,7 @@ const Input = ({
       <p className="font-semibold capitalize">{title}</p>
       <input
         type={type}
-        className="w-full bg-black/5 px-6 py-3 outline-none rounded-lg font-normal"
+        className="w-full bg-white px-6 py-3 outline-none rounded-lg font-normal"
         placeholder={placeholder}
         {...props}
         disabled={disabled}

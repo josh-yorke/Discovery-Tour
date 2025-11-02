@@ -124,6 +124,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
           />
           <TagsInput error={errors.tags?.[0]?.message || ""} disabled={false} />
           <ImageInput
+            title="images"
             disabled={false}
             initialFiles={images}
             register={register}

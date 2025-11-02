@@ -16,7 +16,7 @@ const PasswordInput = ({ title, placeholder, error, ...props }: InputData) => {
       <div className="w-full relative flex items-center justify-center">
         <input
           type={type ? "password" : "text"}
-          className="w-full bg-black/5 px-6 py-3 outline-none rounded-lg font-normal"
+          className="w-full bg-white px-6 py-3 outline-none rounded-lg font-normal"
           placeholder={placeholder}
           {...props}
         />

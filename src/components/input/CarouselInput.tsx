@@ -11,7 +11,7 @@ interface Props {
   title: string;
 }
 
-const ImageInput = ({
+const CarouselInput = ({
   title,
   disabled,
   setValue,
@@ -29,7 +29,7 @@ const ImageInput = ({
 
       const dataTransfer = new DataTransfer();
       initialFiles.forEach((file) => dataTransfer.items.add(file));
-      setValue("images", dataTransfer.files);
+      setValue("carousel", dataTransfer.files, { shouldValidate: true });
     }
   }, [initialFiles, setValue]);
 
@@ -38,18 +38,16 @@ const ImageInput = ({
     if (!files) return;
 
     const allowedPattern = /^[a-zA-Z0-9._-]+$/;
-
     const validFiles: File[] = [];
     const invalidFiles: string[] = [];
 
     Array.from(files).forEach((file) => {
-      const fileName = file.name;
       const baseName =
-        fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+        file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
       if (allowedPattern.test(baseName)) {
         validFiles.push(file);
       } else {
-        invalidFiles.push(fileName);
+        invalidFiles.push(file.name);
       }
     });
 
@@ -63,16 +61,19 @@ const ImageInput = ({
 
     if (validFiles.length === 0) return;
 
-    const newUrls = validFiles.map((file) => URL.createObjectURL(file));
     const updatedFiles = [...previewFiles, ...validFiles];
-    const updatedUrls = [...previewUrls, ...newUrls];
+    const updatedUrls = [
+      ...previewUrls,
+      ...validFiles.map((file) => URL.createObjectURL(file)),
+    ];
 
     setPreviewFiles(updatedFiles);
     setPreviewUrls(updatedUrls);
 
+    // update the 'carousel' field
     const dataTransfer = new DataTransfer();
     updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    setValue("images", dataTransfer.files);
+    setValue("carousel", dataTransfer.files, { shouldValidate: true });
   };
 
   const handleRemove = (index: number) => {
@@ -87,7 +88,7 @@ const ImageInput = ({
 
     const dataTransfer = new DataTransfer();
     updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    setValue("images", dataTransfer.files);
+    setValue("carousel", dataTransfer.files, { shouldValidate: true });
   };
 
   return (
@@ -127,4 +128,4 @@ const ImageInput = ({
   );
 };
 
-export default ImageInput;
+export default CarouselInput;

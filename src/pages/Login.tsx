@@ -45,10 +45,11 @@ const Login = () => {
         <Hero />
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="min-h-[80vh] lg:h-full w-full lg:w-[600px] flex flex-col items-center justify-center p-12 gap-4"
+          className="min-h-[80vh] lg:h-full w-full lg:w-[600px] flex flex-col items-center justify-center p-12 gap-4 bg-gray-100"
         >
           <Header />
           <Input
+            disabled={false}
             type="text"
             placeholder="enter you e-mail"
             title="e-mail"

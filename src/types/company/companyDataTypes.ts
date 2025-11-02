@@ -1,14 +1,19 @@
 import z from "zod";
 
-const companyDataSchema = z.object({
-  _id: z.string(),
+export const companyDetailSchema = z.object({
   name: z.string(),
   tagline: z.string(),
   about: z.string(),
-  carousel: z.array(z.string()),
   mission: z.string(),
   vision: z.string(),
   coreValues: z.string(),
+});
+
+export const companyCarouselSchema = z.object({
+  carousel: z.array(z.string()),
+});
+
+export const companyServicesSchema = z.object({
   services: z.array(
     z.object({
       title: z.string(),
@@ -17,6 +22,9 @@ const companyDataSchema = z.object({
       _id: z.string(),
     })
   ),
+});
+
+export const companyAwardsSchema = z.object({
   awards: z.array(
     z.object({
       date: z.string().datetime(),
@@ -25,6 +33,9 @@ const companyDataSchema = z.object({
       _id: z.string(),
     })
   ),
+});
+
+export const companyBranchesSchema = z.object({
   branches: z.array(
     z.object({
       contact: z.object({
@@ -46,4 +57,8 @@ const companyDataSchema = z.object({
   ),
 });
 
-export type companyData = z.infer<typeof companyDataSchema>;
+export type companyDetail = z.infer<typeof companyDetailSchema>;
+export type companyCarousel = z.infer<typeof companyCarouselSchema>;
+export type companyServices = z.infer<typeof companyServicesSchema>;
+export type companyAwards = z.infer<typeof companyAwardsSchema>;
+export type companyBranches = z.infer<typeof companyBranchesSchema>;

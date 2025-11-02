@@ -12,8 +12,9 @@ import {
 } from "react-icons/ri";
 import LinkButton from "./LinkButton";
 import LogoutButton from "../button/LogoutButton";
-import { useLocation } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import { useState } from "react";
+import HoverLink from "./HoverLink";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -22,7 +23,9 @@ const Navbar = () => {
   return (
     <>
       <div className="sticky top-0 left-0 w-full flex flex-row items-center justify-between px-6 py-4 shadow-black/10 shadow-2xl bg-white z-30">
-        <img src="/logo.png" alt="/" />
+        <NavLink to={"/dashboard"}>
+          <img src="/logo.png" alt="/" />
+        </NavLink>
         <div className="hidden lg:flex flex-row items-center justify-center gap-6">
           <LinkButton
             to="/news"
@@ -56,7 +59,8 @@ const Navbar = () => {
             }
             title="Promotions"
           />
-          <LinkButton
+          <HoverLink
+            options={["details", "carousel", "services", "awards", "branches"]}
             to="/company"
             style={`${
               pathname.startsWith("/company")
@@ -72,6 +76,7 @@ const Navbar = () => {
             }
             title="Company"
           />
+
           <LinkButton
             to="/users"
             style={`${

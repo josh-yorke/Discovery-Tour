@@ -19,6 +19,16 @@ import AddPromotion from "./pages/promotions/add/AddPromotion";
 import EditPromotion from "./pages/promotions/edit/EditPromotion";
 import ViewPromotion from "./pages/promotions/view/ViewPromotion";
 import Company from "./pages/company/Company";
+import EditCompany from "./pages/company/edit/EditCompany";
+import Carousel from "./pages/company/Carousel";
+import Services from "./pages/company/Services";
+import Awards from "./pages/company/Awards";
+import Branches from "./pages/company/Branches";
+import EditBranches from "./pages/company/edit/EditBranches";
+import AddBranches from "./pages/company/add/AddBranches";
+import AddServices from "./pages/company/add/AddServices";
+import EditServices from "./pages/company/edit/EditServices";
+import EditCarousel from "./pages/company/edit/EditCarousel";
 
 const router = createBrowserRouter([
   {
@@ -131,10 +141,90 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/company",
+    path: "/company/details",
     element: (
       <RouteProtection>
         <Company />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/carousel",
+    element: (
+      <RouteProtection>
+        <Carousel />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/carousel/edit",
+    element: (
+      <RouteProtection>
+        <EditCarousel />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/services",
+    element: (
+      <RouteProtection>
+        <Services />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/services/add",
+    element: (
+      <RouteProtection>
+        <AddServices />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/services/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditServices />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/awards",
+    element: (
+      <RouteProtection>
+        <Awards />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/branches",
+    element: (
+      <RouteProtection>
+        <Branches />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/branches/add",
+    element: (
+      <RouteProtection>
+        <AddBranches />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/branches/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditBranches />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/edit",
+    element: (
+      <RouteProtection>
+        <EditCompany />
       </RouteProtection>
     ),
   },

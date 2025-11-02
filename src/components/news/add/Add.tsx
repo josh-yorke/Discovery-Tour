@@ -117,6 +117,7 @@ const Add = () => {
               disabled={false}
             />
             <ImageInput
+              title="Images"
               disabled={false}
               register={register}
               setValue={setValue}
