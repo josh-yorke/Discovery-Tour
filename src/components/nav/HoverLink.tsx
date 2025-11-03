@@ -17,7 +17,7 @@ const HoverLink = ({ to, style, icon, title, options }: NavProps) => {
         {icon}
         <p>{title}</p>
       </NavLink>
-      <div className="hidden absolute top-5 group-hover:flex flex-col bg-white p-4 gap-4 rounded-lg line-clamp-1 shadow-xl shadow-black/10">
+      <div className="hidden absolute top-5 group-hover:flex flex-col bg-white p-4 gap-4 rounded-lg line-clamp-1 shadow-xl shadow-black/10 items-center justify-center">
         {options.map((option: string, id) => (
           <NavLink
             key={id}

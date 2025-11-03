@@ -3,18 +3,16 @@ import AwardCard from "../../cards/AwardCard";
 
 const ViewAwards = ({ awards }: companyAwards) => {
   return (
-    <div className="w-full flex flex-col gap-2">
-      <div className="w-full flex flex-row gap-4">
-        {awards.map((award) => (
-          <AwardCard
-            key={award._id}
-            url={award.images}
-            description={award.description}
-            style="h-[40vh] max-w-full min-w-full md:max-w-[40vw] md:min-w-[40vw] rounded-lg"
-            date={award.date}
-          />
-        ))}
-      </div>
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {awards.map((award) => (
+        <AwardCard
+          key={award._id}
+          url={award.images}
+          description={award.description}
+          style="h-[40vh] w-full rounded-lg"
+          date={award.date}
+        />
+      ))}
     </div>
   );
 };

@@ -19,7 +19,7 @@ const Carousel = () => {
   return (
     <>
       <Navbar />
-      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] px-6 py-12 gap-12">
+      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] py-12 gap-12">
         <div className="w-full flex flex-col items-center justify-center gap-2">
           <p className="text-md font-semibold text-[#1d2087]">
             Manage Carousel
