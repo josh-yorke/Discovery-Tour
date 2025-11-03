@@ -2,6 +2,7 @@ import {
   RiFacebookFill,
   RiInstagramFill,
   RiLinkedinFill,
+  RiMapFill,
   RiTwitterFill,
   RiYoutubeFill,
 } from "react-icons/ri";
@@ -10,6 +11,7 @@ import type { JSX } from "react";
 
 interface SocialProps {
   socials: companyBranches["branches"][number]["socials"];
+  mapLink: companyBranches["branches"][number]["contact"]["mapLink"];
 }
 
 const iconMap: Record<string, JSX.Element> = {
@@ -20,7 +22,7 @@ const iconMap: Record<string, JSX.Element> = {
   youtube: <RiYoutubeFill size={16} color="white" />,
 };
 
-const SocialButton = ({ socials }: SocialProps) => {
+const SocialButton = ({ socials, mapLink }: SocialProps) => {
   return (
     <div className="w-full flex flex-row items-center justify-center gap-2">
       {Object.entries(socials).map(([social, value]) => {
@@ -36,6 +38,12 @@ const SocialButton = ({ socials }: SocialProps) => {
           </div>
         );
       })}
+      <div
+        className="p-2 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
+        onClick={() => window.open(mapLink)}
+      >
+        <RiMapFill size={16} color="white" />
+      </div>
     </div>
   );
 };

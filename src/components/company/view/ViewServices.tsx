@@ -1,5 +1,5 @@
 import {
-  RiDeleteBin4Line,
+  RiDeleteBin4Fill,
   RiPencilLine,
   RiSuitcase2Fill,
 } from "react-icons/ri";
@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getDetails } from "../../../hooks/company/getDetails";
 import { addBranch } from "../../../hooks/company/addBranch";
 import PageLoader from "../../loader/PageLoader";
+import IconButton from "../../button/IconButton";
 
 interface Service {
   _id?: string;
@@ -25,7 +26,7 @@ const ViewServices = ({ services }: companyServices) => {
     queryFn: getDetails,
   });
 
-  const handleDeleteBranch = (id: string) => {
+  const handleDeleteService = (id: string) => {
     if (!companyData) return;
 
     const updatedServices = (companyData.services || []).filter(
@@ -62,7 +63,7 @@ const ViewServices = ({ services }: companyServices) => {
             key={service._id}
           >
             <div className="p-3 rounded-full bg-black/10">
-              <RiSuitcase2Fill size={16} color="1d2087" />
+              <RiSuitcase2Fill size={24} color="1d2087" />
             </div>
             <div className="w-full flex flex-col gap-2 items-center justify-center">
               <p className="text-md font-semibold text-[#1d2087]">
@@ -73,19 +74,18 @@ const ViewServices = ({ services }: companyServices) => {
               </p>
             </div>
             <div className="flex flex-row gap-2">
-              <RiPencilLine
-                size={16}
-                color="black"
-                className="cursor-pointer"
-                onClick={() =>
-                  navigate(`/company/services/edit/${service._id}`)
-                }
+              <IconButton
+                icon={<RiPencilLine size={16} color="white" />}
+                title="Edit"
+                style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                action={() => navigate(`/company/services/edit/${service._id}`)}
               />
-              <RiDeleteBin4Line
-                size={16}
-                color="black"
-                className="cursor-pointer"
-                onClick={() => handleDeleteBranch(service._id)}
+
+              <IconButton
+                icon={<RiDeleteBin4Fill size={16} color="white" />}
+                title="Delete"
+                style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                action={() => handleDeleteService(service._id)}
               />
             </div>
           </div>

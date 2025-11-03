@@ -1,4 +1,4 @@
-import { RiDeleteBin4Line, RiPencilLine } from "react-icons/ri";
+import { RiDeleteBin4Fill, RiPencilLine } from "react-icons/ri";
 import type { companyBranches } from "../../../types/company/companyDataTypes";
 import SocialButton from "../../cards/SocialButton";
 import { useNavigate } from "react-router";
@@ -7,6 +7,7 @@ import { getDetails } from "../../../hooks/company/getDetails";
 import { addBranch } from "../../../hooks/company/addBranch";
 import PageLoader from "../../loader/PageLoader";
 import Modal from "../../modal/Modal";
+import IconButton from "../../button/IconButton";
 
 interface Branch {
   _id?: string;
@@ -76,9 +77,26 @@ const ViewBranches = ({ branches }: companyBranches) => {
               }}
             >
               <div className="w-full flex flex-col items-center justify-center gap-4 p-6 bg-gradient-to-tr from-white to-white/20">
-                <p className="text-md font-semibold text-center uppercase">
+                <p className="text-md font-bold text-center uppercase text-[#1d2087]">
                   {branch.branchName}
                 </p>
+                <div className="flex flex-row gap-2">
+                  <IconButton
+                    icon={<RiPencilLine size={16} color="white" />}
+                    title="Edit"
+                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                    action={() =>
+                      navigate(`/company/branches/edit/${branch._id}`)
+                    }
+                  />
+
+                  <IconButton
+                    icon={<RiDeleteBin4Fill size={16} color="white" />}
+                    title="Delete"
+                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                    action={() => handleDeleteBranch(branch._id)}
+                  />
+                </div>
                 <div className="w-full flex flex-col">
                   <p className="text-sm font-normal text-center">
                     Email: {branch.contact.email}
@@ -90,29 +108,10 @@ const ViewBranches = ({ branches }: companyBranches) => {
                     Address: {branch.contact.address}
                   </p>
                 </div>
-                <SocialButton socials={branch.socials} />
-                <div
-                  className="px-4 py-2 rounded-lg bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-sm font-normal text-white cursor-pointer"
-                  onClick={() => window.open(branch.contact.mapLink)}
-                >
-                  Directions
-                </div>
-                <div className="flex flex-row gap-2">
-                  <RiPencilLine
-                    size={16}
-                    color="black"
-                    className="cursor-pointer"
-                    onClick={() =>
-                      navigate(`/company/branches/edit/${branch._id}`)
-                    }
-                  />
-                  <RiDeleteBin4Line
-                    size={16}
-                    color="black"
-                    className="cursor-pointer"
-                    onClick={() => handleDeleteBranch(branch._id)}
-                  />
-                </div>
+                <SocialButton
+                  socials={branch.socials}
+                  mapLink={branch.contact.mapLink}
+                />
               </div>
             </div>
           ))}
