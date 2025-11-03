@@ -40,5 +40,26 @@ export const addServiceSchema = z.object({
   ),
 });
 
+export const addAwardSchema = z.object({
+  name: z.string().min(1, "Company name is required"),
+  about: z.string().min(1, "About is required"),
+  mission: z.string().min(1, "Mission is required"),
+  vision: z.string().min(1, "Vision is required"),
+  coreValues: z.string().min(1, "Core values is required"),
+  awards: z.array(
+    z.object({
+      date: z.string().min(1, "award date is required"),
+      images: z
+        .any()
+        .refine(
+          (value) => value instanceof FileList && value.length > 0,
+          "At least one image is required"
+        ),
+      description: z.string().min(5, "award description is required"),
+    })
+  ),
+});
+
 export type addBranchData = z.infer<typeof addBranchSchema>;
 export type addServiceData = z.infer<typeof addServiceSchema>;
+export type addAwardData = z.infer<typeof addAwardSchema>;

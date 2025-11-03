@@ -23,7 +23,7 @@ const Awards = () => {
         <div className="w-full flex flex-col items-center justify-center gap-2">
           <p className="text-md font-semibold text-[#1d2087]">Manage Awards</p>
           <IconButton
-            action={() => navigate("/company/awards/edit")}
+            action={() => navigate("/company/awards/add")}
             title="Add Award"
             style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white p-3 rounded-lg"
             icon={<RiAddLine size={16} />}

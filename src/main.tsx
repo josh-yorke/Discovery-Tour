@@ -29,6 +29,7 @@ import AddBranches from "./pages/company/add/AddBranches";
 import AddServices from "./pages/company/add/AddServices";
 import EditServices from "./pages/company/edit/EditServices";
 import EditCarousel from "./pages/company/edit/EditCarousel";
+import AddAwards from "./pages/company/add/AddAwards";
 
 const router = createBrowserRouter([
   {
@@ -193,6 +194,14 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <Awards />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/awards/add",
+    element: (
+      <RouteProtection>
+        <AddAwards />
       </RouteProtection>
     ),
   },
