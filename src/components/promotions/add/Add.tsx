@@ -85,7 +85,7 @@ const Add = () => {
           onSubmit={handleSubmit(onSubmit, (err) => {
             console.log(err);
           })}
-          className="w-full flex flex-col items-center justify-center p-6 gap-6"
+          className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
             <Input
@@ -105,7 +105,7 @@ const Add = () => {
             />
             <InputOption
               disabled={false}
-              style="bg-black/6 w-full"
+              style="bg-white w-full"
               title="Status"
               options={["published", "draft"]}
               {...register("status")}
@@ -115,6 +115,7 @@ const Add = () => {
               disabled={false}
             />
             <ImageInput
+              title="Images"
               disabled={false}
               register={register}
               setValue={setValue}

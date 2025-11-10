@@ -22,7 +22,7 @@ const View = ({
 }: ViewProps) => {
   return (
     <>
-      <div className="w-full flex flex-col gap-12">
+      <div className="w-full flex flex-col gap-12 ">
         <div className="w-full flex flex-col items-start justify-center gap-2">
           <TitleText style="" title={title} />
           <div className="w-full flex flex-row gap-2">

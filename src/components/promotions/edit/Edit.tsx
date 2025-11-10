@@ -97,7 +97,7 @@ const Edit = ({ id, tags, title, contents, images }: EditInputsProps) => {
           onSubmit={handleSubmit(onSubmit, (err) => {
             console.log(err);
           })}
-          className="w-full flex flex-col items-center justify-center p-6 gap-6"
+          className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <Input
             disabled={false}
@@ -119,7 +119,7 @@ const Edit = ({ id, tags, title, contents, images }: EditInputsProps) => {
             disabled={false}
             options={["draft", "published"]}
             {...register("status")}
-            style="w-full bg-black/6"
+            style="w-full bg-white"
             title="Status"
           />
           <TagsInput error={errors.tags?.[0]?.message || ""} disabled={false} />

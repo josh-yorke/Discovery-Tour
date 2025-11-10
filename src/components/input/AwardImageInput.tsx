@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { RiCloseLine } from "react-icons/ri";
 
 interface Props {
+  name: string;
   register: UseFormRegister<any>;
   setValue: UseFormSetValue<any>;
   error: string | undefined;
@@ -11,7 +12,8 @@ interface Props {
   title: string;
 }
 
-const CarouselInput = ({
+const AwardImageInput = ({
+  name,
   title,
   disabled,
   setValue,
@@ -29,25 +31,30 @@ const CarouselInput = ({
 
       const dataTransfer = new DataTransfer();
       initialFiles.forEach((file) => dataTransfer.items.add(file));
-      setValue("carousel", dataTransfer.files, { shouldValidate: true });
+      setValue(name, dataTransfer.files, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
     }
-  }, [initialFiles, setValue]);
+  }, [initialFiles, setValue, name]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const allowedPattern = /^[a-zA-Z0-9._-]+$/;
+
     const validFiles: File[] = [];
     const invalidFiles: string[] = [];
 
     Array.from(files).forEach((file) => {
+      const fileName = file.name;
       const baseName =
-        file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+        fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
       if (allowedPattern.test(baseName)) {
         validFiles.push(file);
       } else {
-        invalidFiles.push(file.name);
+        invalidFiles.push(fileName);
       }
     });
 
@@ -61,35 +68,51 @@ const CarouselInput = ({
 
     if (validFiles.length === 0) return;
 
-    const updatedFiles = [...previewFiles, ...validFiles];
-    const updatedUrls = [
-      ...previewUrls,
-      ...validFiles.map((file) => URL.createObjectURL(file)),
-    ];
+    // Create new arrays with the selected files (don't append to existing)
+    const newUrls = validFiles.map((file) => URL.createObjectURL(file));
 
-    setPreviewFiles(updatedFiles);
-    setPreviewUrls(updatedUrls);
+    // Set the new files (replace existing ones)
+    setPreviewFiles(validFiles);
+    setPreviewUrls(newUrls);
 
-    // update the 'carousel' field
+    // Create DataTransfer with ONLY the new files
     const dataTransfer = new DataTransfer();
-    updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    setValue("carousel", dataTransfer.files, { shouldValidate: true });
+    validFiles.forEach((file) => dataTransfer.items.add(file));
+
+    console.log("Setting files to form:", validFiles.length, "files");
+    setValue(name, dataTransfer.files, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    // Clean up previous URLs if any
+    previewUrls.forEach((url) => URL.revokeObjectURL(url));
   };
 
   const handleRemove = (index: number) => {
-    const updatedFiles = [...previewFiles];
-    const updatedUrls = [...previewUrls];
-
-    updatedFiles.splice(index, 1);
-    updatedUrls.splice(index, 1);
+    const updatedFiles = previewFiles.filter((_, i) => i !== index);
+    const updatedUrls = previewUrls.filter((_, i) => i !== index);
 
     setPreviewFiles(updatedFiles);
     setPreviewUrls(updatedUrls);
 
     const dataTransfer = new DataTransfer();
     updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    setValue("carousel", dataTransfer.files, { shouldValidate: true });
+    setValue(name, dataTransfer.files, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    // Clean up the removed URL
+    URL.revokeObjectURL(previewUrls[index]);
   };
+
+  // Clean up URLs on unmount
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -102,6 +125,14 @@ const CarouselInput = ({
         className="text-sm font-normal px-6 py-3 bg-white rounded-lg"
         disabled={disabled}
       />
+
+      {previewFiles.length > 0 && (
+        <div className="mt-2">
+          <p className="text-sm text-gray-600">
+            Selected files: {previewFiles.length}
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-4 mt-4">
         {previewUrls.map((url, index) => (
@@ -128,4 +159,4 @@ const CarouselInput = ({
   );
 };
 
-export default CarouselInput;
+export default AwardImageInput;

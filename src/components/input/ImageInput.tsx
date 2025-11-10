@@ -31,6 +31,7 @@ const ImageInput = ({
       initialFiles.forEach((file) => dataTransfer.items.add(file));
       setValue("images", dataTransfer.files);
     }
+    console.log(initialFiles);
   }, [initialFiles, setValue]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +99,7 @@ const ImageInput = ({
         multiple
         accept="image/*"
         onChange={handleImageChange}
-        className="text-sm font-normal px-6 py-3 bg-black/5 rounded-lg"
+        className="text-sm font-normal px-6 py-3 bg-white rounded-lg"
         disabled={disabled}
       />
 

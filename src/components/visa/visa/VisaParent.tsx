@@ -1,25 +1,25 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { newsData } from "../../types/news/newsDataTypes";
-import PageLoader from "../loader/PageLoader";
+import VisaCard from "./VisaCard";
 import { useState } from "react";
-import NewsCard from "../cards/NewsCard";
-import { deleteNews } from "../../hooks/news/deleteNews";
-import Modal from "../modal/Modal";
+import type { visaData } from "../../../types/visa/visaDataTypes";
+import PageLoader from "../../loader/PageLoader";
+import { deleteVisa } from "../../../hooks/visa/visa/deleteVisa";
+import Modal from "../../modal/Modal";
 
 interface ParentProps {
-  news: newsData[];
+  visas: visaData[];
   isLoading: boolean;
 }
 
-const NewsParent = ({ news, isLoading }: ParentProps) => {
+const VisaParent = ({ visas, isLoading }: ParentProps) => {
   const queryClient = useQueryClient();
   const [modal, showModal] = useState(false);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNews(id),
+    mutationFn: (id: string) => deleteVisa(id),
     onSuccess: () => {
       showModal(true);
-      queryClient.invalidateQueries({ queryKey: ["news"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
     },
     onError: () => {
       showModal(true);
@@ -27,7 +27,7 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
   });
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this news?")) {
+    if (confirm("Are you sure you want to delete this visa?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -36,20 +36,17 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
 
   return (
     <>
-      {news && news.length > 0 ? (
+      {visas && visas.length > 0 ? (
         <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {news.map((news: newsData) => (
-            <NewsCard
-              key={news._id}
-              images={news.images}
-              id={news._id}
-              title={news.title}
-              tags={news.tags}
-              contents={news.contents}
-              status={news.status}
-              onDelete={() => {
-                handleDelete(news._id);
-              }}
+          {visas.map((visa: visaData) => (
+            <VisaCard
+              id={visa._id}
+              onDelete={() => handleDelete(visa._id)}
+              key={visa._id}
+              mainDescription={visa.mainDescription}
+              country={visa.country}
+              type={visa.type}
+              images={visa.images}
             />
           ))}
         </div>
@@ -73,4 +70,4 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
   );
 };
 
-export default NewsParent;
+export default VisaParent;

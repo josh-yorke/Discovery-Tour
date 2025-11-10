@@ -78,7 +78,7 @@ const EditSlider = ({
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col items-center justify-center p-6 gap-6"
+        className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
       >
         <CarouselInput
           title="Carousel Images"

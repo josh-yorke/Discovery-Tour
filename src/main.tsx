@@ -30,6 +30,11 @@ import AddServices from "./pages/company/add/AddServices";
 import EditServices from "./pages/company/edit/EditServices";
 import EditCarousel from "./pages/company/edit/EditCarousel";
 import AddAwards from "./pages/company/add/AddAwards";
+import EditAwards from "./pages/company/edit/EditAwards";
+import Visas from "./pages/visa/Visas";
+import AddVisa from "./pages/visa/add/AddVisa";
+import EditVisa from "./pages/visa/edit/EditVisa";
+import ViewVisa from "./pages/visa/view/ViewVisa";
 
 const router = createBrowserRouter([
   {
@@ -206,6 +211,14 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: "/company/awards/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditAwards />
+      </RouteProtection>
+    ),
+  },
+  {
     path: "/company/branches",
     element: (
       <RouteProtection>
@@ -234,6 +247,38 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditCompany />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/visas/visa",
+    element: (
+      <RouteProtection>
+        <Visas />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/visas/visa/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewVisa />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/visas/visa/add",
+    element: (
+      <RouteProtection>
+        <AddVisa />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/visas/visa/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditVisa />
       </RouteProtection>
     ),
   },

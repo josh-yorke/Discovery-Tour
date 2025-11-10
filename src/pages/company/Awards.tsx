@@ -10,6 +10,7 @@ import Navbar from "../../components/nav/Navbar";
 
 const Awards = () => {
   const navigate = useNavigate();
+
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["company"],
     queryFn: () => getDetails(),

@@ -58,7 +58,7 @@ const Add = () => {
     <>
       <form
         onSubmit={handleSubmit(emailSubmit)}
-        className="w-full flex flex-col items-center justify-center p-6 gap-6"
+        className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
       >
         <div className="w-full grid grid-cols-1 gap-4 items-start justify-center">
           <Input
@@ -95,14 +95,14 @@ const Add = () => {
             disabled={false}
             options={["admin", "user"]}
             {...register("role")}
-            style="w-full bg-black/5"
+            style="w-full bg-white"
             title="Role"
           />
           <InputOption
             disabled={false}
             options={["active", "pending"]}
             {...register("status")}
-            style="w-full bg-black/5"
+            style="w-full bg-white"
             title="Status"
           />
           <Button

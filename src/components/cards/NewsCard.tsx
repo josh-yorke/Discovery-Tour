@@ -26,36 +26,38 @@ const NewsCard = ({
   const navigate = useNavigate();
 
   return (
-    <div
-      className="w-full flex flex-col items-center justify-between rounded-xl bg-white overflow-hidden flex-wrap p-4 gap-6"
-      key={id}
-    >
-      <ImageCard url={images} style="h-[30vh] overflow-hidden rounded-lg" />
-      <div className="w-full flex flex-col items-start justify-center gap-2">
-        <LinkText
-          title={title}
-          style="uppercase font-bold"
-          url={`/news/view/${id}`}
-        />
-        <StatusText style="" status={status} textStyle="font-semibold" />
-        <p className="text-sm font-normal line-clamp-2">{contents}</p>
-
-        <div className="w-full flex flex-row items-center justify-end gap-2 pt-6">
-          <IconButton
-            icon={<RiPencilFill size={16} />}
-            title="Edit"
-            action={() => navigate(`/news/edit/${id}`)}
-            style="w-full bg-[#1d2087] hover:bg-[#3b3eac] text-white p-3 rounded-md"
+    <>
+      <div className="w-full flex flex-col items-center justify-center bg-white rounded-lg overflow-hidden shadow-xl shadow-black/10">
+        <div className="relative w-full h-[40vh]">
+          <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
+            <IconButton
+              action={() => navigate(`/news/edit/${id}`)}
+              title=""
+              icon={<RiPencilFill size={16} />}
+              style="bg-white text-[#1d2087] rounded-full p-3 hover:scale-120"
+            />
+            <IconButton
+              action={onDelete}
+              title=""
+              icon={<RiDeleteBin4Fill size={16} />}
+              style="bg-white text-[#1d2087] rounded-full p-3 hover:scale-120"
+            />
+          </div>
+          <ImageCard style="w-full h-full" url={images} />
+        </div>
+        <div className="w-full flex flex-col items-start justify-center p-6 gap-2">
+          <LinkText
+            title={title}
+            style="font-semibold"
+            url={`/news/view/${id}`}
           />
-          <IconButton
-            icon={<RiDeleteBin4Fill size={16} />}
-            title="Delete"
-            action={onDelete}
-            style="w-full bg-gray-200 text-black p-3 rounded-md"
-          />
+          <div className="w-full flex flex-col">
+            <StatusText status={status} style="" textStyle="font-semibold" />
+            <p className="text-xs font-normal line-clamp-2">{`${contents}`}</p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

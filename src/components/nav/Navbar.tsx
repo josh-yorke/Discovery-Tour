@@ -7,6 +7,8 @@ import {
   RiMessage3Line,
   RiMoneyDollarCircleFill,
   RiMoneyDollarCircleLine,
+  RiPassportFill,
+  RiPassportLine,
   RiUser4Fill,
   RiUser4Line,
 } from "react-icons/ri";
@@ -23,12 +25,37 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="w-full flex flex-col items-center justify-center">
-        <div className="sticky top-0 left-0 w-full flex flex-row items-center justify-between px-6 py-4 shadow-black/10 shadow-2xl bg-white z-30">
+      <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30">
+        <div className=" w-full flex flex-row items-center justify-between px-6 py-4 shadow-black/10 shadow-2xl bg-white ">
           <NavLink to={"/dashboard"}>
             <img src="/logo.png" alt="/" />
           </NavLink>
           <div className="hidden lg:flex flex-row items-center justify-center gap-6">
+            <HoverLink
+              options={[
+                "visa",
+                "files",
+                "pricelist",
+                "processes",
+                "terms",
+                "requirements",
+              ]}
+              to="/visas"
+              style={`${
+                pathname.startsWith("/visas")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/visas") ? (
+                  <RiPassportFill size={16} />
+                ) : (
+                  <RiPassportLine size={16} />
+                )
+              }
+              title="Visas"
+            />
+
             <LinkButton
               to="/news"
               style={`${
@@ -125,6 +152,31 @@ const Navbar = () => {
           } fixed top-0 h-[100svh] bg-white w-full z-20 duration-300`}
         >
           <div className="relative w-full h-full flex flex-col items-center justify-center gap-4">
+            <DropdownLink
+              options={[
+                "visa",
+                "files",
+                "pricelist",
+                "processes",
+                "terms",
+                "requirements",
+              ]}
+              to="/visas"
+              style={`${
+                pathname.startsWith("/visas")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/visas") ? (
+                  <RiPassportFill size={16} />
+                ) : (
+                  <RiPassportLine size={16} />
+                )
+              }
+              title="Visas"
+            />
+
             <LinkButton
               to="/news"
               style={`${

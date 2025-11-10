@@ -14,7 +14,7 @@ const IconButton = ({ icon, action, title, style }: IconProps) => {
       onClick={action}
     >
       {icon}
-      <p className="text-xs font-normal">{title}</p>
+      {title && <p className="text-xs font-normal">{title}</p>}
     </button>
   );
 };

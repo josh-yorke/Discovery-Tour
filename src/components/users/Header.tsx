@@ -9,7 +9,7 @@ interface HeaderProps {
 
 const Header = ({ url, title, id }: HeaderProps) => {
   return (
-    <div className="w-full flex flex-row items-center justify-start p-6 gap-4">
+    <div className="w-full flex flex-row items-center justify-start p-6 gap-4 bg-gray-100">
       <NavLink to={url} className="p-2 rounded-full bg-black/10 cursor-pointer">
         <RiArrowLeftLine size={16} />
       </NavLink>
