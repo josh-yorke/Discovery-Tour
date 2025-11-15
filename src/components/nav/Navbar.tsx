@@ -1,6 +1,7 @@
 import {
   RiAppsFill,
   RiAppsLine,
+  RiArrowUpSLine,
   RiCloseFill,
   RiMenuFill,
   RiMessage3Fill,
@@ -42,7 +43,7 @@ const Navbar = () => {
               ]}
               to="/visas"
               style={`${
-                pathname.startsWith("/visas")
+                pathname.startsWith("/visas/")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
@@ -152,103 +153,108 @@ const Navbar = () => {
           } fixed top-0 h-[100svh] bg-white w-full z-20 duration-300`}
         >
           <div className="relative w-full h-full flex flex-col items-center justify-center gap-4">
-            <DropdownLink
-              options={[
-                "visa",
-                "files",
-                "pricelist",
-                "processes",
-                "terms",
-                "requirements",
-              ]}
-              to="/visas"
-              style={`${
-                pathname.startsWith("/visas")
-                  ? "font-semibold text-[#1d2087]"
-                  : "font-normal"
-              } flex flex-row items-center justify-center text-sm  gap-2`}
-              icon={
-                pathname.startsWith("/visas") ? (
-                  <RiPassportFill size={16} />
-                ) : (
-                  <RiPassportLine size={16} />
-                )
-              }
-              title="Visas"
-            />
+            <div className="flex flex-col items-start justify-center gap-4">
+              <DropdownLink
+                options={[
+                  "visa",
+                  "files",
+                  "pricelist",
+                  "processes",
+                  "terms",
+                  "requirements",
+                ]}
+                to="/visas"
+                style={`${
+                  pathname.startsWith("/visas")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/visas") ? (
+                    <RiPassportFill size={16} />
+                  ) : (
+                    <RiPassportLine size={16} />
+                  )
+                }
+                title="Visas"
+              />
 
-            <LinkButton
-              to="/news"
-              style={`${
-                pathname.startsWith("/news")
-                  ? "font-semibold text-[#1d2087]"
-                  : "font-normal"
-              } flex flex-row items-center justify-center text-sm  gap-2`}
-              icon={
-                pathname.startsWith("/news") ? (
-                  <RiMessage3Fill size={16} />
-                ) : (
-                  <RiMessage3Line size={16} />
-                )
-              }
-              title="News"
-            />
-            <LinkButton
-              to="/promotions"
-              style={`${
-                pathname.startsWith("/promotions")
-                  ? "font-semibold text-[#1d2087]"
-                  : "font-normal"
-              } flex flex-row items-center justify-center text-sm  gap-2`}
-              icon={
-                pathname.startsWith("/promotions") ? (
-                  <RiMoneyDollarCircleFill size={16} />
-                ) : (
-                  <RiMoneyDollarCircleLine size={16} />
-                )
-              }
-              title="Promotions"
-            />
-            <DropdownLink
-              options={[
-                "details",
-                "carousel",
-                "services",
-                "awards",
-                "branches",
-              ]}
-              to="/company"
-              style={`${
-                pathname.startsWith("/company")
-                  ? "font-semibold text-[#1d2087]"
-                  : "font-normal"
-              } flex flex-row items-center justify-center text-sm  gap-2`}
-              icon={
-                pathname.startsWith("/company") ? (
-                  <RiAppsFill size={16} />
-                ) : (
-                  <RiAppsLine size={16} />
-                )
-              }
-              title="Company"
-            />
-            <LinkButton
-              to="/users"
-              style={`${
-                pathname.startsWith("/users")
-                  ? "font-semibold text-[#1d2087]"
-                  : "font-normal"
-              } flex flex-row items-center justify-center text-sm  gap-2`}
-              icon={
-                pathname.startsWith("/users") ? (
-                  <RiUser4Fill size={16} />
-                ) : (
-                  <RiUser4Line size={16} />
-                )
-              }
-              title="Users"
-            />
-            <LogoutButton />
+              <LinkButton
+                to="/news"
+                style={`${
+                  pathname.startsWith("/news")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/news") ? (
+                    <RiMessage3Fill size={16} />
+                  ) : (
+                    <RiMessage3Line size={16} />
+                  )
+                }
+                title="News"
+              />
+              <LinkButton
+                to="/promotions"
+                style={`${
+                  pathname.startsWith("/promotions")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/promotions") ? (
+                    <RiMoneyDollarCircleFill size={16} />
+                  ) : (
+                    <RiMoneyDollarCircleLine size={16} />
+                  )
+                }
+                title="Promotions"
+              />
+              <DropdownLink
+                options={[
+                  "details",
+                  "carousel",
+                  "services",
+                  "awards",
+                  "branches",
+                ]}
+                to="/company"
+                style={`${
+                  pathname.startsWith("/company")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/company") ? (
+                    <RiAppsFill size={16} />
+                  ) : (
+                    <RiAppsLine size={16} />
+                  )
+                }
+                title="Company"
+              />
+              <LinkButton
+                to="/users"
+                style={`${
+                  pathname.startsWith("/users")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/users") ? (
+                    <RiUser4Fill size={16} />
+                  ) : (
+                    <RiUser4Line size={16} />
+                  )
+                }
+                title="Users"
+              />
+              <LogoutButton />
+            </div>
+            <div className="absolute bottom-6" onClick={() => showNav(!nav)}>
+              <RiArrowUpSLine size={16} />
+            </div>
           </div>
         </div>
       </div>
