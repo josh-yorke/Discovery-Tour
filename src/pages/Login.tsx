@@ -27,7 +27,7 @@ const Login = () => {
     mutationFn: login,
     onSuccess: () => {
       reset();
-      navigate("/dashboard");
+      navigate("/visas/visa");
     },
     onError: (error) => {
       reset();

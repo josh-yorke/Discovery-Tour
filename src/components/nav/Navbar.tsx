@@ -8,8 +8,6 @@ import {
   RiMessage3Line,
   RiMoneyDollarCircleFill,
   RiMoneyDollarCircleLine,
-  RiPassportFill,
-  RiPassportLine,
   RiSuitcase2Fill,
   RiSuitcase2Line,
   RiUser4Fill,
@@ -146,31 +144,26 @@ const Navbar = () => {
             nav ? "top-0" : "top-[-100%]"
           } fixed top-0 h-[100svh] bg-white w-full z-20 duration-300`}
         >
-          <div className="relative w-full h-full flex flex-col items-center justify-center gap-4">
-            <div className="flex flex-col items-start justify-center gap-4">
-              <DropdownLink
-                options={[
-                  "visa",
-                  "files",
-                  "pricelist",
-                  "processes",
-                  "terms",
-                  "requirements",
-                ]}
-                to="/visas"
+          <div className="relative w-full h-full flex flex-col items-center justify-center gap-4 py-12">
+            <NavLink to={"/dashboard"} className="pb-6">
+              <img src="/logo.png" alt="/" />
+            </NavLink>
+            <div className="flex flex-col items-center justify-center gap-4">
+              <LinkButton
+                to="/visas/visa"
                 style={`${
-                  pathname.startsWith("/visas")
+                  pathname.startsWith("/visas/visa")
                     ? "font-semibold text-[#1d2087]"
                     : "font-normal"
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
-                  pathname.startsWith("/visas") ? (
-                    <RiPassportFill size={16} />
+                  pathname.startsWith("/visas/visa") ? (
+                    <RiSuitcase2Fill size={16} />
                   ) : (
-                    <RiPassportLine size={16} />
+                    <RiSuitcase2Line size={16} />
                   )
                 }
-                title="Visas"
+                title="Visa"
               />
 
               <LinkButton

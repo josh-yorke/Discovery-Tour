@@ -253,7 +253,7 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
                   New file selected: {(currentFile[0] as File).name}
                 </p>
                 <p className="text-xs text-green-600 mt-1">
-                  This will replace the existing process file.
+                  This will replace the existing pricelist file.
                 </p>
                 <button
                   type="button"

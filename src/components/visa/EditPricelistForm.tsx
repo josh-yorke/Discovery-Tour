@@ -32,6 +32,12 @@ interface PricelistFormProps {
 
 const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
   ({ editData, fileData, onDeleteFile, isDeleting }, ref) => {
+    const getCleanFileTitle = (title: string): string => {
+      if (!title) return "";
+      // Remove "process - " prefix if it exists
+      return title.replace(/^process\s*-\s*/i, "");
+    };
+
     // Pricelist file upload form
     const fileMethods = useForm<addVisaFileData>({
       resolver: zodResolver(addVisaFileSchema),
@@ -170,6 +176,10 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
     // Only show existing file if we have fileData AND it has an _id (meaning it exists in the database)
     const showExistingFile = fileData?._id && !currentFile?.length;
 
+    const displayFileTitle = fileData?.fileTitle
+      ? getCleanFileTitle(fileData.fileTitle)
+      : "";
+
     return (
       <div className="w-full flex flex-col items-center justify-center gap-4">
         <div className="w-full flex flex-col gap-4">
@@ -222,32 +232,25 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             {/* Show existing file with delete button - ONLY if there's actually an existing file */}
             {showExistingFile && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-row items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-900">
-                        Current File:
-                      </p>
-                      <p className="text-sm text-red-700 mt-1">
-                        {fileData.fileTitle}
-                      </p>
-                      {fileData.fileTitle && (
-                        <p className="text-xs text-red-600 mt-1">
-                          File: {fileData.fileTitle}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Delete button (permanent deletion only) */}
-                    {onDeleteFile && (
-                      <ActionButton
-                        style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 max-w-[120px]"
-                        action={handleDeleteFile}
-                        isLoading={isDeleting}
-                        title="Delete"
-                      />
-                    )}
+                <div className="flex flex-row items-center justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-900">
+                      Current File:
+                    </p>
+                    <p className="text-sm text-red-700 mt-1">
+                      {displayFileTitle} {/* Use clean title for display */}
+                    </p>
                   </div>
+
+                  {/* Delete button (permanent deletion only) */}
+                  {onDeleteFile && (
+                    <ActionButton
+                      style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 max-w-[120px]"
+                      action={handleDeleteFile}
+                      isLoading={isDeleting}
+                      title="Delete"
+                    />
+                  )}
                 </div>
               </div>
             )}
