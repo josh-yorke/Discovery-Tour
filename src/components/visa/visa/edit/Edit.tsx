@@ -17,6 +17,8 @@ import { getPayment } from "../../../../hooks/visa/payment/getPayment";
 import { getDocument } from "../../../../hooks/visa/document/getDocument";
 import { getProcess } from "../../../../hooks/visa/process/getProcess";
 import { getPricelist } from "../../../../hooks/visa/pricelist/getPriceList";
+import { useState } from "react";
+import Modal from "../../../modal/Modal";
 
 interface EditInputsProps extends editVisaData {
   id: string;
@@ -30,6 +32,7 @@ const Edit = ({
   eligibleApplicants,
   images,
 }: EditInputsProps) => {
+  const [message, showMessage] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -63,11 +66,15 @@ const Edit = ({
 
   const mutation = useMutation<string, Error, { id: string; data: FormData }>({
     mutationFn: ({ id, data }) => updateVisa(id, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      showMessage(data);
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["visas", id] });
       navigate(`/visas/information/edit/${id}`);
       reset();
+    },
+    onError: (error) => {
+      showMessage(error.message);
     },
   });
 
@@ -146,6 +153,18 @@ const Edit = ({
           </div>
         </form>
       </FormProvider>
+      {message && (
+        <Modal
+          message={message}
+          success={mutation.isSuccess}
+          action={() => {
+            showMessage(null);
+            if (mutation.isSuccess) {
+              navigate("/visas/information/add");
+            }
+          }}
+        />
+      )}
     </>
   );
 };

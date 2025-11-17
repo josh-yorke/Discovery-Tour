@@ -12,9 +12,12 @@ import InputOption from "../../../input/InputOption";
 import ImageInput from "../../../input/ImageInput";
 import Button from "../../../button/Button";
 import { addVisa } from "../../../../hooks/visa/visa/addVisa";
+import { useState } from "react";
+import Modal from "../../../modal/Modal";
 
 const Add = () => {
   const queryClient = useQueryClient();
+  const [message, showMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const methods = useForm<addVisaData>({
     resolver: zodResolver(addVisaSchema),
@@ -28,14 +31,21 @@ const Add = () => {
     formState: { errors },
   } = methods;
 
-  const mutation = useMutation<string, Error, FormData>({
+  const mutation = useMutation<
+    { id: string; message: string },
+    Error,
+    FormData
+  >({
     mutationFn: addVisa,
     onSuccess: (data) => {
-      localStorage.setItem("visaId", data);
-
+      localStorage.setItem("visaId", data.id);
+      showMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
-      navigate("/visas/information/add");
+
       reset();
+    },
+    onError: (error) => {
+      showMessage(error.message);
     },
   });
 
@@ -114,6 +124,18 @@ const Add = () => {
           </div>
         </form>
       </FormProvider>
+      {message && (
+        <Modal
+          message={message}
+          success={mutation.isSuccess}
+          action={() => {
+            showMessage(null);
+            if (mutation.isSuccess) {
+              navigate("/visas/information/add");
+            }
+          }}
+        />
+      )}
     </>
   );
 };
