@@ -1,6 +1,6 @@
 import api from "../../axios/axios";
 
-export const addVisaFile = async (data: FormData) => {
+export const addProcess = async (data: FormData) => {
   try {
     const res = await api.post(`/visa-dependents`, data);
 

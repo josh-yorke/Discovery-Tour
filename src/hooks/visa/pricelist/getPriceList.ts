@@ -1,10 +1,10 @@
 import api from "../../axios/axios";
 
-export const getPricelists = async () => {
+export const getPricelist = async (id?: string) => {
   try {
-    const res = await api.get(`/visa-dependents?type=price`);
+    const res = await api.get(`/visa-dependents/?visaId=${id}&type=price`);
     console.log(res);
-    return res.data.data;
+    return res.data.data[0];
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);

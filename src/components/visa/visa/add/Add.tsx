@@ -30,9 +30,11 @@ const Add = () => {
 
   const mutation = useMutation<string, Error, FormData>({
     mutationFn: addVisa,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      localStorage.setItem("visaId", data);
+
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
-      navigate("/visas/visa");
+      navigate("/visas/information/add");
       reset();
     },
   });
@@ -106,7 +108,7 @@ const Add = () => {
             />
             <Button
               isLoading={mutation.isPending}
-              title="Add Visa"
+              title="Add Visa & Proceed to Information"
               style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
             />
           </div>

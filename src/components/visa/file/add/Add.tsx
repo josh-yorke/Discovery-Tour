@@ -28,9 +28,11 @@ const Add = () => {
 
   const mutation = useMutation<string, Error, FormData>({
     mutationFn: addVisaFile,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      localStorage.setItem("fileId", data);
+
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
-      navigate("/visas/files");
+      navigate("/visas/pricelist/add");
       reset();
     },
   });

@@ -24,7 +24,7 @@ const Visas = () => {
 
   const [searchParams, setSearchParams] = useState<visaSearchData>({
     page: 1,
-    country: "",
+    search: "",
   });
 
   const onSubmit = (data: z.input<typeof visaSearchSchema>) => {
@@ -47,13 +47,16 @@ const Visas = () => {
     });
   };
 
+  if (isLoading) return <PageLoader />;
+
   return (
     <>
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] px-6 py-12 gap-12">
         <VisaSearch
-          country={register("country")}
+          search={register("search")}
           action={handleSubmit(onSubmit)}
+          result={data?.visas}
         />
 
         {isError ? (

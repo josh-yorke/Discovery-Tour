@@ -1,10 +1,10 @@
 import api from "../../axios/axios";
 
-export const addVisaFile = async (data: FormData) => {
+export const searchVisa = async (search: string) => {
   try {
-    const res = await api.post(`/visa-dependents`, data);
-
-    return res.data.data._id;
+    const res = await api.get(`/visas?search=${search}`);
+    console.log(res);
+    return res.data.data;
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);

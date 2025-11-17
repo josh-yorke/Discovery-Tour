@@ -1,31 +1,28 @@
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
-import Options from "../Options";
 import IconButton from "../../button/IconButton";
+import SearchInput from "../SearchInput";
 
 interface FormProps {
-  country: UseFormRegisterReturn;
+  search: UseFormRegisterReturn;
   action: () => void;
+  result: any[];
 }
 
-const VisaSearch = ({ action, country }: FormProps) => {
+const VisaSearch = ({ action, search }: FormProps) => {
   const navigate = useNavigate();
 
   return (
     <form
-      className="w-full flex flex-col items-center justify-center gap-4"
+      className="relative w-full flex flex-col items-center justify-center gap-4"
       onSubmit={action}
     >
       <div className="">
         <p className="text-md font-semibold text-[#1d2087]">Manage Visas</p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <Options
-          options={["Japan", "Korea", "Resident"]}
-          {...country}
-          title="Country"
-        />
+        <SearchInput placeholder="search for visas" {...search} />
         <button className="p-3.5 rounded-lg bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer">
           <RiSearchLine size={14} color="white" />
         </button>

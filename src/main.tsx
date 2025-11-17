@@ -35,10 +35,8 @@ import Visas from "./pages/visa/Visas";
 import AddVisa from "./pages/visa/add/AddVisa";
 import EditVisa from "./pages/visa/edit/EditVisa";
 import ViewVisa from "./pages/visa/view/ViewVisa";
-import VisaFiles from "./pages/visa/VisaFiles";
-import AddVisaFile from "./pages/visa/add/AddVisaFile";
-import EditVisaFile from "./pages/visa/edit/EditVisaFile";
-import Pricelist from "./pages/visa/Pricelist";
+import AddInformation from "./pages/visa/add/AddInformation";
+import EditInformation from "./pages/visa/edit/EditInformation";
 
 const router = createBrowserRouter([
   {
@@ -287,34 +285,18 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/visas/files",
+    path: "/visas/information/add",
     element: (
       <RouteProtection>
-        <VisaFiles />
+        <AddInformation />
       </RouteProtection>
     ),
   },
   {
-    path: "/visas/files/add",
+    path: "/visas/information/edit/:id",
     element: (
       <RouteProtection>
-        <AddVisaFile />
-      </RouteProtection>
-    ),
-  },
-  {
-    path: "/visas/files/edit/:id",
-    element: (
-      <RouteProtection>
-        <EditVisaFile />
-      </RouteProtection>
-    ),
-  },
-  {
-    path: "/visas/pricelist/",
-    element: (
-      <RouteProtection>
-        <Pricelist />
+        <EditInformation />
       </RouteProtection>
     ),
   },

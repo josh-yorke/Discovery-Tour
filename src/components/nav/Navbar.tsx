@@ -10,6 +10,8 @@ import {
   RiMoneyDollarCircleLine,
   RiPassportFill,
   RiPassportLine,
+  RiSuitcase2Fill,
+  RiSuitcase2Line,
   RiUser4Fill,
   RiUser4Line,
 } from "react-icons/ri";
@@ -32,29 +34,21 @@ const Navbar = () => {
             <img src="/logo.png" alt="/" />
           </NavLink>
           <div className="hidden lg:flex flex-row items-center justify-center gap-6">
-            <HoverLink
-              options={[
-                "visa",
-                "files",
-                "pricelist",
-                "processes",
-                "terms",
-                "requirements",
-              ]}
-              to="/visas"
+            <LinkButton
+              to="/visas/visa"
               style={`${
-                pathname.startsWith("/visas/")
+                pathname.startsWith("/visas/visa")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
-                pathname.startsWith("/visas") ? (
-                  <RiPassportFill size={16} />
+                pathname.startsWith("/visas/visa") ? (
+                  <RiSuitcase2Fill size={16} />
                 ) : (
-                  <RiPassportLine size={16} />
+                  <RiSuitcase2Line size={16} />
                 )
               }
-              title="Visas"
+              title="Visa"
             />
 
             <LinkButton

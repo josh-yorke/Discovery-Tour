@@ -12,6 +12,11 @@ import ImageInput from "../../../input/ImageInput";
 import TextArea from "../../../input/TextArea";
 import Input from "../../../input/Input";
 import InputOption from "../../../input/InputOption";
+import { getTerm } from "../../../../hooks/visa/terms/getTerm";
+import { getPayment } from "../../../../hooks/visa/payment/getPayment";
+import { getDocument } from "../../../../hooks/visa/document/getDocument";
+import { getProcess } from "../../../../hooks/visa/process/getProcess";
+import { getPricelist } from "../../../../hooks/visa/pricelist/getPriceList";
 
 interface EditInputsProps extends editVisaData {
   id: string;
@@ -49,12 +54,19 @@ const Edit = ({
 
   console.log(images);
 
+  //get data
+  getTerm(id);
+  getPayment(id);
+  getDocument(id);
+  getProcess(id);
+  getPricelist(id);
+
   const mutation = useMutation<string, Error, { id: string; data: FormData }>({
     mutationFn: ({ id, data }) => updateVisa(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["visas", id] });
-      navigate(`/visas/visa`);
+      navigate(`/visas/information/edit/${id}`);
       reset();
     },
   });
@@ -128,7 +140,7 @@ const Edit = ({
             />
             <Button
               isLoading={mutation.isPending}
-              title="Update Visa"
+              title="Update Visa & Proceed to Information"
               style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
             />
           </div>
