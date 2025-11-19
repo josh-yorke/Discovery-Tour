@@ -14,11 +14,13 @@ import Button from "../../../button/Button";
 import { addVisa } from "../../../../hooks/visa/visa/addVisa";
 import { useState } from "react";
 import Modal from "../../../modal/Modal";
+import ActionButton from "../../../button/ActionButton";
 
 const Add = () => {
   const queryClient = useQueryClient();
   const [message, showMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
   const methods = useForm<addVisaData>({
     resolver: zodResolver(addVisaSchema),
   });
@@ -42,6 +44,14 @@ const Add = () => {
       showMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
 
+      if (redirectTo === "information") {
+        navigate(`/visas/information/add`);
+      } else {
+        navigate(`/visas/visa`);
+      }
+
+      reset();
+
       reset();
     },
     onError: (error) => {
@@ -62,6 +72,11 @@ const Add = () => {
     });
 
     mutation.mutate(formData);
+  };
+
+  const handleProceedToInformation = (data: addVisaData) => {
+    setRedirectTo("information");
+    onSubmit(data);
   };
 
   return (
@@ -89,12 +104,11 @@ const Add = () => {
               type="text"
               {...register("type")}
             />
-            <Input
+            <TextArea
               disabled={false}
               error={errors.eligibleApplicants?.message || ""}
               title="Eligible Applicants"
               placeholder="eligible applicants"
-              type="text"
               {...register("eligibleApplicants")}
             />
             <TextArea
@@ -116,11 +130,20 @@ const Add = () => {
                   : ""
               }
             />
-            <Button
-              isLoading={mutation.isPending}
-              title="Add Visa & Proceed to Information"
-              style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
-            />
+            <div className="w-full flex flex-row gap-4">
+              <Button
+                isLoading={mutation.isPending}
+                title="Add Visa"
+                style="bg-white hover:bg-[#f7f9ff] text-[#1d2087] text-sm duration-300 mt-4"
+              />
+
+              <ActionButton
+                action={handleSubmit(handleProceedToInformation)}
+                isLoading={mutation.isPending}
+                title="Add Visa Information"
+                style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 mt-4"
+              />
+            </div>
           </div>
         </form>
       </FormProvider>

@@ -14,7 +14,7 @@ interface FormTabsProps {
 
 const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
   return (
-    <div className="flex flex-row gap-2 mb-6 bg-white rounded-xl p-2">
+    <div className="flex flex-row mb-6 bg-white rounded-xl p-2">
       <button
         type="button"
         onClick={() => setFormType("pricelist")}

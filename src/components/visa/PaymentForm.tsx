@@ -1,111 +1,197 @@
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useImperativeHandle, forwardRef } from "react";
+import { useImperativeHandle, forwardRef, useCallback } from "react";
+import { z } from "zod";
 import {
   addPaymentSchema,
   type addPaymentData,
 } from "../../types/payments/addPaymentTypes";
 import Input from "../input/Input";
 import InputOption from "../input/InputOption";
+import IconButton from "../button/IconButton";
+import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 
 export interface PaymentFormHandle {
   getFormData: () => Promise<{
-    paymentData: addPaymentData;
+    paymentData: addPaymentData[];
   } | null>;
 }
 
+const formSchema = z.object({
+  payments: z.array(addPaymentSchema),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
+const DEFAULT_PAYMENT: addPaymentData = {
+  paymentType: "",
+  currency: "",
+  accountName: "",
+  bankName: "",
+  accountNo: "",
+  bankAddress: "",
+  swiftCode: "",
+};
+
 const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
-  // Payment form
-  const paymentMethods = useForm<addPaymentData>({
-    resolver: zodResolver(addPaymentSchema),
+  const {
+    register,
+    control,
+    formState: { errors },
+    trigger,
+    getValues,
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      payments: [DEFAULT_PAYMENT],
+    },
+    mode: "onChange",
   });
 
-  const {
-    register: registerPayment,
-    formState: { errors: paymentErrors },
-    trigger: triggerPayment,
-    getValues: getPaymentValues,
-  } = paymentMethods;
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "payments",
+  });
 
-  // Expose methods to parent
-  useImperativeHandle(ref, () => ({
-    getFormData: async (): Promise<{
-      paymentData: addPaymentData;
-    } | null> => {
-      const isPaymentValid = await triggerPayment();
+  const addPayment = useCallback(() => {
+    append(DEFAULT_PAYMENT);
+  }, [append]);
 
-      if (!isPaymentValid) {
-        return null;
+  const removePayment = useCallback(
+    (index: number) => {
+      if (fields.length > 1) {
+        remove(index);
       }
+    },
+    [fields.length, remove]
+  );
 
-      const paymentData = getPaymentValues();
+  useImperativeHandle(ref, () => ({
+    getFormData: async () => {
+      const isValid = await trigger();
+      if (!isValid) return null;
+
+      const formData = getValues();
+      const paymentData: addPaymentData[] = [];
+
+      const paymentsArray = Array.isArray(formData.payments)
+        ? formData.payments
+        : [formData.payments];
+
+      paymentsArray.forEach((payment) => {
+        paymentData.push({
+          paymentType: payment.paymentType,
+          currency: payment.currency,
+          accountName: payment.accountName,
+          bankName: payment.bankName,
+          accountNo: payment.accountNo,
+          bankAddress: payment.bankAddress,
+          swiftCode: payment.swiftCode,
+        });
+      });
 
       return { paymentData };
     },
   }));
 
-  return (
-    <>
-      <div className="w-full flex flex-col items-center justify-center gap-4">
+  const renderPaymentForm = (field: { id: string }, index: number) => {
+    return (
+      <div
+        key={field.id}
+        className="w-full flex flex-col items-end justify-center"
+      >
+        {fields.length > 1 && (
+          <IconButton
+            action={() => removePayment(index)}
+            style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
+            title=""
+            icon={<RiDeleteBin4Fill size={16} />}
+          />
+        )}
+
         <div className="w-full flex flex-col gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              disabled={false}
+              error={errors.payments?.[index]?.paymentType?.message || ""}
+              title="Payment Type"
+              placeholder="Enter payment type (e.g., Bank Transfer, Credit Card)"
+              type="text"
+              {...register(`payments.${index}.paymentType`)}
+            />
+            <InputOption
+              disabled={false}
+              options={["PHP", "KRW", "JPY", "USD"]}
+              title="Currency"
+              {...register(`payments.${index}.currency`)}
+              style="bg-white w-full"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              disabled={false}
+              error={errors.payments?.[index]?.accountName?.message || ""}
+              title="Account Name"
+              placeholder="Enter account holder name"
+              type="text"
+              {...register(`payments.${index}.accountName`)}
+            />
+            <Input
+              disabled={false}
+              error={errors.payments?.[index]?.bankName?.message || ""}
+              title="Bank Name"
+              placeholder="Enter bank name"
+              type="text"
+              {...register(`payments.${index}.bankName`)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              disabled={false}
+              error={errors.payments?.[index]?.accountNo?.message || ""}
+              title="Account Number"
+              placeholder="Enter account number"
+              type="text"
+              {...register(`payments.${index}.accountNo`)}
+            />
+            <Input
+              disabled={false}
+              error={errors.payments?.[index]?.swiftCode?.message || ""}
+              title="SWIFT Code"
+              placeholder="Enter SWIFT/BIC code"
+              type="text"
+              {...register(`payments.${index}.swiftCode`)}
+            />
+          </div>
+
           <Input
             disabled={false}
-            error={paymentErrors.paymentType?.message || ""}
-            title="Payment Type"
-            placeholder="payment type"
-            type="text"
-            {...registerPayment("paymentType")}
-          />
-          <InputOption
-            disabled={false}
-            options={["PHP", "KRW", "JPY", "USD"]}
-            title="Currency"
-            {...registerPayment("currency")}
-            style="bg-white w-full"
-          />
-          <Input
-            disabled={false}
-            error={paymentErrors.accountName?.message || ""}
-            title="Account Name"
-            placeholder="account name"
-            type="text"
-            {...registerPayment("accountName")}
-          />
-          <Input
-            disabled={false}
-            error={paymentErrors.bankName?.message || ""}
-            title="Bank Name"
-            placeholder="bank name"
-            type="text"
-            {...registerPayment("bankName")}
-          />
-          <Input
-            disabled={false}
-            error={paymentErrors.accountNo?.message || ""}
-            title="Account Number"
-            placeholder="account number"
-            type="text"
-            {...registerPayment("accountNo")}
-          />
-          <Input
-            disabled={false}
-            error={paymentErrors.bankAddress?.message || ""}
+            error={errors.payments?.[index]?.bankAddress?.message || ""}
             title="Bank Address"
-            placeholder="bank address"
+            placeholder="Enter bank branch address"
             type="text"
-            {...registerPayment("bankAddress")}
-          />
-          <Input
-            disabled={false}
-            error={paymentErrors.swiftCode?.message || ""}
-            title="Swift Code"
-            placeholder="swift code"
-            type="text"
-            {...registerPayment("swiftCode")}
+            {...register(`payments.${index}.bankAddress`)}
           />
         </div>
       </div>
-    </>
+    );
+  };
+
+  return (
+    <div className="w-full flex flex-col items-center justify-center gap-6">
+      <div className="w-full flex justify-center">
+        <IconButton
+          action={addPayment}
+          style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+          title="New Payment Method"
+          icon={<RiAddFill size={16} />}
+        />
+      </div>
+
+      <div className="w-full space-y-6">{fields.map(renderPaymentForm)}</div>
+    </div>
   );
 });
 

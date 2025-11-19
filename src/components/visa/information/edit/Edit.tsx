@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { updateVisaFile } from "../../../../hooks/visa/file/updateVisaFile";
 import { addVisaFile } from "../../../../hooks/visa/file/addVisaFile";
 import { getTerm } from "../../../../hooks/visa/terms/getTerm";
@@ -21,9 +21,9 @@ import { addPayment } from "../../../../hooks/visa/payment/addPayment";
 import { addTerm } from "../../../../hooks/visa/terms/addTerm";
 import { addDocument } from "../../../../hooks/visa/document/addDocument";
 import EditDocumentForm, {
-  type documentFormHandle,
+  type DocumentFormHandle,
 } from "../../EditDocumentForm";
-import EditTermForm, { type termFormHandle } from "../../EditTermForm";
+import EditTermForm, { type TermFormHandle } from "../../EditTermForm";
 import EditPaymentForm, { type PaymentFormHandle } from "../../EditPaymentForm";
 import EditProcessForm, { type ProcessFormHandle } from "../../EditProcessForm";
 import EditPricelistForm, {
@@ -32,7 +32,13 @@ import EditPricelistForm, {
 import { addPriceList } from "../../../../hooks/visa/pricelist/addPriceList";
 import PageLoader from "../../../loader/PageLoader";
 import { deleteVisaFile } from "../../../../hooks/visa/file/deleteVisaFile";
+import { deletePricelist } from "../../../../hooks/visa/pricelist/deletePriceList";
+import { deleteProcess } from "../../../../hooks/visa/process/deleteProcess";
+import { deleteTerm } from "../../../../hooks/visa/terms/deleteTerm";
+import { deleteDocument } from "../../../../hooks/visa/document/deleteDocument";
+import { deletePayment } from "../../../../hooks/visa/payment/deletePayment";
 
+// Types
 export type FormType =
   | "pricelist"
   | "process"
@@ -41,53 +47,62 @@ export type FormType =
   | "document";
 
 interface EditData {
-  pricelist?: any;
-  process?: any;
-  payment?: any;
-  term?: any;
-  document?: any;
+  pricelist?: any[];
+  process?: any[];
+  payment?: any[]; // UPDATED: Change to array
+  term?: any[];
+  document?: any[];
 }
 
 interface FileData {
-  pricelist?: any;
-  process?: any;
-  term?: any;
-  document?: any;
+  pricelist?: any[];
+  process?: any[];
+  term?: any[];
+  document?: any[];
 }
 
-const Edit = () => {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const { id } = useParams(); // Get visa ID from URL
-  const [formType, setFormType] = useState<FormType>("pricelist");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingData, setIsLoadingData] = useState(true);
+type FileFetchResult =
+  | { type: "pricelist"; data: any; index: number }
+  | { type: "process"; data: any; index: number }
+  | { type: "term"; data: any; index: number }
+  | { type: "document"; data: any; index: number };
+
+interface FormSubmission {
+  type: "price" | "process" | "payment" | "terms" | "document";
+  data: any;
+  fileId: string;
+  existingData: any;
+}
+
+// Constants
+const FORM_TYPES: FormType[] = [
+  "pricelist",
+  "process",
+  "payment",
+  "term",
+  "document",
+];
+
+// Custom hook for data fetching
+const useEditData = (id: string | undefined) => {
   const [editData, setEditData] = useState<EditData>({});
   const [fileData, setFileData] = useState<FileData>({});
-  const [pricelistFileId, setPricelistFileId] = useState<string>("");
-  const [processFileId, setProcessFileId] = useState<string>("");
-  const [termFileId, setTermFileId] = useState<string>("");
-  const [documentFileId, setDocumentFileId] = useState<string>("");
-  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
-  const pricelistFormRef = useRef<PricelistFormHandle>(null);
-  const processFormRef = useRef<ProcessFormHandle>(null);
-  const paymentFormRef = useRef<PaymentFormHandle>(null);
-  const termFormRef = useRef<termFormHandle>(null);
-  const documentFormRef = useRef<documentFormHandle>(null);
+  const [pricelistFileIds, setPricelistFileIds] = useState<string[][]>([]);
+  const [processFileIds, setProcessFileIds] = useState<string[][]>([]);
+  const [termFileIds, setTermFileIds] = useState<string[][]>([]);
+  const [documentFileIds, setDocumentFileIds] = useState<string[][]>([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // Fetch visa file by ID
-  const fetchVisaFile = async (fileId: string) => {
+  const fetchVisaFile = useCallback(async (fileId: string): Promise<any> => {
     if (!fileId) return null;
     try {
-      const fileData = await getVisaFile(fileId);
-      return fileData;
+      return await getVisaFile(fileId);
     } catch (error) {
       console.error(`Error fetching file with ID ${fileId}:`, error);
       return null;
     }
-  };
+  }, []);
 
-  // Fetch existing data when component mounts
   useEffect(() => {
     const fetchExistingData = async () => {
       if (!id) {
@@ -99,7 +114,6 @@ const Edit = () => {
       try {
         setIsLoadingData(true);
 
-        // Fetch all related data
         const [
           pricelistData,
           processData,
@@ -114,106 +128,171 @@ const Edit = () => {
           getDocument(id),
         ]);
 
+        const pricelistArray = Array.isArray(pricelistData)
+          ? pricelistData
+          : [pricelistData].filter(Boolean);
+
+        const processArray = Array.isArray(processData)
+          ? processData
+          : [processData].filter(Boolean);
+
+        const termArray = Array.isArray(termData)
+          ? termData
+          : [termData].filter(Boolean);
+
+        const documentArray = Array.isArray(documentData)
+          ? documentData
+          : [documentData].filter(Boolean);
+
+        // UPDATED: Handle payment as array
+        const paymentArray = Array.isArray(paymentData)
+          ? paymentData
+          : [paymentData].filter(Boolean);
+
         setEditData({
-          pricelist: pricelistData,
-          process: processData,
-          payment: paymentData,
-          term: termData,
-          document: documentData,
+          pricelist: pricelistArray,
+          process: processArray,
+          payment: paymentArray, // UPDATED: Now an array
+          term: termArray,
+          document: documentArray,
         });
 
-        console.log("Loaded edit data:", {
-          pricelist: pricelistData,
-          process: processData,
-          payment: paymentData,
-          term: termData,
-          document: documentData,
+        // Handle file IDs for pricelist
+        const pricelistFileIdsArray = pricelistArray.map((pricelist) =>
+          pricelist?.filesAssociated
+            ? Array.isArray(pricelist.filesAssociated)
+              ? pricelist.filesAssociated
+              : [pricelist.filesAssociated]
+            : []
+        );
+
+        setPricelistFileIds(pricelistFileIdsArray);
+
+        // Handle file IDs for process
+        const processFileIdsArray = processArray.map((processItem) =>
+          processItem?.filesAssociated
+            ? Array.isArray(processItem.filesAssociated)
+              ? processItem.filesAssociated
+              : [processItem.filesAssociated]
+            : []
+        );
+
+        setProcessFileIds(processFileIdsArray);
+
+        // Handle file IDs for term
+        const termFileIdsArray = termArray.map((termItem) =>
+          termItem?.filesAssociated
+            ? Array.isArray(termItem.filesAssociated)
+              ? termItem.filesAssociated
+              : [termItem.filesAssociated]
+            : []
+        );
+
+        setTermFileIds(termFileIdsArray);
+
+        // Handle file IDs for document
+        const documentFileIdsArray = documentArray.map((documentItem) =>
+          documentItem?.filesAssociated
+            ? Array.isArray(documentItem.filesAssociated)
+              ? documentItem.filesAssociated
+              : [documentItem.filesAssociated]
+            : []
+        );
+
+        setDocumentFileIds(documentFileIdsArray);
+
+        // Fetch file data
+        const fileFetchPromises: Promise<FileFetchResult>[] = [];
+
+        // Pricelist files
+        pricelistArray.forEach((pricelist, index) => {
+          if (pricelist?.filesAssociated) {
+            const fileId = Array.isArray(pricelist.filesAssociated)
+              ? pricelist.filesAssociated[0]
+              : pricelist.filesAssociated;
+            fileFetchPromises.push(
+              fetchVisaFile(fileId).then((file) => ({
+                type: "pricelist" as const,
+                data: file,
+                index,
+              }))
+            );
+          }
         });
 
-        // Set existing file IDs if available (skip payment)
-        // In the useEffect where you set initial file IDs, update to handle arrays:
-        if (pricelistData?.filesAssociated) {
-          // Take the first file ID if it's an array, otherwise use the string
-          const fileId = Array.isArray(pricelistData.filesAssociated)
-            ? pricelistData.filesAssociated[0]
-            : pricelistData.filesAssociated;
-          setPricelistFileId(fileId);
-        }
+        // Process files
+        processArray.forEach((processItem, index) => {
+          if (processItem?.filesAssociated) {
+            const fileId = Array.isArray(processItem.filesAssociated)
+              ? processItem.filesAssociated[0]
+              : processItem.filesAssociated;
+            fileFetchPromises.push(
+              fetchVisaFile(fileId).then((file) => ({
+                type: "process" as const,
+                data: file,
+                index,
+              }))
+            );
+          }
+        });
 
-        if (processData?.filesAssociated) {
-          const fileId = Array.isArray(processData.filesAssociated)
-            ? processData.filesAssociated[0]
-            : processData.filesAssociated;
-          setProcessFileId(fileId);
-        }
+        // Term files
+        termArray.forEach((termItem, index) => {
+          if (termItem?.filesAssociated) {
+            const fileId = Array.isArray(termItem.filesAssociated)
+              ? termItem.filesAssociated[0]
+              : termItem.filesAssociated;
+            fileFetchPromises.push(
+              fetchVisaFile(fileId).then((file) => ({
+                type: "term" as const,
+                data: file,
+                index,
+              }))
+            );
+          }
+        });
 
-        if (termData?.filesAssociated) {
-          const fileId = Array.isArray(termData.filesAssociated)
-            ? termData.filesAssociated[0]
-            : termData.filesAssociated;
-          setTermFileId(fileId);
-        }
+        // Document files
+        documentArray.forEach((documentItem, index) => {
+          if (documentItem?.filesAssociated) {
+            const fileId = Array.isArray(documentItem.filesAssociated)
+              ? documentItem.filesAssociated[0]
+              : documentItem.filesAssociated;
+            fileFetchPromises.push(
+              fetchVisaFile(fileId).then((file) => ({
+                type: "document" as const,
+                data: file,
+                index,
+              }))
+            );
+          }
+        });
 
-        if (documentData?.filesAssociated) {
-          const fileId = Array.isArray(documentData.filesAssociated)
-            ? documentData.filesAssociated[0]
-            : documentData.filesAssociated;
-          setDocumentFileId(fileId);
-        }
-
-        // Fetch file data for each file ID (skip payment)
-        const fileFetchPromises = [];
-
-        if (pricelistData?.filesAssociated) {
-          fileFetchPromises.push(
-            fetchVisaFile(pricelistData.filesAssociated).then((file) => ({
-              type: "pricelist",
-              data: file,
-            }))
-          );
-        }
-
-        if (processData?.filesAssociated) {
-          fileFetchPromises.push(
-            fetchVisaFile(processData.filesAssociated).then((file) => ({
-              type: "process",
-              data: file,
-            }))
-          );
-        }
-
-        if (termData?.filesAssociated) {
-          fileFetchPromises.push(
-            fetchVisaFile(termData.filesAssociated).then((file) => ({
-              type: "term",
-              data: file,
-            }))
-          );
-        }
-
-        if (documentData?.filesAssociated) {
-          fileFetchPromises.push(
-            fetchVisaFile(documentData.filesAssociated).then((file) => ({
-              type: "document",
-              data: file,
-            }))
-          );
-        }
-
-        // Wait for all file fetches to complete
         const fileResults = await Promise.all(fileFetchPromises);
+        const organizedFileData: FileData = {
+          pricelist: [],
+          process: [],
+          term: [],
+          document: [],
+        };
 
-        // Organize file data by type (skip payment)
-        const organizedFileData: FileData = {};
         fileResults.forEach((result) => {
-          if (result.data) {
-            organizedFileData[result.type as keyof FileData] = result.data;
+          if (result.type === "pricelist") {
+            if (!organizedFileData.pricelist) organizedFileData.pricelist = [];
+            organizedFileData.pricelist[result.index] = result.data;
+          } else if (result.type === "process") {
+            if (!organizedFileData.process) organizedFileData.process = [];
+            organizedFileData.process[result.index] = result.data;
+          } else if (result.type === "term") {
+            if (!organizedFileData.term) organizedFileData.term = [];
+            organizedFileData.term[result.index] = result.data;
+          } else if (result.type === "document") {
+            if (!organizedFileData.document) organizedFileData.document = [];
+            organizedFileData.document[result.index] = result.data;
           }
         });
 
         setFileData(organizedFileData);
-
-        console.log("Loaded file data:", organizedFileData);
       } catch (error) {
         console.error("Error fetching edit data:", error);
         alert("Error loading existing data. Please try again.");
@@ -223,251 +302,699 @@ const Edit = () => {
     };
 
     fetchExistingData();
-  }, [id]);
+  }, [id, fetchVisaFile]);
 
-  // File update mutation
-  const fileMutation = useMutation<
-    string,
-    Error,
-    { id: string; data: FormData }
-  >({
-    mutationFn: ({ id, data }) => updateVisaFile(id, data),
+  return {
+    editData,
+    fileData,
+    pricelistFileIds,
+    processFileIds,
+    termFileIds,
+    documentFileIds,
+    isLoadingData,
+    setEditData,
+    setFileData,
+    setPricelistFileIds,
+    setProcessFileIds,
+    setTermFileIds,
+    setDocumentFileIds,
+  };
+};
+
+// Custom hook for mutations
+const useFormMutations = () => {
+  const queryClient = useQueryClient();
+
+  const updateMutations = {
+    pricelist: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+        updatePricelist(id, data),
+    }),
+    process: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+        updateProcess(id, data),
+    }),
+    payment: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+        updatePayment(id, data),
+    }),
+    term: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+        updateTerm(id, data),
+    }),
+    document: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+        updateDocument(id, data),
+    }),
+  };
+
+  const addMutations = {
+    pricelist: useMutation({ mutationFn: addPriceList }),
+    process: useMutation({ mutationFn: addProcess }),
+    payment: useMutation({ mutationFn: addPayment }),
+    term: useMutation({ mutationFn: addTerm }),
+    document: useMutation({ mutationFn: addDocument }),
+  };
+
+  // Delete mutations
+  const deletePricelistMutation = useMutation({
+    mutationFn: deletePricelist,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pricelist"], exact: false });
+    },
   });
 
-  // File add mutation
-  const fileAddMutation = useMutation<string, Error, FormData>({
-    mutationFn: addVisaFile,
+  const deleteProcessMutation = useMutation({
+    mutationFn: deleteProcess,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["process"], exact: false });
+    },
   });
 
-  // File delete mutation
-  const fileDeleteMutation = useMutation<void, Error, string>({
+  const deleteTermMutation = useMutation({
+    mutationFn: deleteTerm,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["term"], exact: false });
+    },
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: deleteDocument,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["document"], exact: false });
+    },
+  });
+
+  // ADD THIS: Delete mutation for payment
+  const deletePaymentMutation = useMutation({
+    mutationFn: deletePayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payment"], exact: false });
+    },
+  });
+
+  const fileMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+      updateVisaFile(id, data),
+  });
+
+  const fileAddMutation = useMutation({ mutationFn: addVisaFile });
+
+  const fileDeleteMutation = useMutation({
     mutationFn: deleteVisaFile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
     },
   });
 
-  // Update mutations
-  const pricelistUpdateMutation = useMutation<
-    string,
-    Error,
-    { id: string; data: FormData }
-  >({
-    mutationFn: ({ id, data }) => updatePricelist(id, data),
-  });
-
-  const processUpdateMutation = useMutation<
-    string,
-    Error,
-    { id: string; data: FormData }
-  >({
-    mutationFn: ({ id, data }) => updateProcess(id, data),
-  });
-
-  const paymentUpdateMutation = useMutation<
-    string,
-    Error,
-    { id: string; data: FormData }
-  >({
-    mutationFn: ({ id, data }) => updatePayment(id, data),
-  });
-
-  const termUpdateMutation = useMutation<
-    string,
-    Error,
-    { id: string; data: FormData }
-  >({
-    mutationFn: ({ id, data }) => updateTerm(id, data),
-  });
-
-  const documentUpdateMutation = useMutation<
-    string,
-    Error,
-    { id: string; data: FormData }
-  >({
-    mutationFn: ({ id, data }) => updateDocument(id, data),
-  });
-
-  // Add mutations
-  const pricelistAddMutation = useMutation<string, Error, FormData>({
-    mutationFn: addPriceList,
-  });
-
-  const processAddMutation = useMutation<string, Error, FormData>({
-    mutationFn: addProcess,
-  });
-
-  const paymentAddMutation = useMutation<string, Error, FormData>({
-    mutationFn: addPayment,
-  });
-
-  const termAddMutation = useMutation<string, Error, FormData>({
-    mutationFn: addTerm,
-  });
-
-  const documentAddMutation = useMutation<string, Error, FormData>({
-    mutationFn: addDocument,
-  });
-
-  // Upload or update file and return fileId
-  const handleFile = async (
-    fileData: File[],
-    fileTitle: string,
-    existingFileId?: string
-  ): Promise<string> => {
-    const formData = new FormData();
-    formData.append("type", "file");
-    formData.append("fileTitle", fileTitle);
-
-    Array.from(fileData).forEach((file: File) => {
-      formData.append("file", file);
+  const invalidateQueries = useCallback(() => {
+    FORM_TYPES.forEach((type) => {
+      queryClient.invalidateQueries({ queryKey: [type], exact: false });
     });
+    queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
+  }, [queryClient]);
 
-    // If we have an existing file ID, update the file, otherwise create new
-    if (existingFileId) {
-      await fileMutation.mutateAsync({ id: existingFileId, data: formData });
-      return existingFileId;
-    } else {
-      // Use addVisaFile for new files
-      const fileId = await fileAddMutation.mutateAsync(formData);
-      return fileId;
-    }
+  return {
+    updateMutations,
+    addMutations,
+    deletePricelistMutation,
+    deleteProcessMutation,
+    deleteTermMutation,
+    deleteDocumentMutation,
+    deletePaymentMutation, // ADD THIS
+    fileMutation,
+    fileAddMutation,
+    fileDeleteMutation,
+    invalidateQueries,
   };
+};
 
-  // UPDATED DELETE FILE HANDLER - SIMPLIFIED APPROACH
-  // UPDATED DELETE FILE HANDLER - PROPERLY HANDLES ARRAY FORMAT
-  const handleDeleteFile = async (fileId: string, fileType: FormType) => {
-    if (
-      !fileId ||
-      !window.confirm(`Are you sure you want to delete this ${fileType} file?`)
-    ) {
-      return;
-    }
+// Fix the mutation parameter type issue
+interface UpdateMutationParams {
+  id: string;
+  data: FormData;
+}
 
-    try {
-      setDeletingFileId(fileId);
+const Edit = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [formType, setFormType] = useState<FormType>("pricelist");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+  const [deletingPricelistId, setDeletingPricelistId] = useState<string | null>(
+    null
+  );
+  const [deletingProcessId, setDeletingProcessId] = useState<string | null>(
+    null
+  );
+  const [deletingTermId, setDeletingTermId] = useState<string | null>(null);
+  const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(
+    null
+  );
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(
+    null
+  ); // ADD THIS
 
-      // Just delete the file and update local state
-      await fileDeleteMutation.mutateAsync(fileId);
+  const {
+    editData,
+    fileData,
+    pricelistFileIds,
+    processFileIds,
+    termFileIds,
+    documentFileIds,
+    isLoadingData,
+    setEditData,
+    setFileData,
+    setPricelistFileIds,
+    setProcessFileIds,
+    setTermFileIds,
+    setDocumentFileIds,
+  } = useEditData(id);
 
-      // Update local state only - the filesAssociated will be handled when user saves the form
-      switch (fileType) {
-        case "pricelist":
-          setPricelistFileId("");
-          setFileData((prev) => ({ ...prev, pricelist: undefined }));
-          // Also update editData to remove filesAssociated locally - set to empty array
-          setEditData((prev) => ({
-            ...prev,
-            pricelist: prev.pricelist
-              ? { ...prev.pricelist, filesAssociated: [] } // Set to empty array, not empty string
-              : prev.pricelist,
-          }));
-          break;
-        case "process":
-          setProcessFileId("");
-          setFileData((prev) => ({ ...prev, process: undefined }));
-          setEditData((prev) => ({
-            ...prev,
-            process: prev.process
-              ? { ...prev.process, filesAssociated: [] } // Set to empty array
-              : prev.process,
-          }));
-          break;
-        case "term":
-          setTermFileId("");
-          setFileData((prev) => ({ ...prev, term: undefined }));
-          setEditData((prev) => ({
-            ...prev,
-            term: prev.term
-              ? { ...prev.term, filesAssociated: [] } // Set to empty array
-              : prev.term,
-          }));
-          break;
-        case "document":
-          setDocumentFileId("");
-          setFileData((prev) => ({ ...prev, document: undefined }));
-          setEditData((prev) => ({
-            ...prev,
-            document: prev.document
-              ? { ...prev.document, filesAssociated: [] } // Set to empty array
-              : prev.document,
-          }));
-          break;
+  const {
+    updateMutations,
+    addMutations,
+    deletePricelistMutation,
+    deleteProcessMutation,
+    deleteTermMutation,
+    deleteDocumentMutation,
+    deletePaymentMutation, // ADD THIS
+    fileMutation,
+    fileAddMutation,
+    fileDeleteMutation,
+    invalidateQueries,
+  } = useFormMutations();
+
+  const pricelistFormRef = useRef<PricelistFormHandle>(null);
+  const processFormRef = useRef<ProcessFormHandle>(null);
+  const paymentFormRef = useRef<PaymentFormHandle>(null);
+  const termFormRef = useRef<TermFormHandle>(null);
+  const documentFormRef = useRef<DocumentFormHandle>(null);
+
+  // File handling
+  const handleFile = useCallback(
+    async (
+      fileData: FileList | undefined,
+      fileTitle: string | undefined,
+      existingFileId?: string
+    ): Promise<string> => {
+      // If no file data and no existing file ID, return empty string
+      if ((!fileData || fileData.length === 0) && !existingFileId) {
+        return "";
       }
 
-      alert("File deleted successfully!");
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      alert("Error deleting file. Please try again.");
-    } finally {
-      setDeletingFileId(null);
-    }
-  };
-
-  // Get the appropriate mutation function (add or update)
-  const getMutationFunction = (type: string, hasExistingData: boolean) => {
-    const updateMutations = {
-      pricelist: pricelistUpdateMutation,
-      process: processUpdateMutation,
-      payment: paymentUpdateMutation,
-      term: termUpdateMutation,
-      document: documentUpdateMutation,
-    };
-
-    const addMutations = {
-      pricelist: pricelistAddMutation,
-      process: processAddMutation,
-      payment: paymentAddMutation,
-      term: termAddMutation,
-      document: documentAddMutation,
-    };
-
-    // Map the form types to the correct mutation keys
-    const typeMapping: Record<string, keyof typeof updateMutations> = {
-      price: "pricelist",
-      process: "process",
-      payment: "payment",
-      terms: "term",
-      document: "document",
-    };
-
-    const mutationKey = typeMapping[type] || type;
-
-    if (hasExistingData) {
-      const mutation =
-        updateMutations[mutationKey as keyof typeof updateMutations];
-      if (!mutation) {
-        throw new Error(`Invalid update form type: ${type}`);
+      // If no file data but we have existing file ID, return the existing ID
+      if ((!fileData || fileData.length === 0) && existingFileId) {
+        return existingFileId;
       }
-      return mutation;
-    } else {
-      const mutation = addMutations[mutationKey as keyof typeof addMutations];
-      if (!mutation) {
-        throw new Error(`Invalid add form type: ${type}`);
+
+      // If we have file data, proceed with upload/update
+      const formData = new FormData();
+      formData.append("type", "file");
+
+      const finalFileTitle =
+        fileTitle?.trim() || (existingFileId ? "Updated File" : "New File");
+      formData.append("fileTitle", finalFileTitle);
+
+      // FIX: Convert FileList to array properly
+      const filesArray = Array.from(fileData!);
+      filesArray.forEach((file: File) => {
+        formData.append("file", file);
+      });
+
+      if (existingFileId) {
+        await fileMutation.mutateAsync({ id: existingFileId, data: formData });
+        return existingFileId;
+      } else {
+        return await fileAddMutation.mutateAsync(formData);
       }
-      return mutation;
-    }
-  };
+    },
+    [fileMutation, fileAddMutation]
+  );
 
-  // Handle final submission of all forms with file updates
-  const handleFinalSubmit = async () => {
-    setIsSubmitting(true);
-
-    try {
-      const visaId = id;
-
-      if (!visaId) {
-        alert("No visa ID found. Please select a visa first.");
-        setIsSubmitting(false);
+  // Function to handle pricelist deletion
+  const handleDeletePricelist = useCallback(
+    async (pricelistId: string, index: number) => {
+      if (
+        !pricelistId ||
+        !window.confirm("Are you sure you want to delete this pricelist?")
+      ) {
         return;
       }
 
-      // Get form data from all forms using refs
-      const pricelistFormData = await pricelistFormRef.current?.getFormData();
-      const processFormData = await processFormRef.current?.getFormData();
-      const paymentFormData = await paymentFormRef.current?.getFormData();
-      const termFormData = await termFormRef.current?.getFormData();
-      const documentFormData = await documentFormRef.current?.getFormData();
+      try {
+        setDeletingPricelistId(pricelistId);
+        await deletePricelistMutation.mutateAsync(pricelistId);
+
+        // Remove the field from the form immediately using the exposed method
+        if (pricelistFormRef.current) {
+          const formHandle = pricelistFormRef.current as any;
+          if (formHandle.removePricelistField) {
+            formHandle.removePricelistField(index);
+          }
+        }
+
+        // Update local state after successful deletion
+        setEditData((prev) => ({
+          ...prev,
+          pricelist: prev.pricelist?.filter((_, i) => i !== index) || [],
+        }));
+
+        setFileData((prev) => ({
+          ...prev,
+          pricelist: prev.pricelist?.filter((_, i) => i !== index) || [],
+        }));
+
+        setPricelistFileIds((prev) => prev.filter((_, i) => i !== index));
+
+        alert("Pricelist deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting pricelist:", error);
+        alert("Error deleting pricelist. Please try again.");
+      } finally {
+        setDeletingPricelistId(null);
+      }
+    },
+    [deletePricelistMutation, setEditData, setFileData, setPricelistFileIds]
+  );
+
+  // Function to handle process deletion
+  const handleDeleteProcess = useCallback(
+    async (processId: string, index: number) => {
+      if (
+        !processId ||
+        !window.confirm("Are you sure you want to delete this process step?")
+      ) {
+        return;
+      }
+
+      try {
+        setDeletingProcessId(processId);
+        await deleteProcessMutation.mutateAsync(processId);
+
+        // Remove the field from the form immediately using the exposed method
+        if (processFormRef.current) {
+          const formHandle = processFormRef.current as any;
+          if (formHandle.removeProcessField) {
+            formHandle.removeProcessField(index);
+          }
+        }
+
+        // Update local state after successful deletion
+        setEditData((prev) => ({
+          ...prev,
+          process: prev.process?.filter((_, i) => i !== index) || [],
+        }));
+
+        setFileData((prev) => ({
+          ...prev,
+          process: prev.process?.filter((_, i) => i !== index) || [],
+        }));
+
+        setProcessFileIds((prev) => prev.filter((_, i) => i !== index));
+
+        alert("Process step deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting process:", error);
+        alert("Error deleting process step. Please try again.");
+      } finally {
+        setDeletingProcessId(null);
+      }
+    },
+    [deleteProcessMutation, setEditData, setFileData, setProcessFileIds]
+  );
+
+  // Function to handle term deletion
+  const handleDeleteTerm = useCallback(
+    async (termId: string, index: number) => {
+      if (
+        !termId ||
+        !window.confirm("Are you sure you want to delete this term?")
+      ) {
+        return;
+      }
+
+      try {
+        setDeletingTermId(termId);
+        await deleteTermMutation.mutateAsync(termId);
+
+        // Remove the field from the form immediately using the exposed method
+        if (termFormRef.current) {
+          const formHandle = termFormRef.current as any;
+          if (formHandle.removeTermField) {
+            formHandle.removeTermField(index);
+          }
+        }
+
+        // Update local state after successful deletion
+        setEditData((prev) => ({
+          ...prev,
+          term: prev.term?.filter((_, i) => i !== index) || [],
+        }));
+
+        setFileData((prev) => ({
+          ...prev,
+          term: prev.term?.filter((_, i) => i !== index) || [],
+        }));
+
+        setTermFileIds((prev) => prev.filter((_, i) => i !== index));
+
+        alert("Term deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting term:", error);
+        alert("Error deleting term. Please try again.");
+      } finally {
+        setDeletingTermId(null);
+      }
+    },
+    [deleteTermMutation, setEditData, setFileData, setTermFileIds]
+  );
+
+  // Function to handle document deletion
+  const handleDeleteDocument = useCallback(
+    async (documentId: string, index: number) => {
+      if (
+        !documentId ||
+        !window.confirm("Are you sure you want to delete this document?")
+      ) {
+        return;
+      }
+
+      try {
+        setDeletingDocumentId(documentId);
+        await deleteDocumentMutation.mutateAsync(documentId);
+
+        // Remove the field from the form immediately using the exposed method
+        if (documentFormRef.current) {
+          const formHandle = documentFormRef.current as any;
+          if (formHandle.removeDocumentField) {
+            formHandle.removeDocumentField(index);
+          }
+        }
+
+        // Update local state after successful deletion
+        setEditData((prev) => ({
+          ...prev,
+          document: prev.document?.filter((_, i) => i !== index) || [],
+        }));
+
+        setFileData((prev) => ({
+          ...prev,
+          document: prev.document?.filter((_, i) => i !== index) || [],
+        }));
+
+        setDocumentFileIds((prev) => prev.filter((_, i) => i !== index));
+
+        alert("Document deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting document:", error);
+        alert("Error deleting document. Please try again.");
+      } finally {
+        setDeletingDocumentId(null);
+      }
+    },
+    [deleteDocumentMutation, setEditData, setFileData, setDocumentFileIds]
+  );
+
+  // ADD THIS: Function to handle payment deletion
+  const handleDeletePayment = useCallback(
+    async (paymentId: string, index: number) => {
+      if (
+        !paymentId ||
+        !window.confirm("Are you sure you want to delete this payment method?")
+      ) {
+        return;
+      }
+
+      try {
+        setDeletingPaymentId(paymentId);
+        await deletePaymentMutation.mutateAsync(paymentId);
+
+        // Remove the field from the form immediately using the exposed method
+        if (paymentFormRef.current) {
+          const formHandle = paymentFormRef.current as any;
+          if (formHandle.removePaymentField) {
+            formHandle.removePaymentField(index);
+          }
+        }
+
+        // Update local state after successful deletion
+        setEditData((prev) => ({
+          ...prev,
+          payment: prev.payment?.filter((_, i) => i !== index) || [],
+        }));
+
+        alert("Payment method deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting payment:", error);
+        alert("Error deleting payment method. Please try again.");
+      } finally {
+        setDeletingPaymentId(null);
+      }
+    },
+    [deletePaymentMutation, setEditData]
+  );
+
+  // UPDATED: Fixed handleDeleteFile function
+  const handleDeleteFile = useCallback(
+    async (fileId: string, fileType: FormType, index?: number) => {
+      if (
+        !fileId ||
+        !window.confirm(
+          `Are you sure you want to delete this ${fileType} file?`
+        )
+      ) {
+        return;
+      }
+
+      try {
+        setDeletingFileId(fileId);
+        await fileDeleteMutation.mutateAsync(fileId);
+
+        // Update local state - remove file from filesAssociated
+        const updateState = {
+          pricelist: () => {
+            if (index !== undefined) {
+              setPricelistFileIds((prev) => {
+                const newFileIds = [...prev];
+                if (newFileIds[index]) {
+                  newFileIds[index] = newFileIds[index].filter(
+                    (id) => id !== fileId
+                  );
+                }
+                return newFileIds;
+              });
+
+              setEditData((prev) => ({
+                ...prev,
+                pricelist:
+                  prev.pricelist?.map((pricelist, i) =>
+                    i === index
+                      ? {
+                          ...pricelist,
+                          filesAssociated:
+                            pricelist.filesAssociated?.filter(
+                              (id: any) => id !== fileId
+                            ) || [],
+                        }
+                      : pricelist
+                  ) || [],
+              }));
+
+              setFileData((prev) => ({
+                ...prev,
+                pricelist:
+                  prev.pricelist?.map((file, i) =>
+                    i === index ? undefined : file
+                  ) || [],
+              }));
+            }
+          },
+          process: () => {
+            if (index !== undefined) {
+              setProcessFileIds((prev) => {
+                const newFileIds = [...prev];
+                if (newFileIds[index]) {
+                  newFileIds[index] = newFileIds[index].filter(
+                    (id) => id !== fileId
+                  );
+                }
+                return newFileIds;
+              });
+
+              setEditData((prev) => ({
+                ...prev,
+                process:
+                  prev.process?.map((processItem, i) =>
+                    i === index
+                      ? {
+                          ...processItem,
+                          filesAssociated:
+                            processItem.filesAssociated?.filter(
+                              (id: any) => id !== fileId
+                            ) || [],
+                        }
+                      : processItem
+                  ) || [],
+              }));
+
+              setFileData((prev) => ({
+                ...prev,
+                process:
+                  prev.process?.map((file, i) =>
+                    i === index ? undefined : file
+                  ) || [],
+              }));
+            }
+          },
+          payment: () => {
+            // Payment doesn't have files, so no action needed
+          },
+          term: () => {
+            if (index !== undefined) {
+              setTermFileIds((prev) => {
+                const newFileIds = [...prev];
+                if (newFileIds[index]) {
+                  newFileIds[index] = newFileIds[index].filter(
+                    (id) => id !== fileId
+                  );
+                }
+                return newFileIds;
+              });
+
+              setEditData((prev) => ({
+                ...prev,
+                term:
+                  prev.term?.map((termItem, i) =>
+                    i === index
+                      ? {
+                          ...termItem,
+                          filesAssociated:
+                            termItem.filesAssociated?.filter(
+                              (id: any) => id !== fileId
+                            ) || [],
+                        }
+                      : termItem
+                  ) || [],
+              }));
+
+              setFileData((prev) => ({
+                ...prev,
+                term:
+                  prev.term?.map((file, i) =>
+                    i === index ? undefined : file
+                  ) || [],
+              }));
+            }
+          },
+          document: () => {
+            if (index !== undefined) {
+              setDocumentFileIds((prev) => {
+                const newFileIds = [...prev];
+                if (newFileIds[index]) {
+                  newFileIds[index] = newFileIds[index].filter(
+                    (id) => id !== fileId
+                  );
+                }
+                return newFileIds;
+              });
+
+              setEditData((prev) => ({
+                ...prev,
+                document:
+                  prev.document?.map((documentItem, i) =>
+                    i === index
+                      ? {
+                          ...documentItem,
+                          filesAssociated:
+                            documentItem.filesAssociated?.filter(
+                              (id: any) => id !== fileId
+                            ) || [],
+                        }
+                      : documentItem
+                  ) || [],
+              }));
+
+              setFileData((prev) => ({
+                ...prev,
+                document:
+                  prev.document?.map((file, i) =>
+                    i === index ? undefined : file
+                  ) || [],
+              }));
+            }
+          },
+        };
+
+        updateState[fileType]();
+        alert("File deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting file:", error);
+        alert("Error deleting file. Please try again.");
+      } finally {
+        setDeletingFileId(null);
+      }
+    },
+    [
+      fileDeleteMutation,
+      setEditData,
+      setFileData,
+      setPricelistFileIds,
+      setProcessFileIds,
+      setTermFileIds,
+      setDocumentFileIds,
+    ]
+  );
+
+  // Form submission
+  const getMutationFunction = useCallback(
+    (type: string, hasExistingData: boolean) => {
+      const typeMapping: Record<string, keyof typeof updateMutations> = {
+        price: "pricelist",
+        process: "process",
+        payment: "payment",
+        terms: "term",
+        document: "document",
+      };
+
+      const mutationKey = typeMapping[type] || type;
+
+      if (hasExistingData) {
+        const mutation =
+          updateMutations[mutationKey as keyof typeof updateMutations];
+        if (!mutation) throw new Error(`Invalid update form type: ${type}`);
+        return mutation;
+      } else {
+        const mutation = addMutations[mutationKey as keyof typeof addMutations];
+        if (!mutation) throw new Error(`Invalid add form type: ${type}`);
+        return mutation;
+      }
+    },
+    [updateMutations, addMutations]
+  );
+
+  const handleFinalSubmit = useCallback(async () => {
+    if (!id) {
+      alert("No visa ID found. Please select a visa first.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const [
+        pricelistFormData,
+        processFormData,
+        paymentFormData,
+        termFormData,
+        documentFormData,
+      ] = await Promise.all([
+        pricelistFormRef.current?.getFormData(),
+        processFormRef.current?.getFormData(),
+        paymentFormRef.current?.getFormData(),
+        termFormRef.current?.getFormData(),
+        documentFormRef.current?.getFormData(),
+      ]);
 
       if (
         !pricelistFormData ||
@@ -477,7 +1004,6 @@ const Edit = () => {
         !documentFormData
       ) {
         alert("Please fix all form errors before submitting.");
-        setIsSubmitting(false);
         return;
       }
 
@@ -487,151 +1013,247 @@ const Edit = () => {
       const { termData, termFileData } = termFormData;
       const { documentData, documentFileData } = documentFormData;
 
-      console.log("Processing files...");
-
-      // Handle files - update existing or create new (skip payment)
-      const fileHandlingPromises = [];
-
-      if (pricelistFileData.file && pricelistFileData.file.length > 0) {
-        fileHandlingPromises.push(
-          handleFile(
-            pricelistFileData.file,
-            pricelistFileData.fileTitle,
-            pricelistFileId
-          )
-        );
+      // Handle pricelist file data
+      let safePricelistFileData: any[] = [];
+      if (Array.isArray(pricelistFileData)) {
+        safePricelistFileData = pricelistFileData;
+      } else if (pricelistFileData && typeof pricelistFileData === "object") {
+        safePricelistFileData = [pricelistFileData];
       } else {
-        fileHandlingPromises.push(Promise.resolve(pricelistFileId || ""));
+        safePricelistFileData = [];
       }
 
-      if (processFileData.file && processFileData.file.length > 0) {
-        fileHandlingPromises.push(
-          handleFile(
-            processFileData.file,
-            processFileData.fileTitle,
-            processFileId
-          )
-        );
+      // Handle process file data
+      let safeProcessFileData: any[] = [];
+      if (Array.isArray(processFileData)) {
+        safeProcessFileData = processFileData;
+      } else if (processFileData && typeof processFileData === "object") {
+        safeProcessFileData = [processFileData];
       } else {
-        fileHandlingPromises.push(Promise.resolve(processFileId || ""));
+        safeProcessFileData = [];
       }
 
-      // Skip payment file handling
-      fileHandlingPromises.push(Promise.resolve(""));
-
-      if (termFileData.file && termFileData.file.length > 0) {
-        fileHandlingPromises.push(
-          handleFile(termFileData.file, termFileData.fileTitle, termFileId)
-        );
+      // Handle term file data
+      let safeTermFileData: any[] = [];
+      if (Array.isArray(termFileData)) {
+        safeTermFileData = termFileData;
+      } else if (termFileData && typeof termFileData === "object") {
+        safeTermFileData = [termFileData];
       } else {
-        fileHandlingPromises.push(Promise.resolve(termFileId || ""));
+        safeTermFileData = [];
       }
 
-      if (documentFileData.file && documentFileData.file.length > 0) {
-        fileHandlingPromises.push(
-          handleFile(
-            documentFileData.file,
-            documentFileData.fileTitle,
-            documentFileId
-          )
-        );
+      // Handle document file data
+      let safeDocumentFileData: any[] = [];
+      if (Array.isArray(documentFileData)) {
+        safeDocumentFileData = documentFileData;
+      } else if (documentFileData && typeof documentFileData === "object") {
+        safeDocumentFileData = [documentFileData];
       } else {
-        fileHandlingPromises.push(Promise.resolve(documentFileId || ""));
+        safeDocumentFileData = [];
       }
 
-      const [
-        pricelistFileIdResult,
-        processFileIdResult,
-        paymentFileIdResult,
-        termFileIdResult,
-        documentFileIdResult,
-      ] = await Promise.all(fileHandlingPromises);
+      // Handle file uploads for pricelist
+      const pricelistFilePromises = safePricelistFileData.map(
+        async (fileData, index) => {
+          const existingFileId = pricelistFileIds[index]?.[0] || "";
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
+          }
+          return existingFileId || "";
+        }
+      );
 
-      console.log("Files processed:", {
-        pricelistFileId: pricelistFileIdResult,
-        processFileId: processFileIdResult,
-        paymentFileId: paymentFileIdResult,
-        termFileId: termFileIdResult,
-        documentFileId: documentFileIdResult,
+      // Handle file uploads for process
+      const processFilePromises = safeProcessFileData.map(
+        async (fileData, index) => {
+          const existingFileId = processFileIds[index]?.[0] || "";
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
+          }
+          return existingFileId || "";
+        }
+      );
+
+      // Handle file uploads for term
+      const termFilePromises = safeTermFileData.map(async (fileData, index) => {
+        const existingFileId = termFileIds[index]?.[0] || "";
+        if (fileData?.file && fileData.file.length > 0) {
+          return handleFile(fileData.file, fileData.fileTitle, existingFileId);
+        }
+        return existingFileId || "";
       });
 
-      // Update state with new file IDs (in case new files were created)
-      setPricelistFileId(pricelistFileIdResult);
-      setProcessFileId(processFileIdResult);
-      setTermFileId(termFileIdResult);
-      setDocumentFileId(documentFileIdResult);
+      // Handle file uploads for document
+      const documentFilePromises = safeDocumentFileData.map(
+        async (fileData, index) => {
+          const existingFileId = documentFileIds[index]?.[0] || "";
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
+          }
+          return existingFileId || "";
+        }
+      );
 
-      // Prepare form data submissions for update or add
-      const submissions = [
-        {
-          type: "price" as const,
-          data: pricelistData,
-          fileId: pricelistFileIdResult,
-          existingData: editData.pricelist,
-        },
-        {
-          type: "process" as const,
-          data: processData,
-          fileId: processFileIdResult,
-          existingData: editData.process,
-        },
-        {
-          type: "payment" as const,
-          data: paymentData,
-          fileId: "",
-          existingData: editData.payment,
-        },
-        {
-          type: "terms" as const,
-          data: termData,
-          fileId: termFileIdResult,
-          existingData: editData.term,
-        },
-        {
-          type: "document" as const,
-          data: documentData,
-          fileId: documentFileIdResult,
-          existingData: editData.document,
-        },
+      const [
+        pricelistFileIdResults,
+        processFileIdResults,
+        termFileIdResults,
+        documentFileIdResults,
+      ] = await Promise.all([
+        Promise.all(pricelistFilePromises),
+        Promise.all(processFilePromises),
+        Promise.all(termFilePromises),
+        Promise.all(documentFilePromises),
+      ]);
+
+      // Update file IDs
+      setPricelistFileIds(pricelistFileIdResults.map((id) => [id]));
+      setProcessFileIds(processFileIdResults.map((id) => [id]));
+      setTermFileIds(termFileIdResults.map((id) => [id]));
+      setDocumentFileIds(documentFileIdResults.map((id) => [id]));
+
+      // Prepare submissions for pricelist
+      const pricelistArray = Array.isArray(pricelistData)
+        ? pricelistData
+        : [pricelistData];
+      const pricelistFileIdResultsArray = Array.isArray(pricelistFileIdResults)
+        ? pricelistFileIdResults
+        : [pricelistFileIdResults];
+      const editPricelistArray = Array.isArray(editData.pricelist)
+        ? editData.pricelist
+        : [editData.pricelist].filter(Boolean);
+
+      const pricelistSubmissions: FormSubmission[] = pricelistArray.map(
+        (data, index) => ({
+          type: "price",
+          data,
+          fileId: pricelistFileIdResultsArray[index] || "",
+          existingData: editPricelistArray[index],
+        })
+      );
+
+      // Prepare submissions for process
+      const processArray = Array.isArray(processData)
+        ? processData
+        : [processData];
+      const processFileIdResultsArray = Array.isArray(processFileIdResults)
+        ? processFileIdResults
+        : [processFileIdResults];
+      const editProcessArray = Array.isArray(editData.process)
+        ? editData.process
+        : [editData.process].filter(Boolean);
+
+      const processSubmissions: FormSubmission[] = processArray.map(
+        (data, index) => ({
+          type: "process",
+          data,
+          fileId: processFileIdResultsArray[index] || "",
+          existingData: editProcessArray[index],
+        })
+      );
+
+      // UPDATED: Prepare submissions for payment (now array)
+      const paymentArray = Array.isArray(paymentData)
+        ? paymentData
+        : [paymentData];
+      const editPaymentArray = Array.isArray(editData.payment)
+        ? editData.payment
+        : [editData.payment].filter(Boolean);
+
+      const paymentSubmissions: FormSubmission[] = paymentArray.map(
+        (data, index) => ({
+          type: "payment",
+          data,
+          fileId: "", // Payment doesn't have files
+          existingData: editPaymentArray[index],
+        })
+      );
+
+      // Prepare submissions for term
+      const termArray = Array.isArray(termData) ? termData : [termData];
+      const termFileIdResultsArray = Array.isArray(termFileIdResults)
+        ? termFileIdResults
+        : [termFileIdResults];
+      const editTermArray = Array.isArray(editData.term)
+        ? editData.term
+        : [editData.term].filter(Boolean);
+
+      const termSubmissions: FormSubmission[] = termArray.map(
+        (data, index) => ({
+          type: "terms",
+          data,
+          fileId: termFileIdResultsArray[index] || "",
+          existingData: editTermArray[index],
+        })
+      );
+
+      // Prepare submissions for document
+      const documentArray = Array.isArray(documentData)
+        ? documentData
+        : [documentData];
+      const documentFileIdResultsArray = Array.isArray(documentFileIdResults)
+        ? documentFileIdResults
+        : [documentFileIdResults];
+      const editDocumentArray = Array.isArray(editData.document)
+        ? editData.document
+        : [editData.document].filter(Boolean);
+
+      const documentSubmissions: FormSubmission[] = documentArray.map(
+        (data, index) => ({
+          type: "document",
+          data,
+          fileId: documentFileIdResultsArray[index] || "",
+          existingData: editDocumentArray[index],
+        })
+      );
+
+      const allSubmissions = [
+        ...pricelistSubmissions,
+        ...processSubmissions,
+        ...paymentSubmissions, // UPDATED: Now an array of submissions
+        ...termSubmissions,
+        ...documentSubmissions,
       ];
 
-      // Create and execute update/add mutations
-      // In the handleFinalSubmit function, fix the fileId check:
-      // In the handleFinalSubmit function, fix the fileId check to handle arrays:
-      const mutationPromises = submissions.map(
+      // Execute mutations
+      const mutationPromises = allSubmissions.map(
         ({ type, data, fileId, existingData }) => {
           const hasExistingData = !!existingData?._id;
           const mutation = getMutationFunction(type, hasExistingData);
 
           const formData = new FormData();
           formData.append("type", type);
-          formData.append("visa", visaId); // Always send visa ID
+          formData.append("visa", id);
 
-          // FIX: Handle fileId whether it's a string or array
-          if (fileId) {
-            // If fileId is an array, take the first element (or handle as needed)
-            const effectiveFileId = Array.isArray(fileId)
-              ? fileId[0] || ""
-              : fileId;
-
-            // Only append if not empty
-            if (effectiveFileId.trim() !== "") {
-              formData.append("filesAssociated", effectiveFileId);
-            }
+          if (fileId && fileId.trim() && fileId !== "undefined") {
+            formData.append("filesAssociated", fileId);
           }
 
           // Add type-specific fields
-          switch (type) {
-            case "price":
+          const fieldMappings = {
+            price: () => {
               formData.append("plan", data.plan);
               formData.append("fee", data.fee);
               formData.append("description", data.description);
-              break;
-            case "process":
+            },
+            process: () => {
               formData.append("processTitle", data.processTitle);
               formData.append("process", data.process);
-              break;
-            case "payment":
+            },
+            payment: () => {
               formData.append("paymentType", data.paymentType);
               formData.append("currency", data.currency);
               formData.append("accountName", data.accountName);
@@ -639,47 +1261,33 @@ const Edit = () => {
               formData.append("accountNo", data.accountNo);
               formData.append("bankAddress", data.bankAddress);
               formData.append("swiftCode", data.swiftCode);
-              break;
-            case "terms":
+            },
+            terms: () => {
               formData.append("title", data.title);
               formData.append("terms", data.terms);
-              break;
-            case "document":
+            },
+            document: () => {
               formData.append("docTitle", data.docTitle);
               formData.append("docDescription", data.docDescription);
-              break;
-          }
+            },
+          };
+
+          fieldMappings[type]?.();
 
           if (hasExistingData) {
-            // Update existing record
-            return (mutation as typeof pricelistUpdateMutation).mutateAsync({
+            const params: UpdateMutationParams = {
               id: existingData._id,
               data: formData,
-            });
+            };
+            return (mutation as any).mutateAsync(params);
           } else {
-            // Create new record
-            return (mutation as typeof pricelistAddMutation).mutateAsync(
-              formData
-            );
+            return (mutation as any).mutateAsync(formData);
           }
         }
       );
 
-      console.log("Updating/creating all forms...");
-
-      // Execute all mutations
       await Promise.all(mutationPromises);
-
-      console.log("All updates/creations completed successfully");
-
-      // Invalidate queries and navigate on success
-      queryClient.invalidateQueries({ queryKey: ["pricelist"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["process"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["payment"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["term"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["document"], exact: false });
-      queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
-
+      invalidateQueries();
       alert("Visa information updated successfully!");
       navigate("/visas/visa");
     } catch (error) {
@@ -688,89 +1296,102 @@ const Edit = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [
+    id,
+    editData,
+    pricelistFileIds,
+    processFileIds,
+    termFileIds,
+    documentFileIds,
+    handleFile,
+    getMutationFunction,
+    invalidateQueries,
+    navigate,
+    setPricelistFileIds,
+    setProcessFileIds,
+    setTermFileIds,
+    setDocumentFileIds,
+  ]);
 
-  // Get loading state
   const isLoading = isLoadingData || isSubmitting;
 
   if (isLoadingData) return <PageLoader />;
+
+  // UPDATED: Form props with deletePayment handler and array data
+  const formProps = {
+    pricelist: {
+      ref: pricelistFormRef,
+      editData: editData.pricelist || [],
+      fileData: fileData.pricelist || [],
+      onDeleteFile: (index: number, fileId: string) =>
+        handleDeleteFile(fileId, "pricelist", index),
+      onDeletePricelist: handleDeletePricelist,
+      isDeleting: deletingFileId !== null,
+      isDeletingPricelist: deletingPricelistId !== null,
+    },
+    process: {
+      ref: processFormRef,
+      editData: editData.process || [],
+      fileData: fileData.process || [],
+      onDeleteFile: (index: number, fileId: string) =>
+        handleDeleteFile(fileId, "process", index),
+      onDeleteProcess: handleDeleteProcess,
+      isDeleting: deletingFileId !== null,
+      isDeletingProcess: deletingProcessId !== null,
+    },
+    payment: {
+      ref: paymentFormRef,
+      editData: editData.payment || [], // UPDATED: Now an array
+      onDeletePayment: handleDeletePayment, // ADD THIS
+      isDeletingPayment: deletingPaymentId !== null, // ADD THIS
+    },
+    term: {
+      ref: termFormRef,
+      editData: editData.term || [],
+      fileData: fileData.term || [],
+      onDeleteFile: (index: number, fileId: string) =>
+        handleDeleteFile(fileId, "term", index),
+      onDeleteTerm: handleDeleteTerm,
+      isDeleting: deletingFileId !== null,
+      isDeletingTerm: deletingTermId !== null,
+    },
+    document: {
+      ref: documentFormRef,
+      editData: editData.document || [],
+      fileData: fileData.document || [],
+      onDeleteFile: (index: number, fileId: string) =>
+        handleDeleteFile(fileId, "document", index),
+      onDeleteDocument: handleDeleteDocument,
+      isDeleting: deletingFileId !== null,
+      isDeletingDocument: deletingDocumentId !== null,
+    },
+  };
 
   return (
     <div className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
       <FormTabs formType={formType} setFormType={setFormType} />
 
-      {/* Pricelist Section */}
-      <div
-        className={`w-full ${formType === "pricelist" ? "block" : "hidden"}`}
-      >
-        <EditPricelistForm
-          ref={pricelistFormRef}
-          editData={editData.pricelist}
-          fileData={fileData.pricelist}
-          onDeleteFile={
-            pricelistFileId
-              ? () => handleDeleteFile(pricelistFileId, "pricelist")
-              : undefined
-          }
-          isDeleting={deletingFileId === pricelistFileId}
-        />
-      </div>
+      {FORM_TYPES.map((type) => (
+        <div
+          key={type}
+          className={`w-full ${formType === type ? "block" : "hidden"}`}
+        >
+          {type === "pricelist" && (
+            <EditPricelistForm {...formProps.pricelist} />
+          )}
+          {type === "process" && <EditProcessForm {...formProps.process} />}
+          {type === "payment" && <EditPaymentForm {...formProps.payment} />}
+          {type === "term" && <EditTermForm {...formProps.term} />}
+          {type === "document" && <EditDocumentForm {...formProps.document} />}
+        </div>
+      ))}
 
-      {/* Process Section */}
-      <div className={`w-full ${formType === "process" ? "block" : "hidden"}`}>
-        <EditProcessForm
-          ref={processFormRef}
-          editData={editData.process}
-          fileData={fileData.process}
-          onDeleteFile={
-            processFileId
-              ? () => handleDeleteFile(processFileId, "process")
-              : undefined
-          }
-          isDeleting={deletingFileId === processFileId}
-        />
-      </div>
-
-      {/* Payment Section */}
-      <div className={`w-full ${formType === "payment" ? "block" : "hidden"}`}>
-        <EditPaymentForm ref={paymentFormRef} editData={editData.payment} />
-      </div>
-
-      {/* Term Section */}
-      <div className={`w-full ${formType === "term" ? "block" : "hidden"}`}>
-        <EditTermForm
-          ref={termFormRef}
-          editData={editData.term}
-          fileData={fileData.term}
-          onDeleteFile={
-            termFileId ? () => handleDeleteFile(termFileId, "term") : undefined
-          }
-          isDeleting={deletingFileId === termFileId}
-        />
-      </div>
-
-      {/* Document Section */}
-      <div className={`w-full ${formType === "document" ? "block" : "hidden"}`}>
-        <EditDocumentForm
-          ref={documentFormRef}
-          editData={editData.document}
-          fileData={fileData.document}
-          onDeleteFile={
-            documentFileId
-              ? () => handleDeleteFile(documentFileId, "document")
-              : undefined
-          }
-          isDeleting={deletingFileId === documentFileId}
-        />
-      </div>
-
-      {/* Single Update Button */}
-      <div className="w-full ">
+      <div className="w-full">
         <ActionButton
           action={handleFinalSubmit}
           isLoading={isLoading}
-          title="Update All Visa Information"
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 w-full"
+          title="Update Visa Information"
+          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
         />
       </div>
     </div>

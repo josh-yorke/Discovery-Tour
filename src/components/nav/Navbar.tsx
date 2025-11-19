@@ -40,7 +40,7 @@ const Navbar = () => {
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
-                pathname.startsWith("/visas/visa") ? (
+                pathname.startsWith("/visas") ? (
                   <RiSuitcase2Fill size={16} />
                 ) : (
                   <RiSuitcase2Line size={16} />
@@ -150,7 +150,7 @@ const Navbar = () => {
             </NavLink>
             <div className="flex flex-col items-center justify-center gap-4">
               <LinkButton
-                to="/visas/visa"
+                to="/visas"
                 style={`${
                   pathname.startsWith("/visas/visa")
                     ? "font-semibold text-[#1d2087]"

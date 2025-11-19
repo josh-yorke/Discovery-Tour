@@ -34,6 +34,7 @@ const FileInput: React.FC<FileInputProps> = ({
       <label className="block text-sm font-semibold">{title}</label>
       <input
         type="file"
+        accept=".pdf"
         disabled={disabled}
         onChange={handleFileChange}
         className="w-full bg-white text-sm px-6 py-3 rounded-lg"

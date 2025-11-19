@@ -13,7 +13,7 @@ const Modal = ({ message, success, action }: ModalProps) => {
         <div className="w-full flex flex-row items-center justify-between">
           <p
             className={`${
-              success ? "text-[#1d2087]" : "text-red-700"
+              success ? "text-[#1d2087]" : "text-red-600"
             } text-xs font-semibold`}
           >
             {success ? "Success" : "Error"}
@@ -24,7 +24,7 @@ const Modal = ({ message, success, action }: ModalProps) => {
           {success ? (
             <RiChatCheckFill size={40} className="text-[#1d2087]" />
           ) : (
-            <RiChatDeleteFill size={40} className="text-red-700" />
+            <RiChatDeleteFill size={40} className="text-red-600" />
           )}
           <p className="text-center">{message}</p>
         </div>

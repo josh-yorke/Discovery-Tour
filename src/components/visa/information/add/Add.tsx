@@ -11,11 +11,12 @@ import ActionButton from "../../../button/ActionButton";
 import type { PricelistFormHandle } from "../../PricelistForm";
 import type { ProcessFormHandle } from "../../ProcessForm";
 import type { PaymentFormHandle } from "../../PaymentForm";
+
 import FormTabs from "./FormTab";
 import PricelistForm from "../../PricelistForm";
 import ProcessForm from "../../ProcessForm";
 import PaymentForm from "../../PaymentForm";
-import TermForm, { type termFormHandle } from "../../TermForm";
+import TermForm, { type TermFormHandle } from "../../TermForm";
 import DocumentForm, { type documentFormHandle } from "../../DocumentForm";
 
 export type FormType =
@@ -34,7 +35,7 @@ const Add = () => {
   const pricelistFormRef = useRef<PricelistFormHandle>(null);
   const processFormRef = useRef<ProcessFormHandle>(null);
   const paymentFormRef = useRef<PaymentFormHandle>(null);
-  const termFormRef = useRef<termFormHandle>(null);
+  const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<documentFormHandle>(null);
 
   // File upload mutation
@@ -129,139 +130,237 @@ const Add = () => {
 
       console.log("Uploading files...");
 
-      // Upload files first and get their IDs (skip payment since it doesn't have files)
-      const fileUploadPromises = [];
+      // UPDATED: Handle multiple pricelist file uploads
+      const pricelistFileUploadPromises = [];
 
-      // Pricelist file upload
-      if (pricelistFileData.file && pricelistFileData.file.length > 0) {
-        fileUploadPromises.push(
-          uploadFile(
-            pricelistFileData.file,
-            `Pricelist - ${pricelistFileData.fileTitle || "Pricelist"}`
-          )
-        );
-      } else {
-        fileUploadPromises.push(Promise.resolve(""));
+      // Ensure pricelistFileData is an array
+      const safePricelistFileData = Array.isArray(pricelistFileData)
+        ? pricelistFileData
+        : [pricelistFileData];
+
+      // Upload files for each pricelist entry
+      for (let i = 0; i < safePricelistFileData.length; i++) {
+        const fileData = safePricelistFileData[i];
+        if (fileData?.file && fileData.file.length > 0) {
+          pricelistFileUploadPromises.push(
+            uploadFile(
+              fileData.file,
+              `Pricelist - ${fileData.fileTitle || `Pricelist ${i + 1}`}`
+            )
+          );
+        } else {
+          pricelistFileUploadPromises.push(Promise.resolve(""));
+        }
       }
 
       // Process file upload
-      if (processFileData.file && processFileData.file.length > 0) {
-        fileUploadPromises.push(
-          uploadFile(
-            processFileData.file,
-            `Process - ${processFileData.fileTitle || "Process"}`
-          )
-        );
-      } else {
-        fileUploadPromises.push(Promise.resolve(""));
+      const processFileUploadPromises = [];
+      const safeProcessFileData = Array.isArray(processFileData)
+        ? processFileData
+        : [processFileData];
+
+      for (let i = 0; i < safeProcessFileData.length; i++) {
+        const fileData = safeProcessFileData[i];
+        if (fileData?.file && fileData.file.length > 0) {
+          processFileUploadPromises.push(
+            uploadFile(
+              fileData.file,
+              `Process - ${fileData.fileTitle || `Process ${i + 1}`}`
+            )
+          );
+        } else {
+          processFileUploadPromises.push(Promise.resolve(""));
+        }
       }
 
-      // Payment file upload - skip since payment doesn't have files
-      fileUploadPromises.push(Promise.resolve(""));
-
       // Term file upload
-      if (termFileData.file && termFileData.file.length > 0) {
-        fileUploadPromises.push(
-          uploadFile(
-            termFileData.file,
-            `Term - ${termFileData.fileTitle || "Terms"}`
-          )
-        );
-      } else {
-        fileUploadPromises.push(Promise.resolve(""));
+      const termFileUploadPromises = [];
+      const safeTermFileData = Array.isArray(termFileData)
+        ? termFileData
+        : [termFileData];
+
+      for (let i = 0; i < safeTermFileData.length; i++) {
+        const fileData = safeTermFileData[i];
+        if (fileData?.file && fileData.file.length > 0) {
+          termFileUploadPromises.push(
+            uploadFile(
+              fileData.file,
+              `Term - ${fileData.fileTitle || `Terms ${i + 1}`}`
+            )
+          );
+        } else {
+          termFileUploadPromises.push(Promise.resolve(""));
+        }
       }
 
       // Document file upload
-      if (documentFileData.file && documentFileData.file.length > 0) {
-        fileUploadPromises.push(
-          uploadFile(
-            documentFileData.file,
-            `Document - ${documentFileData.fileTitle || "Document"}`
-          )
-        );
-      } else {
-        fileUploadPromises.push(Promise.resolve(""));
+      const documentFileUploadPromises = [];
+      const safeDocumentFileData = Array.isArray(documentFileData)
+        ? documentFileData
+        : [documentFileData];
+
+      for (let i = 0; i < safeDocumentFileData.length; i++) {
+        const fileData = safeDocumentFileData[i];
+        if (fileData?.file && fileData.file.length > 0) {
+          documentFileUploadPromises.push(
+            uploadFile(
+              fileData.file,
+              `Document - ${fileData.fileTitle || `Document ${i + 1}`}`
+            )
+          );
+        } else {
+          documentFileUploadPromises.push(Promise.resolve(""));
+        }
       }
 
       const [
-        pricelistFileUploadId,
-        processFileUploadId,
-        paymentFileUploadId,
-        termFileUploadId,
-        documentFileUploadId,
-      ] = await Promise.all(fileUploadPromises);
+        pricelistFileUploadIds,
+        processFileUploadIds,
+        termFileUploadIds,
+        documentFileUploadIds,
+      ] = await Promise.all([
+        Promise.all(pricelistFileUploadPromises),
+        Promise.all(processFileUploadPromises),
+        Promise.all(termFileUploadPromises),
+        Promise.all(documentFileUploadPromises),
+      ]);
 
       console.log("Files uploaded:", {
-        pricelistFileId: pricelistFileUploadId,
-        processFileId: processFileUploadId,
-        paymentFileId: paymentFileUploadId,
-        termFileId: termFileUploadId,
-        documentFileId: documentFileUploadId,
+        pricelistFileIds: pricelistFileUploadIds,
+        processFileIds: processFileUploadIds,
+        termFileIds: termFileUploadIds,
+        documentFileIds: documentFileUploadIds,
       });
 
-      // Submit pricelist with file ID (only if file exists)
-      const pricelistFormDataToSubmit = new FormData();
-      pricelistFormDataToSubmit.append("type", "price");
-      pricelistFormDataToSubmit.append("plan", pricelistData.plan);
-      pricelistFormDataToSubmit.append("fee", pricelistData.fee);
-      pricelistFormDataToSubmit.append(
-        "description",
-        pricelistData.description
-      );
-      pricelistFormDataToSubmit.append("visa", visaId);
-      if (pricelistFileUploadId) {
+      // UPDATED: Submit multiple pricelists
+      const pricelistSubmissions = [];
+      const safePricelistData = Array.isArray(pricelistData)
+        ? pricelistData
+        : [pricelistData];
+
+      for (let i = 0; i < safePricelistData.length; i++) {
+        const pricelistItem = safePricelistData[i];
+        const pricelistFormDataToSubmit = new FormData();
+        pricelistFormDataToSubmit.append("type", "price");
+        pricelistFormDataToSubmit.append("plan", pricelistItem.plan);
+        pricelistFormDataToSubmit.append("fee", pricelistItem.fee);
         pricelistFormDataToSubmit.append(
-          "filesAssociated",
-          pricelistFileUploadId
+          "description",
+          pricelistItem.description
+        );
+        pricelistFormDataToSubmit.append("visa", visaId);
+
+        if (pricelistFileUploadIds[i]) {
+          pricelistFormDataToSubmit.append(
+            "filesAssociated",
+            pricelistFileUploadIds[i]
+          );
+        }
+
+        pricelistSubmissions.push(
+          pricelistMutation.mutateAsync(pricelistFormDataToSubmit)
         );
       }
 
-      // Submit process with file ID (only if file exists)
-      const processFormDataToSubmit = new FormData();
-      processFormDataToSubmit.append("type", "process");
-      processFormDataToSubmit.append("processTitle", processData.processTitle);
-      processFormDataToSubmit.append("process", processData.process);
-      processFormDataToSubmit.append("visa", visaId);
-      if (processFileUploadId) {
-        processFormDataToSubmit.append("filesAssociated", processFileUploadId);
+      // UPDATED: Submit multiple processes
+      const processSubmissions = [];
+      const safeProcessData = Array.isArray(processData)
+        ? processData
+        : [processData];
+
+      for (let i = 0; i < safeProcessData.length; i++) {
+        const processItem = safeProcessData[i];
+        const processFormDataToSubmit = new FormData();
+        processFormDataToSubmit.append("type", "process");
+        processFormDataToSubmit.append(
+          "processTitle",
+          processItem.processTitle
+        );
+        processFormDataToSubmit.append("process", processItem.process);
+        processFormDataToSubmit.append("visa", visaId);
+
+        if (processFileUploadIds[i]) {
+          processFormDataToSubmit.append(
+            "filesAssociated",
+            processFileUploadIds[i]
+          );
+        }
+
+        processSubmissions.push(
+          processMutation.mutateAsync(processFormDataToSubmit)
+        );
       }
 
-      // Submit payment (no file)
-      const paymentFormDataToSubmit = new FormData();
-      paymentFormDataToSubmit.append("type", "payment");
-      paymentFormDataToSubmit.append("paymentType", paymentData.paymentType);
-      paymentFormDataToSubmit.append("currency", paymentData.currency);
-      paymentFormDataToSubmit.append("accountName", paymentData.accountName);
-      paymentFormDataToSubmit.append("bankName", paymentData.bankName);
-      paymentFormDataToSubmit.append("accountNo", paymentData.accountNo);
-      paymentFormDataToSubmit.append("bankAddress", paymentData.bankAddress);
-      paymentFormDataToSubmit.append("swiftCode", paymentData.swiftCode);
-      paymentFormDataToSubmit.append("visa", visaId);
-      // No filesAssociated for payment
+      // UPDATED: Submit multiple payments
+      const paymentSubmissions = [];
+      const safePaymentData = Array.isArray(paymentData)
+        ? paymentData
+        : [paymentData];
 
-      // Submit term with file ID (only if file exists)
-      const termFormDataToSubmit = new FormData();
-      termFormDataToSubmit.append("type", "terms");
-      termFormDataToSubmit.append("title", termData.title);
-      termFormDataToSubmit.append("terms", termData.terms);
-      termFormDataToSubmit.append("visa", visaId);
-      if (termFileUploadId) {
-        termFormDataToSubmit.append("filesAssociated", termFileUploadId);
+      for (let i = 0; i < safePaymentData.length; i++) {
+        const paymentItem = safePaymentData[i];
+        const paymentFormDataToSubmit = new FormData();
+        paymentFormDataToSubmit.append("type", "payment");
+        paymentFormDataToSubmit.append("paymentType", paymentItem.paymentType);
+        paymentFormDataToSubmit.append("currency", paymentItem.currency);
+        paymentFormDataToSubmit.append("accountName", paymentItem.accountName);
+        paymentFormDataToSubmit.append("bankName", paymentItem.bankName);
+        paymentFormDataToSubmit.append("accountNo", paymentItem.accountNo);
+        paymentFormDataToSubmit.append("bankAddress", paymentItem.bankAddress);
+        paymentFormDataToSubmit.append("swiftCode", paymentItem.swiftCode);
+        paymentFormDataToSubmit.append("visa", visaId);
+        // No filesAssociated for payment
+
+        paymentSubmissions.push(
+          paymentMutation.mutateAsync(paymentFormDataToSubmit)
+        );
       }
 
-      // Submit document with file ID (only if file exists)
-      const documentFormDataToSubmit = new FormData();
-      documentFormDataToSubmit.append("type", "document");
-      documentFormDataToSubmit.append("docTitle", documentData.docTitle);
-      documentFormDataToSubmit.append(
-        "docDescription",
-        documentData.docDescription
-      );
-      documentFormDataToSubmit.append("visa", visaId);
-      if (documentFileUploadId) {
+      // UPDATED: Submit multiple terms
+      const termSubmissions = [];
+      const safeTermData = Array.isArray(termData) ? termData : [termData];
+
+      for (let i = 0; i < safeTermData.length; i++) {
+        const termItem = safeTermData[i];
+        const termFormDataToSubmit = new FormData();
+        termFormDataToSubmit.append("type", "terms");
+        termFormDataToSubmit.append("title", termItem.title);
+        termFormDataToSubmit.append("terms", termItem.terms);
+        termFormDataToSubmit.append("visa", visaId);
+
+        if (termFileUploadIds[i]) {
+          termFormDataToSubmit.append("filesAssociated", termFileUploadIds[i]);
+        }
+
+        termSubmissions.push(termMutation.mutateAsync(termFormDataToSubmit));
+      }
+
+      // UPDATED: Submit multiple documents
+      const documentSubmissions = [];
+      const safeDocumentData = Array.isArray(documentData)
+        ? documentData
+        : [documentData];
+
+      for (let i = 0; i < safeDocumentData.length; i++) {
+        const documentItem = safeDocumentData[i];
+        const documentFormDataToSubmit = new FormData();
+        documentFormDataToSubmit.append("type", "document");
+        documentFormDataToSubmit.append("docTitle", documentItem.docTitle);
         documentFormDataToSubmit.append(
-          "filesAssociated",
-          documentFileUploadId
+          "docDescription",
+          documentItem.docDescription
+        );
+        documentFormDataToSubmit.append("visa", visaId);
+
+        if (documentFileUploadIds[i]) {
+          documentFormDataToSubmit.append(
+            "filesAssociated",
+            documentFileUploadIds[i]
+          );
+        }
+
+        documentSubmissions.push(
+          documentMutation.mutateAsync(documentFormDataToSubmit)
         );
       }
 
@@ -269,11 +368,11 @@ const Add = () => {
 
       // Execute all mutations
       await Promise.all([
-        pricelistMutation.mutateAsync(pricelistFormDataToSubmit),
-        processMutation.mutateAsync(processFormDataToSubmit),
-        paymentMutation.mutateAsync(paymentFormDataToSubmit),
-        termMutation.mutateAsync(termFormDataToSubmit),
-        documentMutation.mutateAsync(documentFormDataToSubmit),
+        ...pricelistSubmissions,
+        ...processSubmissions,
+        ...paymentSubmissions,
+        ...termSubmissions,
+        ...documentSubmissions,
       ]);
 
       console.log("All submissions completed successfully");
@@ -332,8 +431,8 @@ const Add = () => {
         <ActionButton
           action={handleFinalSubmit}
           isLoading={isSubmitting}
-          title="Save Visa Information"
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 w-full"
+          title="Add Visa Information"
+          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
         />
       </div>
     </div>

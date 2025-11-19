@@ -8,6 +8,7 @@ interface Props {
   initialFile?: File | null;
   disabled: boolean;
   title: string;
+  onChange?: (files: FileList | null) => void; // ADD THIS
 }
 
 const FileInput = ({
@@ -16,6 +17,7 @@ const FileInput = ({
   setValue,
   error,
   initialFile = null,
+  onChange, // ADD THIS
 }: Props) => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -61,6 +63,11 @@ const FileInput = ({
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     setValue("file", dataTransfer.files);
+
+    // CALL THE ONCHANGE PROP IF PROVIDED
+    if (onChange) {
+      onChange(files);
+    }
   };
 
   const handleRemove = () => {
@@ -75,6 +82,11 @@ const FileInput = ({
     // Clear the file input
     const dataTransfer = new DataTransfer();
     setValue("file", dataTransfer.files);
+
+    // CALL THE ONCHANGE PROP IF PROVIDED
+    if (onChange) {
+      onChange(null);
+    }
   };
 
   return (
@@ -82,6 +94,7 @@ const FileInput = ({
       <p className="text-sm font-semibold capitalize">{title}</p>
       <input
         type="file"
+        accept=".pdf"
         onChange={handleFileChange}
         className="text-sm font-normal px-6 py-3 bg-white rounded-lg"
         disabled={disabled}

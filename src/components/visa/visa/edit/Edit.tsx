@@ -19,6 +19,7 @@ import { getProcess } from "../../../../hooks/visa/process/getProcess";
 import { getPricelist } from "../../../../hooks/visa/pricelist/getPriceList";
 import { useState } from "react";
 import Modal from "../../../modal/Modal";
+import ActionButton from "../../../button/ActionButton";
 
 interface EditInputsProps extends editVisaData {
   id: string;
@@ -33,6 +34,7 @@ const Edit = ({
   images,
 }: EditInputsProps) => {
   const [message, showMessage] = useState<string | null>(null);
+  const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -70,7 +72,14 @@ const Edit = ({
       showMessage(data);
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["visas", id] });
-      navigate(`/visas/information/edit/${id}`);
+
+      // Redirect based on which button was clicked
+      if (redirectTo === "information") {
+        navigate(`/visas/information/edit/${id}`);
+      } else {
+        navigate(`/visas/visa`);
+      }
+
       reset();
     },
     onError: (error) => {
@@ -92,11 +101,23 @@ const Edit = ({
     mutation.mutate({ id, data: formData });
   };
 
+  // Handle Update Visa button click
+  const handleUpdateVisa = (data: editVisaData) => {
+    setRedirectTo("visa");
+    onSubmit(data);
+  };
+
+  // Handle Proceed to Information Visa button click
+  const handleProceedToInformation = (data: editVisaData) => {
+    setRedirectTo("information");
+    onSubmit(data);
+  };
+
   return (
     <>
       <FormProvider {...methods}>
         <form
-          onSubmit={handleSubmit(onSubmit, (err) => {
+          onSubmit={handleSubmit(handleUpdateVisa, (err) => {
             console.log(err);
           })}
           className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
@@ -117,12 +138,11 @@ const Edit = ({
               type="text"
               {...register("type")}
             />
-            <Input
+            <TextArea
               disabled={false}
               error={errors.eligibleApplicants?.message || ""}
               title="Eligible Applicants"
               placeholder="eligible applicants"
-              type="text"
               {...register("eligibleApplicants")}
             />
             <TextArea
@@ -145,11 +165,20 @@ const Edit = ({
                   : ""
               }
             />
-            <Button
-              isLoading={mutation.isPending}
-              title="Update Visa & Proceed to Information"
-              style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
-            />
+            <div className="w-full flex flex-row gap-4">
+              <Button
+                isLoading={mutation.isPending}
+                title="Update Visa"
+                style="bg-white hover:bg-[#f7f9ff] text-[#1d2087] text-sm duration-300 mt-4"
+              />
+
+              <ActionButton
+                action={handleSubmit(handleProceedToInformation)}
+                isLoading={mutation.isPending}
+                title="Proceed to Information Visa"
+                style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 mt-4"
+              />
+            </div>
           </div>
         </form>
       </FormProvider>
@@ -160,7 +189,7 @@ const Edit = ({
           action={() => {
             showMessage(null);
             if (mutation.isSuccess) {
-              navigate("/visas/information/add");
+              // No need to navigate here since we're already navigating in onSuccess
             }
           }}
         />
