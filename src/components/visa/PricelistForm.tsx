@@ -121,9 +121,9 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
 
   const handleClearFile = useCallback(
     (index: number) => {
+      // Clear both file and file title
       setValue(`pricelists.${index}.file`, undefined);
-      // Optionally clear file title when clearing file
-      // setValue(`pricelists.${index}.fileTitle`, "");
+      setValue(`pricelists.${index}.fileTitle`, "");
     },
     [setValue]
   );
@@ -179,7 +179,9 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
 
   // Render helpers
   const renderFileSection = (index: number) => {
-    const hasNewFile = !!watchPricelists?.[index]?.file;
+    const currentPricelist = watchPricelists?.[index];
+    const hasNewFile = !!currentPricelist?.file;
+    const fileName = currentPricelist?.file?.[0]?.name || "";
 
     return (
       <div className="space-y-4">
@@ -208,9 +210,9 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
           }
         />
 
-        {hasNewFile && (
+        {hasNewFile && fileName && (
           <NewFileDisplay
-            fileName={watchPricelists[index].file![0].name}
+            fileName={fileName}
             onClear={() => handleClearFile(index)}
           />
         )}
@@ -228,7 +230,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     return (
       <div
         key={field.id}
-        className="w-full flex flex-col items-end justify-center "
+        className="w-full flex flex-col items-end justify-center"
       >
         {fields.length > 1 && (
           <IconButton

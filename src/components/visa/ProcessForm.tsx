@@ -116,6 +116,7 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
   const handleClearFile = useCallback(
     (index: number) => {
       setValue(`processes.${index}.file`, undefined);
+      setValue(`processes.${index}.fileTitle`, ""); // Clear file title when clearing file
     },
     [setValue]
   );
@@ -150,7 +151,9 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
   }));
 
   const renderFileSection = (index: number) => {
-    const hasNewFile = !!watchProcesses?.[index]?.file;
+    const currentProcess = watchProcesses?.[index];
+    const hasNewFile = !!currentProcess?.file;
+    const fileName = currentProcess?.file?.[0]?.name || "";
 
     return (
       <div className="space-y-4">
@@ -179,9 +182,9 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
           }
         />
 
-        {hasNewFile && watchProcesses[index]?.file && (
+        {hasNewFile && fileName && (
           <NewFileDisplay
-            fileName={watchProcesses[index].file![0].name}
+            fileName={fileName}
             onClear={() => handleClearFile(index)}
           />
         )}

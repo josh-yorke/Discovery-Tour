@@ -116,6 +116,7 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
   const handleClearFile = useCallback(
     (index: number) => {
       setValue(`documents.${index}.file`, undefined);
+      setValue(`documents.${index}.fileTitle`, ""); // Clear file title when clearing file
     },
     [setValue]
   );
@@ -150,7 +151,9 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
   }));
 
   const renderFileSection = (index: number) => {
-    const hasNewFile = !!watchDocuments?.[index]?.file;
+    const currentDocument = watchDocuments?.[index];
+    const hasNewFile = !!currentDocument?.file;
+    const fileName = currentDocument?.file?.[0]?.name || "";
 
     return (
       <div className="space-y-4">
@@ -179,9 +182,9 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
           }
         />
 
-        {hasNewFile && watchDocuments[index]?.file && (
+        {hasNewFile && fileName && (
           <NewFileDisplay
-            fileName={watchDocuments[index].file![0].name}
+            fileName={fileName}
             onClear={() => handleClearFile(index)}
           />
         )}
