@@ -847,9 +847,7 @@ const Edit = () => {
               }));
             }
           },
-          payment: () => {
-            // Payment doesn't have files, so no action needed
-          },
+          payment: () => {},
           term: () => {
             if (index !== undefined) {
               setTermFileIds((prev) => {
@@ -1013,7 +1011,6 @@ const Edit = () => {
       const { termData, termFileData } = termFormData;
       const { documentData, documentFileData } = documentFormData;
 
-      // Handle pricelist file data
       let safePricelistFileData: any[] = [];
       if (Array.isArray(pricelistFileData)) {
         safePricelistFileData = pricelistFileData;
@@ -1023,7 +1020,6 @@ const Edit = () => {
         safePricelistFileData = [];
       }
 
-      // Handle process file data
       let safeProcessFileData: any[] = [];
       if (Array.isArray(processFileData)) {
         safeProcessFileData = processFileData;
@@ -1033,7 +1029,6 @@ const Edit = () => {
         safeProcessFileData = [];
       }
 
-      // Handle term file data
       let safeTermFileData: any[] = [];
       if (Array.isArray(termFileData)) {
         safeTermFileData = termFileData;
@@ -1043,7 +1038,6 @@ const Edit = () => {
         safeTermFileData = [];
       }
 
-      // Handle document file data
       let safeDocumentFileData: any[] = [];
       if (Array.isArray(documentFileData)) {
         safeDocumentFileData = documentFileData;
@@ -1053,7 +1047,6 @@ const Edit = () => {
         safeDocumentFileData = [];
       }
 
-      // Handle file uploads for pricelist
       const pricelistFilePromises = safePricelistFileData.map(
         async (fileData, index) => {
           const existingFileId = pricelistFileIds[index]?.[0] || "";
@@ -1068,7 +1061,6 @@ const Edit = () => {
         }
       );
 
-      // Handle file uploads for process
       const processFilePromises = safeProcessFileData.map(
         async (fileData, index) => {
           const existingFileId = processFileIds[index]?.[0] || "";
@@ -1083,7 +1075,6 @@ const Edit = () => {
         }
       );
 
-      // Handle file uploads for term
       const termFilePromises = safeTermFileData.map(async (fileData, index) => {
         const existingFileId = termFileIds[index]?.[0] || "";
         if (fileData?.file && fileData.file.length > 0) {
@@ -1092,7 +1083,6 @@ const Edit = () => {
         return existingFileId || "";
       });
 
-      // Handle file uploads for document
       const documentFilePromises = safeDocumentFileData.map(
         async (fileData, index) => {
           const existingFileId = documentFileIds[index]?.[0] || "";
@@ -1223,7 +1213,7 @@ const Edit = () => {
       const allSubmissions = [
         ...pricelistSubmissions,
         ...processSubmissions,
-        ...paymentSubmissions, // UPDATED: Now an array of submissions
+        ...paymentSubmissions,
         ...termSubmissions,
         ...documentSubmissions,
       ];
@@ -1242,7 +1232,6 @@ const Edit = () => {
             formData.append("filesAssociated", fileId);
           }
 
-          // Add type-specific fields
           const fieldMappings = {
             price: () => {
               formData.append("plan", data.plan);
@@ -1317,7 +1306,6 @@ const Edit = () => {
 
   if (isLoadingData) return <PageLoader />;
 
-  // UPDATED: Form props with deletePayment handler and array data
   const formProps = {
     pricelist: {
       ref: pricelistFormRef,
@@ -1341,9 +1329,9 @@ const Edit = () => {
     },
     payment: {
       ref: paymentFormRef,
-      editData: editData.payment || [], // UPDATED: Now an array
-      onDeletePayment: handleDeletePayment, // ADD THIS
-      isDeletingPayment: deletingPaymentId !== null, // ADD THIS
+      editData: editData.payment || [],
+      onDeletePayment: handleDeletePayment,
+      isDeletingPayment: deletingPaymentId !== null,
     },
     term: {
       ref: termFormRef,

@@ -133,15 +133,15 @@ const Add = () => {
             <div className="w-full flex flex-row gap-4">
               <Button
                 isLoading={mutation.isPending}
-                title="Add Visa"
-                style="bg-white hover:bg-[#f7f9ff] text-[#1d2087] text-sm duration-300 mt-4"
+                title="Save Visa"
+                style="bg-white hover:bg-[#f7f9ff] text-[#1d2087] text-sm lg:text-base duration-300 mt-4"
               />
 
               <ActionButton
                 action={handleSubmit(handleProceedToInformation)}
                 isLoading={mutation.isPending}
                 title="Add Visa Information"
-                style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 mt-4"
+                style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm lg:text-base duration-300 mt-4"
               />
             </div>
           </div>

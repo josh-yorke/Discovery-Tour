@@ -17,7 +17,7 @@ import PricelistForm from "../../PricelistForm";
 import ProcessForm from "../../ProcessForm";
 import PaymentForm from "../../PaymentForm";
 import TermForm, { type TermFormHandle } from "../../TermForm";
-import DocumentForm, { type documentFormHandle } from "../../DocumentForm";
+import DocumentForm, { type DocumentFormHandle } from "../../DocumentForm";
 
 export type FormType =
   | "pricelist"
@@ -36,7 +36,7 @@ const Add = () => {
   const processFormRef = useRef<ProcessFormHandle>(null);
   const paymentFormRef = useRef<PaymentFormHandle>(null);
   const termFormRef = useRef<TermFormHandle>(null);
-  const documentFormRef = useRef<documentFormHandle>(null);
+  const documentFormRef = useRef<DocumentFormHandle>(null);
 
   // File upload mutation
   const fileMutation = useMutation<string, Error, FormData>({
