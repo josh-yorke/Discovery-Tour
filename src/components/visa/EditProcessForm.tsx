@@ -18,23 +18,21 @@ import type { visaFileData } from "../../types/visafile/visaFileDataTypes";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 
-// UPDATED: Add removeProcessField method
 export interface ProcessFormHandle {
   getFormData: () => Promise<{
     processData: addProcessData[];
     processFileData: addVisaFileData[];
   } | null>;
-  removeProcessField: (index: number) => void; // ADD THIS
+  removeProcessField: (index: number) => void;
 }
 
-// UPDATED: Interface with new props for multiple processes
 interface ProcessFormProps {
   editData?: editProcessData[];
   fileData?: visaFileData[];
   onDeleteFile?: (index: number, fileId: string) => void;
-  onDeleteProcess?: (processId: string, index: number) => void; // ADD THIS
+  onDeleteProcess?: (processId: string, index: number) => void;
   isDeleting?: boolean;
-  isDeletingProcess?: boolean; // ADD THIS
+  isDeletingProcess?: boolean;
 }
 
 // Types - Fix: Make fileTitle required only when file is present
@@ -87,6 +85,7 @@ const mapEditDataToDefaultValues = (
   editData: editProcessData[],
   fileData: visaFileData[]
 ): ProcessWithFileData[] => {
+  // If no edit data, start with one empty process
   if (editData.length === 0) return [DEFAULT_PROCESS];
 
   return editData.map((data, index) => ({
@@ -108,9 +107,9 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
       editData = [],
       fileData = [],
       onDeleteFile,
-      onDeleteProcess, // ADD THIS
+      onDeleteProcess,
       isDeleting,
-      // isDeletingProcess, // ADD THIS
+      // isDeletingProcess,
     },
     ref
   ) => {
@@ -142,24 +141,22 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
       append(DEFAULT_PROCESS);
     }, [append]);
 
-    // FIXED: Remove process function with proper type handling
+    // UPDATED: Allow deletion even when there's only one process, no auto-add
     const removeProcess = useCallback(
       (index: number) => {
-        if (fields.length > 1) {
-          const processItem = editData[index];
-          // Use type assertion to safely access _id
-          const processWithId = processItem as ProcessWithId;
+        const processItem = editData[index];
+        // Use type assertion to safely access _id
+        const processWithId = processItem as ProcessWithId;
 
-          // If it's an existing process (has _id), use API deletion
-          if (processWithId?._id && onDeleteProcess) {
-            onDeleteProcess(processWithId._id, index);
-          } else {
-            // If it's a new process (no _id), just remove from local state
-            remove(index);
-          }
+        // If it's an existing process (has _id), use API deletion
+        if (processWithId?._id && onDeleteProcess) {
+          onDeleteProcess(processWithId._id, index);
+        } else {
+          // If it's a new process (no _id), just remove from local state
+          remove(index);
         }
       },
-      [fields.length, remove, editData, onDeleteProcess]
+      [remove, editData, onDeleteProcess]
     );
 
     const handleFileSelect = useCallback(
@@ -181,8 +178,6 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
     const handleClearFile = useCallback(
       (index: number) => {
         setValue(`processes.${index}.file`, undefined);
-        // Optionally clear file title when clearing file
-        // setValue(`processes.${index}.fileTitle`, "");
       },
       [setValue]
     );
@@ -234,10 +229,8 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
         return { processData, processFileData };
       },
       removeProcessField: (index: number) => {
-        // ADD THIS METHOD
-        if (fields.length > 1) {
-          remove(index);
-        }
+        // UPDATED: Allow deletion even when there's only one process
+        remove(index);
       },
     }));
 
@@ -301,7 +294,7 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
       );
     };
 
-    // FIXED: Render function with proper type handling
+    // UPDATED: Render function with always visible delete button
     const renderProcessForm = (field: { id: string }, index: number) => {
       // const processItem = editData[index];
       // // Use type assertion to safely access _id
@@ -314,12 +307,14 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {fields.length > 1 && (
+          {/* UPDATED: Always show delete button when there's at least one process */}
+          {fields.length >= 1 && (
             <IconButton
               action={() => removeProcess(index)}
               style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
+              // isLoading={isThisProcessDeleting}
             />
           )}
 
@@ -351,7 +346,7 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
         <div className="w-full flex justify-center">
           <IconButton
             action={addProcess}
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+            style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
             title="New Process"
             icon={<RiAddFill size={16} />}
           />
@@ -389,6 +384,7 @@ const ExistingFileDisplay: React.FC<ExistingFileDisplayProps> = ({
         style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
         title=""
         icon={<RiDeleteBin4Fill size={16} />}
+        // isLoading={isDeleting}
       />
     </div>
   </div>

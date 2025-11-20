@@ -18,7 +18,6 @@ import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import { z } from "zod";
 
-// UPDATED: Add removeTermField method
 export interface TermFormHandle {
   getFormData: () => Promise<{
     termData: addTermData[];
@@ -27,7 +26,6 @@ export interface TermFormHandle {
   removeTermField: (index: number) => void;
 }
 
-// UPDATED: Interface with new props for multiple terms
 interface TermFormProps {
   editData?: editTermData[];
   fileData?: visaFileData[];
@@ -83,6 +81,7 @@ const mapEditDataToDefaultValues = (
   editData: editTermData[],
   fileData: visaFileData[]
 ): TermWithFileData[] => {
+  // If no edit data, start with one empty term
   if (editData.length === 0) return [DEFAULT_TERM];
 
   return editData.map((data, index) => ({
@@ -148,24 +147,22 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       append(DEFAULT_TERM);
     }, [append]);
 
-    // FIXED: Remove term function with proper type handling
+    // UPDATED: Remove term function - allow deletion even when there's only one term, no auto-add
     const removeTerm = useCallback(
       (index: number) => {
-        if (fields.length > 1) {
-          const termItem = editData[index];
-          // Use type assertion to safely access _id
-          const termWithId = termItem as TermWithId;
+        const termItem = editData[index];
+        // Use type assertion to safely access _id
+        const termWithId = termItem as TermWithId;
 
-          // If it's an existing term (has _id), use API deletion
-          if (termWithId?._id && onDeleteTerm) {
-            onDeleteTerm(termWithId._id, index);
-          } else {
-            // If it's a new term (no _id), just remove from local state
-            remove(index);
-          }
+        // If it's an existing term (has _id), use API deletion
+        if (termWithId?._id && onDeleteTerm) {
+          onDeleteTerm(termWithId._id, index);
+        } else {
+          // If it's a new term (no _id), just remove from local state
+          remove(index);
         }
       },
-      [fields.length, remove, editData, onDeleteTerm]
+      [remove, editData, onDeleteTerm]
     );
 
     const handleFileSelect = useCallback(
@@ -187,8 +184,6 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
     const handleClearFile = useCallback(
       (index: number) => {
         setValue(`terms.${index}.file`, undefined);
-        // Optionally clear file title when clearing file
-        // setValue(`terms.${index}.fileTitle`, "");
       },
       [setValue]
     );
@@ -234,9 +229,8 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
         return { termData, termFileData };
       },
       removeTermField: (index: number) => {
-        if (fields.length > 1) {
-          remove(index);
-        }
+        // UPDATED: Allow deletion even when there's only one term
+        remove(index);
       },
     }));
 
@@ -300,7 +294,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       );
     };
 
-    // FIXED: Render function with proper type handling
+    // UPDATED: Render function with always visible delete button
     const renderTermForm = (field: { id: string }, index: number) => {
       // const termItem = editData[index];
       // Use type assertion to safely access _id
@@ -313,13 +307,13 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {fields.length > 1 && (
+          {/* UPDATED: Always show delete button when there's at least one term */}
+          {fields.length >= 1 && (
             <IconButton
               action={() => removeTerm(index)}
               style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
-              // isLoading={isThisTermDeleting}
             />
           )}
 
@@ -351,7 +345,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
         <div className="w-full flex justify-center">
           <IconButton
             action={addTerm}
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+            style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
             title="New Term"
             icon={<RiAddFill size={16} />}
           />

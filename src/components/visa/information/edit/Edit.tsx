@@ -49,7 +49,7 @@ export type FormType =
 interface EditData {
   pricelist?: any[];
   process?: any[];
-  payment?: any[]; // UPDATED: Change to array
+  payment?: any[];
   term?: any[];
   document?: any[];
 }
@@ -144,7 +144,6 @@ const useEditData = (id: string | undefined) => {
           ? documentData
           : [documentData].filter(Boolean);
 
-        // UPDATED: Handle payment as array
         const paymentArray = Array.isArray(paymentData)
           ? paymentData
           : [paymentData].filter(Boolean);
@@ -152,7 +151,7 @@ const useEditData = (id: string | undefined) => {
         setEditData({
           pricelist: pricelistArray,
           process: processArray,
-          payment: paymentArray, // UPDATED: Now an array
+          payment: paymentArray,
           term: termArray,
           document: documentArray,
         });
@@ -385,7 +384,6 @@ const useFormMutations = () => {
     },
   });
 
-  // ADD THIS: Delete mutation for payment
   const deletePaymentMutation = useMutation({
     mutationFn: deletePayment,
     onSuccess: () => {
@@ -421,7 +419,7 @@ const useFormMutations = () => {
     deleteProcessMutation,
     deleteTermMutation,
     deleteDocumentMutation,
-    deletePaymentMutation, // ADD THIS
+    deletePaymentMutation,
     fileMutation,
     fileAddMutation,
     fileDeleteMutation,
@@ -453,7 +451,7 @@ const Edit = () => {
   );
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(
     null
-  ); // ADD THIS
+  );
 
   const {
     editData,
@@ -478,7 +476,7 @@ const Edit = () => {
     deleteProcessMutation,
     deleteTermMutation,
     deleteDocumentMutation,
-    deletePaymentMutation, // ADD THIS
+    deletePaymentMutation,
     fileMutation,
     fileAddMutation,
     fileDeleteMutation,
@@ -716,7 +714,7 @@ const Edit = () => {
     [deleteDocumentMutation, setEditData, setFileData, setDocumentFileIds]
   );
 
-  // ADD THIS: Function to handle payment deletion
+  // Function to handle payment deletion
   const handleDeletePayment = useCallback(
     async (paymentId: string, index: number) => {
       if (
@@ -971,6 +969,8 @@ const Edit = () => {
     [updateMutations, addMutations]
   );
 
+  // UPDATED: Optional form submission
+  // UPDATED: Optional form submission with proper type checking
   const handleFinalSubmit = useCallback(async () => {
     if (!id) {
       alert("No visa ID found. Please select a visa first.");
@@ -980,6 +980,7 @@ const Edit = () => {
     setIsSubmitting(true);
 
     try {
+      // Get form data from all forms - these can be undefined if forms are empty
       const [
         pricelistFormData,
         processFormData,
@@ -994,232 +995,298 @@ const Edit = () => {
         documentFormRef.current?.getFormData(),
       ]);
 
-      if (
-        !pricelistFormData ||
-        !processFormData ||
-        !paymentFormData ||
-        !termFormData ||
-        !documentFormData
-      ) {
-        alert("Please fix all form errors before submitting.");
+      // Helper function to check if form data has content
+      const hasFormData = (formData: any): boolean => {
+        if (!formData) return false;
+
+        // Check for pricelist data
+        if (
+          "pricelistData" in formData &&
+          Array.isArray(formData.pricelistData) &&
+          formData.pricelistData.length > 0
+        ) {
+          return true;
+        }
+        // Check for process data
+        if (
+          "processData" in formData &&
+          Array.isArray(formData.processData) &&
+          formData.processData.length > 0
+        ) {
+          return true;
+        }
+        // Check for payment data
+        if (
+          "paymentData" in formData &&
+          Array.isArray(formData.paymentData) &&
+          formData.paymentData.length > 0
+        ) {
+          return true;
+        }
+        // Check for term data
+        if (
+          "termData" in formData &&
+          Array.isArray(formData.termData) &&
+          formData.termData.length > 0
+        ) {
+          return true;
+        }
+        // Check for document data
+        if (
+          "documentData" in formData &&
+          Array.isArray(formData.documentData) &&
+          formData.documentData.length > 0
+        ) {
+          return true;
+        }
+
+        return false;
+      };
+
+      // Check if ALL forms are empty
+      const allFormsEmpty = [
+        pricelistFormData,
+        processFormData,
+        paymentFormData,
+        termFormData,
+        documentFormData,
+      ].every((formData) => !hasFormData(formData));
+
+      if (allFormsEmpty) {
+        alert("Please fill at least one form before submitting.");
+        setIsSubmitting(false);
         return;
       }
 
-      const { pricelistData, pricelistFileData } = pricelistFormData;
-      const { processData, processFileData } = processFormData;
-      const { paymentData } = paymentFormData;
-      const { termData, termFileData } = termFormData;
-      const { documentData, documentFileData } = documentFormData;
+      // Prepare submissions for each form type only if they have data
+      const submissions: FormSubmission[] = [];
 
-      let safePricelistFileData: any[] = [];
-      if (Array.isArray(pricelistFileData)) {
-        safePricelistFileData = pricelistFileData;
-      } else if (pricelistFileData && typeof pricelistFileData === "object") {
-        safePricelistFileData = [pricelistFileData];
-      } else {
-        safePricelistFileData = [];
-      }
+      // Handle pricelist submissions if data exists
+      if (
+        pricelistFormData &&
+        "pricelistData" in pricelistFormData &&
+        Array.isArray(pricelistFormData.pricelistData) &&
+        pricelistFormData.pricelistData.length > 0
+      ) {
+        const { pricelistData, pricelistFileData } = pricelistFormData;
 
-      let safeProcessFileData: any[] = [];
-      if (Array.isArray(processFileData)) {
-        safeProcessFileData = processFileData;
-      } else if (processFileData && typeof processFileData === "object") {
-        safeProcessFileData = [processFileData];
-      } else {
-        safeProcessFileData = [];
-      }
+        let safePricelistFileData: any[] = [];
+        if (Array.isArray(pricelistFileData)) {
+          safePricelistFileData = pricelistFileData;
+        } else if (pricelistFileData && typeof pricelistFileData === "object") {
+          safePricelistFileData = [pricelistFileData];
+        }
 
-      let safeTermFileData: any[] = [];
-      if (Array.isArray(termFileData)) {
-        safeTermFileData = termFileData;
-      } else if (termFileData && typeof termFileData === "object") {
-        safeTermFileData = [termFileData];
-      } else {
-        safeTermFileData = [];
-      }
-
-      let safeDocumentFileData: any[] = [];
-      if (Array.isArray(documentFileData)) {
-        safeDocumentFileData = documentFileData;
-      } else if (documentFileData && typeof documentFileData === "object") {
-        safeDocumentFileData = [documentFileData];
-      } else {
-        safeDocumentFileData = [];
-      }
-
-      const pricelistFilePromises = safePricelistFileData.map(
-        async (fileData, index) => {
-          const existingFileId = pricelistFileIds[index]?.[0] || "";
-          if (fileData?.file && fileData.file.length > 0) {
-            return handleFile(
-              fileData.file,
-              fileData.fileTitle,
-              existingFileId
-            );
+        const pricelistFilePromises = safePricelistFileData.map(
+          async (fileData, index) => {
+            const existingFileId = pricelistFileIds[index]?.[0] || "";
+            if (fileData?.file && fileData.file.length > 0) {
+              return handleFile(
+                fileData.file,
+                fileData.fileTitle,
+                existingFileId
+              );
+            }
+            return existingFileId || "";
           }
-          return existingFileId || "";
-        }
-      );
+        );
 
-      const processFilePromises = safeProcessFileData.map(
-        async (fileData, index) => {
-          const existingFileId = processFileIds[index]?.[0] || "";
-          if (fileData?.file && fileData.file.length > 0) {
-            return handleFile(
-              fileData.file,
-              fileData.fileTitle,
-              existingFileId
-            );
+        const pricelistFileIdResults = await Promise.all(pricelistFilePromises);
+        setPricelistFileIds(pricelistFileIdResults.map((id) => [id]));
+
+        const pricelistArray = Array.isArray(pricelistData)
+          ? pricelistData
+          : [pricelistData];
+        const editPricelistArray = Array.isArray(editData.pricelist)
+          ? editData.pricelist
+          : [editData.pricelist].filter(Boolean);
+
+        pricelistArray.forEach((data, index) => {
+          submissions.push({
+            type: "price",
+            data,
+            fileId: pricelistFileIdResults[index] || "",
+            existingData: editPricelistArray[index],
+          });
+        });
+      }
+
+      // Handle process submissions if data exists
+      if (
+        processFormData &&
+        "processData" in processFormData &&
+        Array.isArray(processFormData.processData) &&
+        processFormData.processData.length > 0
+      ) {
+        const { processData, processFileData } = processFormData;
+
+        let safeProcessFileData: any[] = [];
+        if (Array.isArray(processFileData)) {
+          safeProcessFileData = processFileData;
+        } else if (processFileData && typeof processFileData === "object") {
+          safeProcessFileData = [processFileData];
+        }
+
+        const processFilePromises = safeProcessFileData.map(
+          async (fileData, index) => {
+            const existingFileId = processFileIds[index]?.[0] || "";
+            if (fileData?.file && fileData.file.length > 0) {
+              return handleFile(
+                fileData.file,
+                fileData.fileTitle,
+                existingFileId
+              );
+            }
+            return existingFileId || "";
           }
-          return existingFileId || "";
-        }
-      );
+        );
 
-      const termFilePromises = safeTermFileData.map(async (fileData, index) => {
-        const existingFileId = termFileIds[index]?.[0] || "";
-        if (fileData?.file && fileData.file.length > 0) {
-          return handleFile(fileData.file, fileData.fileTitle, existingFileId);
-        }
-        return existingFileId || "";
-      });
+        const processFileIdResults = await Promise.all(processFilePromises);
+        setProcessFileIds(processFileIdResults.map((id) => [id]));
 
-      const documentFilePromises = safeDocumentFileData.map(
-        async (fileData, index) => {
-          const existingFileId = documentFileIds[index]?.[0] || "";
-          if (fileData?.file && fileData.file.length > 0) {
-            return handleFile(
-              fileData.file,
-              fileData.fileTitle,
-              existingFileId
-            );
+        const processArray = Array.isArray(processData)
+          ? processData
+          : [processData];
+        const editProcessArray = Array.isArray(editData.process)
+          ? editData.process
+          : [editData.process].filter(Boolean);
+
+        processArray.forEach((data, index) => {
+          submissions.push({
+            type: "process",
+            data,
+            fileId: processFileIdResults[index] || "",
+            existingData: editProcessArray[index],
+          });
+        });
+      }
+
+      // Handle payment submissions if data exists
+      if (
+        paymentFormData &&
+        "paymentData" in paymentFormData &&
+        Array.isArray(paymentFormData.paymentData) &&
+        paymentFormData.paymentData.length > 0
+      ) {
+        const { paymentData } = paymentFormData;
+
+        const paymentArray = Array.isArray(paymentData)
+          ? paymentData
+          : [paymentData];
+        const editPaymentArray = Array.isArray(editData.payment)
+          ? editData.payment
+          : [editData.payment].filter(Boolean);
+
+        paymentArray.forEach((data, index) => {
+          submissions.push({
+            type: "payment",
+            data,
+            fileId: "", // Payment doesn't have files
+            existingData: editPaymentArray[index],
+          });
+        });
+      }
+
+      // Handle term submissions if data exists
+      if (
+        termFormData &&
+        "termData" in termFormData &&
+        Array.isArray(termFormData.termData) &&
+        termFormData.termData.length > 0
+      ) {
+        const { termData, termFileData } = termFormData;
+
+        let safeTermFileData: any[] = [];
+        if (Array.isArray(termFileData)) {
+          safeTermFileData = termFileData;
+        } else if (termFileData && typeof termFileData === "object") {
+          safeTermFileData = [termFileData];
+        }
+
+        const termFilePromises = safeTermFileData.map(
+          async (fileData, index) => {
+            const existingFileId = termFileIds[index]?.[0] || "";
+            if (fileData?.file && fileData.file.length > 0) {
+              return handleFile(
+                fileData.file,
+                fileData.fileTitle,
+                existingFileId
+              );
+            }
+            return existingFileId || "";
           }
-          return existingFileId || "";
+        );
+
+        const termFileIdResults = await Promise.all(termFilePromises);
+        setTermFileIds(termFileIdResults.map((id) => [id]));
+
+        const termArray = Array.isArray(termData) ? termData : [termData];
+        const editTermArray = Array.isArray(editData.term)
+          ? editData.term
+          : [editData.term].filter(Boolean);
+
+        termArray.forEach((data, index) => {
+          submissions.push({
+            type: "terms",
+            data,
+            fileId: termFileIdResults[index] || "",
+            existingData: editTermArray[index],
+          });
+        });
+      }
+
+      // Handle document submissions if data exists
+      if (
+        documentFormData &&
+        "documentData" in documentFormData &&
+        Array.isArray(documentFormData.documentData) &&
+        documentFormData.documentData.length > 0
+      ) {
+        const { documentData, documentFileData } = documentFormData;
+
+        let safeDocumentFileData: any[] = [];
+        if (Array.isArray(documentFileData)) {
+          safeDocumentFileData = documentFileData;
+        } else if (documentFileData && typeof documentFileData === "object") {
+          safeDocumentFileData = [documentFileData];
         }
-      );
 
-      const [
-        pricelistFileIdResults,
-        processFileIdResults,
-        termFileIdResults,
-        documentFileIdResults,
-      ] = await Promise.all([
-        Promise.all(pricelistFilePromises),
-        Promise.all(processFilePromises),
-        Promise.all(termFilePromises),
-        Promise.all(documentFilePromises),
-      ]);
+        const documentFilePromises = safeDocumentFileData.map(
+          async (fileData, index) => {
+            const existingFileId = documentFileIds[index]?.[0] || "";
+            if (fileData?.file && fileData.file.length > 0) {
+              return handleFile(
+                fileData.file,
+                fileData.fileTitle,
+                existingFileId
+              );
+            }
+            return existingFileId || "";
+          }
+        );
 
-      // Update file IDs
-      setPricelistFileIds(pricelistFileIdResults.map((id) => [id]));
-      setProcessFileIds(processFileIdResults.map((id) => [id]));
-      setTermFileIds(termFileIdResults.map((id) => [id]));
-      setDocumentFileIds(documentFileIdResults.map((id) => [id]));
+        const documentFileIdResults = await Promise.all(documentFilePromises);
+        setDocumentFileIds(documentFileIdResults.map((id) => [id]));
 
-      // Prepare submissions for pricelist
-      const pricelistArray = Array.isArray(pricelistData)
-        ? pricelistData
-        : [pricelistData];
-      const pricelistFileIdResultsArray = Array.isArray(pricelistFileIdResults)
-        ? pricelistFileIdResults
-        : [pricelistFileIdResults];
-      const editPricelistArray = Array.isArray(editData.pricelist)
-        ? editData.pricelist
-        : [editData.pricelist].filter(Boolean);
+        const documentArray = Array.isArray(documentData)
+          ? documentData
+          : [documentData];
+        const editDocumentArray = Array.isArray(editData.document)
+          ? editData.document
+          : [editData.document].filter(Boolean);
 
-      const pricelistSubmissions: FormSubmission[] = pricelistArray.map(
-        (data, index) => ({
-          type: "price",
-          data,
-          fileId: pricelistFileIdResultsArray[index] || "",
-          existingData: editPricelistArray[index],
-        })
-      );
+        documentArray.forEach((data, index) => {
+          submissions.push({
+            type: "document",
+            data,
+            fileId: documentFileIdResults[index] || "",
+            existingData: editDocumentArray[index],
+          });
+        });
+      }
 
-      // Prepare submissions for process
-      const processArray = Array.isArray(processData)
-        ? processData
-        : [processData];
-      const processFileIdResultsArray = Array.isArray(processFileIdResults)
-        ? processFileIdResults
-        : [processFileIdResults];
-      const editProcessArray = Array.isArray(editData.process)
-        ? editData.process
-        : [editData.process].filter(Boolean);
-
-      const processSubmissions: FormSubmission[] = processArray.map(
-        (data, index) => ({
-          type: "process",
-          data,
-          fileId: processFileIdResultsArray[index] || "",
-          existingData: editProcessArray[index],
-        })
-      );
-
-      // UPDATED: Prepare submissions for payment (now array)
-      const paymentArray = Array.isArray(paymentData)
-        ? paymentData
-        : [paymentData];
-      const editPaymentArray = Array.isArray(editData.payment)
-        ? editData.payment
-        : [editData.payment].filter(Boolean);
-
-      const paymentSubmissions: FormSubmission[] = paymentArray.map(
-        (data, index) => ({
-          type: "payment",
-          data,
-          fileId: "", // Payment doesn't have files
-          existingData: editPaymentArray[index],
-        })
-      );
-
-      // Prepare submissions for term
-      const termArray = Array.isArray(termData) ? termData : [termData];
-      const termFileIdResultsArray = Array.isArray(termFileIdResults)
-        ? termFileIdResults
-        : [termFileIdResults];
-      const editTermArray = Array.isArray(editData.term)
-        ? editData.term
-        : [editData.term].filter(Boolean);
-
-      const termSubmissions: FormSubmission[] = termArray.map(
-        (data, index) => ({
-          type: "terms",
-          data,
-          fileId: termFileIdResultsArray[index] || "",
-          existingData: editTermArray[index],
-        })
-      );
-
-      // Prepare submissions for document
-      const documentArray = Array.isArray(documentData)
-        ? documentData
-        : [documentData];
-      const documentFileIdResultsArray = Array.isArray(documentFileIdResults)
-        ? documentFileIdResults
-        : [documentFileIdResults];
-      const editDocumentArray = Array.isArray(editData.document)
-        ? editData.document
-        : [editData.document].filter(Boolean);
-
-      const documentSubmissions: FormSubmission[] = documentArray.map(
-        (data, index) => ({
-          type: "document",
-          data,
-          fileId: documentFileIdResultsArray[index] || "",
-          existingData: editDocumentArray[index],
-        })
-      );
-
-      const allSubmissions = [
-        ...pricelistSubmissions,
-        ...processSubmissions,
-        ...paymentSubmissions,
-        ...termSubmissions,
-        ...documentSubmissions,
-      ];
-
-      // Execute mutations
-      const mutationPromises = allSubmissions.map(
+      // Execute mutations only for forms that have data
+      const mutationPromises = submissions.map(
         ({ type, data, fileId, existingData }) => {
           const hasExistingData = !!existingData?._id;
           const mutation = getMutationFunction(type, hasExistingData);
@@ -1362,7 +1429,9 @@ const Edit = () => {
       {FORM_TYPES.map((type) => (
         <div
           key={type}
-          className={`w-full ${formType === type ? "block" : "hidden"}`}
+          className={`w-full lg:w-2xl ${
+            formType === type ? "block" : "hidden"
+          }`}
         >
           {type === "pricelist" && (
             <EditPricelistForm {...formProps.pricelist} />
@@ -1374,11 +1443,11 @@ const Edit = () => {
         </div>
       ))}
 
-      <div className="w-full">
+      <div className="w-full lg:w-2xl">
         <ActionButton
           action={handleFinalSubmit}
           isLoading={isLoading}
-          title="Update Visa Information"
+          title="Save Visa Information"
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
         />
       </div>

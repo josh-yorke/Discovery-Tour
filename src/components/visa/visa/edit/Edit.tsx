@@ -122,7 +122,7 @@ const Edit = ({
           })}
           className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
-          <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
+          <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-start">
             <InputOption
               disabled={false}
               style="bg-white w-full"

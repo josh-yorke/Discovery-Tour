@@ -12,7 +12,6 @@ import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import { z } from "zod";
 
-// UPDATED: Add removePaymentField method
 export interface PaymentFormHandle {
   getFormData: () => Promise<{
     paymentData: addPaymentData[];
@@ -20,7 +19,6 @@ export interface PaymentFormHandle {
   removePaymentField: (index: number) => void;
 }
 
-// UPDATED: Interface with new props for multiple payments
 interface PaymentFormProps {
   editData?: editPaymentData[];
   onDeletePayment?: (paymentId: string, index: number) => void;
@@ -103,24 +101,22 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
       append(DEFAULT_PAYMENT);
     }, [append]);
 
-    // FIXED: Remove payment function with proper type handling
+    // UPDATED: Remove payment function - allow deletion even when there's only one payment, no auto-add
     const removePayment = useCallback(
       (index: number) => {
-        if (fields.length > 1) {
-          const paymentItem = editData[index];
-          // Use type assertion to safely access _id
-          const paymentWithId = paymentItem as PaymentWithId;
+        const paymentItem = editData[index];
+        // Use type assertion to safely access _id
+        const paymentWithId = paymentItem as PaymentWithId;
 
-          // If it's an existing payment (has _id), use API deletion
-          if (paymentWithId?._id && onDeletePayment) {
-            onDeletePayment(paymentWithId._id, index);
-          } else {
-            // If it's a new payment (no _id), just remove from local state
-            remove(index);
-          }
+        // If it's an existing payment (has _id), use API deletion
+        if (paymentWithId?._id && onDeletePayment) {
+          onDeletePayment(paymentWithId._id, index);
+        } else {
+          // If it's a new payment (no _id), just remove from local state
+          remove(index);
         }
       },
-      [fields.length, remove, editData, onDeletePayment]
+      [remove, editData, onDeletePayment]
     );
 
     // UPDATED: Expose form data and remove method to parent
@@ -165,16 +161,15 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
         return { paymentData };
       },
       removePaymentField: (index: number) => {
-        if (fields.length > 1) {
-          remove(index);
-        }
+        // UPDATED: Allow deletion even when there's only one payment
+        remove(index);
       },
     }));
 
-    // FIXED: Render function with proper type handling
+    // UPDATED: Render function with always visible delete button
     const renderPaymentForm = (field: { id: string }, index: number) => {
       // const paymentItem = editData[index];
-      // // Use type assertion to safely access _id
+      // Use type assertion to safely access _id
       // const paymentWithId = paymentItem as PaymentWithId;
       // const isExistingPayment = !!paymentWithId?._id;
       // const isThisPaymentDeleting = isExistingPayment && isDeletingPayment;
@@ -184,7 +179,8 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {fields.length > 1 && (
+          {/* UPDATED: Always show delete button when there's at least one payment */}
+          {fields.length >= 1 && (
             <IconButton
               action={() => removePayment(index)}
               style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
@@ -260,7 +256,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
         <div className="w-full flex justify-center">
           <IconButton
             action={addPayment}
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+            style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
             title="New Payment Method"
             icon={<RiAddFill size={16} />}
           />

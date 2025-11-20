@@ -18,7 +18,6 @@ import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import { z } from "zod";
 
-// UPDATED: Add removeDocumentField method
 export interface DocumentFormHandle {
   getFormData: () => Promise<{
     documentData: addDocumentData[];
@@ -27,7 +26,6 @@ export interface DocumentFormHandle {
   removeDocumentField: (index: number) => void;
 }
 
-// UPDATED: Interface with new props for multiple documents
 interface DocumentFormProps {
   editData?: editDocumentData[];
   fileData?: visaFileData[];
@@ -83,6 +81,7 @@ const mapEditDataToDefaultValues = (
   editData: editDocumentData[],
   fileData: visaFileData[]
 ): DocumentWithFileData[] => {
+  // If no edit data, start with one empty document
   if (editData.length === 0) return [DEFAULT_DOCUMENT];
 
   return editData.map((data, index) => ({
@@ -156,24 +155,22 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       append(DEFAULT_DOCUMENT);
     }, [append]);
 
-    // FIXED: Remove document function with proper type handling
+    // UPDATED: Remove document function - allow deletion even when there's only one document, no auto-add
     const removeDocument = useCallback(
       (index: number) => {
-        if (fields.length > 1) {
-          const documentItem = editData[index];
-          // Use type assertion to safely access _id
-          const documentWithId = documentItem as DocumentWithId;
+        const documentItem = editData[index];
+        // Use type assertion to safely access _id
+        const documentWithId = documentItem as DocumentWithId;
 
-          // If it's an existing document (has _id), use API deletion
-          if (documentWithId?._id && onDeleteDocument) {
-            onDeleteDocument(documentWithId._id, index);
-          } else {
-            // If it's a new document (no _id), just remove from local state
-            remove(index);
-          }
+        // If it's an existing document (has _id), use API deletion
+        if (documentWithId?._id && onDeleteDocument) {
+          onDeleteDocument(documentWithId._id, index);
+        } else {
+          // If it's a new document (no _id), just remove from local state
+          remove(index);
         }
       },
-      [fields.length, remove, editData, onDeleteDocument]
+      [remove, editData, onDeleteDocument]
     );
 
     const handleFileSelect = useCallback(
@@ -195,8 +192,6 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
     const handleClearFile = useCallback(
       (index: number) => {
         setValue(`documents.${index}.file`, undefined);
-        // Optionally clear file title when clearing file
-        // setValue(`documents.${index}.fileTitle`, "");
       },
       [setValue]
     );
@@ -248,9 +243,8 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
         return { documentData, documentFileData };
       },
       removeDocumentField: (index: number) => {
-        if (fields.length > 1) {
-          remove(index);
-        }
+        // UPDATED: Allow deletion even when there's only one document
+        remove(index);
       },
     }));
 
@@ -314,7 +308,7 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       );
     };
 
-    // FIXED: Render function with proper type handling
+    // UPDATED: Render function with always visible delete button
     const renderDocumentForm = (field: { id: string }, index: number) => {
       // const documentItem = editData[index];
       // Use type assertion to safely access _id
@@ -327,13 +321,13 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {fields.length > 1 && (
+          {/* UPDATED: Always show delete button when there's at least one document */}
+          {fields.length >= 1 && (
             <IconButton
               action={() => removeDocument(index)}
               style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
-              // isLoading={isThisDocumentDeleting}
             />
           )}
 
@@ -365,7 +359,7 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
         <div className="w-full flex justify-center">
           <IconButton
             action={addDocument}
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+            style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
             title="New Document"
             icon={<RiAddFill size={16} />}
           />
@@ -387,7 +381,6 @@ interface ExistingFileDisplayProps {
 const ExistingFileDisplay: React.FC<ExistingFileDisplayProps> = ({
   fileData,
   onDelete,
-  // isDeleting,
 }) => (
   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
     <div className="flex flex-row items-center justify-between">

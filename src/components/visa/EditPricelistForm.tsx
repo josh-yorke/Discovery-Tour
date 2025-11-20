@@ -82,6 +82,7 @@ const mapEditDataToDefaultValues = (
   editData: editPricelistData[],
   fileData: visaFileData[]
 ): PricelistWithFileData[] => {
+  // If no edit data, start with one empty price list
   if (editData.length === 0) return [DEFAULT_PRICE_LIST];
 
   return editData.map((data, index) => ({
@@ -134,16 +135,17 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
 
     const removePricelist = useCallback(
       (index: number) => {
-        if (fields.length > 1) {
-          const pricelistItem = editData[index];
-          if (pricelistItem?._id && onDeletePricelist) {
-            onDeletePricelist(pricelistItem._id, index);
-          } else {
-            remove(index);
-          }
+        // Allow deletion even if there's only one price list
+        const pricelistItem = editData[index];
+        if (pricelistItem?._id && onDeletePricelist) {
+          // If it's an existing pricelist with an ID, call the delete handler
+          onDeletePricelist(pricelistItem._id, index);
+        } else {
+          // If it's a new pricelist (no ID) or no delete handler, just remove from form
+          remove(index);
         }
       },
-      [fields.length, remove, editData, onDeletePricelist]
+      [remove, editData, onDeletePricelist]
     );
 
     const handleFileSelect = useCallback(
@@ -197,9 +199,8 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         return { pricelistData, pricelistFileData };
       },
       removePricelistField: (index: number) => {
-        if (fields.length > 1) {
-          remove(index);
-        }
+        // Allow deletion even if there's only one price list
+        remove(index);
       },
     }));
 
@@ -266,15 +267,15 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
     const renderPricelistForm = (field: { id: string }, index: number) => {
       // const pricelistItem = editData[index];
       // const isExistingPricelist = !!pricelistItem?._id;
-      // const isThisPricelistDeleting =
-      //   isExistingPricelist && isDeletingPricelist;
+      // const isThisPricelistDeleting = isExistingPricelist && isDeletingPricelist;
 
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {fields.length > 1 && (
+          {/* Always show delete button when there's at least one item */}
+          {fields.length >= 1 && (
             <IconButton
               action={() => removePricelist(index)}
               style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
@@ -320,8 +321,8 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         <div className="w-full flex justify-center">
           <IconButton
             action={addPricelist}
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
-            title="New Price Plan"
+            style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+            title="New Plan"
             icon={<RiAddFill size={16} />}
           />
         </div>

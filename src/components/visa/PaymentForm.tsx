@@ -57,13 +57,12 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
     append(DEFAULT_PAYMENT);
   }, [append]);
 
+  // UPDATED: Allow deletion even when there's only one payment, no auto-add
   const removePayment = useCallback(
     (index: number) => {
-      if (fields.length > 1) {
-        remove(index);
-      }
+      remove(index);
     },
-    [fields.length, remove]
+    [remove]
   );
 
   useImperativeHandle(ref, () => ({
@@ -100,7 +99,8 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
         key={field.id}
         className="w-full flex flex-col items-end justify-center"
       >
-        {fields.length > 1 && (
+        {/* UPDATED: Always show delete button when there's at least one payment */}
+        {fields.length >= 1 && (
           <IconButton
             action={() => removePayment(index)}
             style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
@@ -184,7 +184,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
       <div className="w-full flex justify-center">
         <IconButton
           action={addPayment}
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+          style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
           title="New Payment Method"
           icon={<RiAddFill size={16} />}
         />

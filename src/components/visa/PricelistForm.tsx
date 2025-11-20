@@ -94,13 +94,12 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     append(DEFAULT_PRICELIST);
   }, [append]);
 
+  // UPDATED: Allow deletion even when there's only one pricelist, no auto-add
   const removePricelist = useCallback(
     (index: number) => {
-      if (fields.length > 1) {
-        remove(index);
-      }
+      remove(index);
     },
-    [fields.length, remove]
+    [remove]
   );
 
   const handleFileSelect = useCallback(
@@ -232,7 +231,8 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
         key={field.id}
         className="w-full flex flex-col items-end justify-center"
       >
-        {fields.length > 1 && (
+        {/* UPDATED: Always show delete button when there's at least one pricelist */}
+        {fields.length >= 1 && (
           <IconButton
             action={() => removePricelist(index)}
             style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
@@ -277,10 +277,10 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
 
   return (
     <div className="w-full flex flex-col items-center justify-center gap-6">
-      <div className="w-full flex justify-center">
+      <div className="relative w-full flex justify-center">
         <IconButton
           action={addPricelist}
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
+          style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
           title="New Plan"
           icon={<RiAddFill size={16} />}
         />
