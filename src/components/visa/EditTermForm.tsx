@@ -1,13 +1,9 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback, useEffect } from "react";
-import {
-  addVisaFileSchema,
-  type addVisaFileData,
-} from "../../types/visafile/addVisaFileTypes";
+import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
 import EditFileInput from "../input/EditFileInput";
 import {
-  addTermSchema,
   type addTermData,
   type editTermData,
 } from "../../types/terms/addTermType";
@@ -35,17 +31,17 @@ interface TermFormProps {
   isDeletingTerm?: boolean;
 }
 
-// Types - Fix: Make fileTitle required only when file is present
-const termWithFileSchema = addTermSchema
-  .merge(
-    addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
-      file: addVisaFileSchema.shape.file.optional(),
-      fileTitle: z.string().optional(),
-    })
-  )
+// FIXED: STRICTER validation - require title and terms
+const termWithFileSchema = z
+  .object({
+    title: z.string().min(1, "Term title is required"),
+    terms: z.string().min(1, "Terms content is required"),
+    fileTitle: z.string().optional(),
+    file: z.any().optional(),
+  })
   .refine(
     (data) => {
-      // File title is only required if a file is uploaded
+      // Only require file title if file is actually provided
       if (data.file && data.file.length > 0) {
         return !!data.fileTitle?.trim();
       }
@@ -57,18 +53,33 @@ const termWithFileSchema = addTermSchema
     }
   );
 
-type TermWithFileData = addTermData & {
+type TermWithFileData = {
+  title: string;
+  terms: string;
   fileTitle?: string;
   file?: FileList;
 };
 
+// FIXED: ULTRA STRICT form schema
 const formSchema = z.object({
-  terms: z.array(termWithFileSchema),
+  terms: z
+    .array(termWithFileSchema)
+    .min(1, "At least one term is required")
+    .refine(
+      (terms) => {
+        // Check that every term has the required fields
+        return terms.every(
+          (term) => term.title.trim() !== "" && term.terms.trim() !== ""
+        );
+      },
+      {
+        message: "All terms must have Title and Terms content filled out",
+      }
+    ),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
-// Constants
 const DEFAULT_TERM: TermWithFileData = {
   title: "",
   terms: "",
@@ -76,12 +87,15 @@ const DEFAULT_TERM: TermWithFileData = {
   file: undefined,
 };
 
-// Helper functions
+// FIXED: Type for edit data with _id
+interface EditTermWithId extends editTermData {
+  _id?: string;
+}
+
 const mapEditDataToDefaultValues = (
   editData: editTermData[],
   fileData: visaFileData[]
 ): TermWithFileData[] => {
-  // If no edit data, start with one empty term
   if (editData.length === 0) return [DEFAULT_TERM];
 
   return editData.map((data, index) => ({
@@ -91,11 +105,6 @@ const mapEditDataToDefaultValues = (
     file: undefined,
   }));
 };
-
-// FIX: Create a type that includes _id for existing terms
-interface TermWithId extends editTermData {
-  _id: string;
-}
 
 const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
   (
@@ -147,16 +156,14 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       append(DEFAULT_TERM);
     }, [append]);
 
-    // UPDATED: Remove term function - allow deletion even when there's only one term, no auto-add
     const removeTerm = useCallback(
       (index: number) => {
-        const termItem = editData[index];
-        // Use type assertion to safely access _id
-        const termWithId = termItem as TermWithId;
+        // FIXED: Use type assertion to safely access _id
+        const termItem = editData[index] as EditTermWithId | undefined;
 
         // If it's an existing term (has _id), use API deletion
-        if (termWithId?._id && onDeleteTerm) {
-          onDeleteTerm(termWithId._id, index);
+        if (termItem?._id && onDeleteTerm) {
+          onDeleteTerm(termItem._id, index);
         } else {
           // If it's a new term (no _id), just remove from local state
           remove(index);
@@ -171,7 +178,6 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
 
         setValue(`terms.${index}.file`, files);
 
-        // Auto-fill file title if empty
         const currentFileTitle = watchTerms?.[index]?.fileTitle;
         if (!currentFileTitle) {
           const fileName = files[0].name.split(".").slice(0, -1).join(".");
@@ -188,57 +194,93 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       [setValue]
     );
 
-    // UPDATED: Expose form data and remove method to parent
+    // FIXED: ULTRA STRICT getFormData
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
+        console.log("🔄 Validating term form...");
+
+        // First validate with Zod
         const isValid = await trigger();
-        if (!isValid) return null;
+        if (!isValid) {
+          console.log("❌ Zod validation failed");
+          return null;
+        }
 
         const formData = getValues();
         const termData: addTermData[] = [];
         const termFileData: addVisaFileData[] = [];
 
-        console.log("🔍 EditTermForm - formData.terms:", formData.terms);
-        console.log(
-          "🔍 EditTermForm - isArray:",
-          Array.isArray(formData.terms)
-        );
-
-        // FIX: Ensure we're always working with an array
         const termsArray = Array.isArray(formData.terms)
           ? formData.terms
           : [formData.terms];
 
-        termsArray.forEach((term, index) => {
-          console.log(`🔍 Processing term ${index}:`, term);
+        console.log("📋 Raw terms data:", termsArray);
 
-          termData.push({
+        // FIXED: MANUAL VALIDATION - Check every term has required data
+        for (let i = 0; i < termsArray.length; i++) {
+          const term = termsArray[i];
+
+          const hasTitle = term.title && term.title.trim() !== "";
+          const hasTermsContent = term.terms && term.terms.trim() !== "";
+          const hasFile = term.file && term.file.length > 0;
+
+          console.log(`📝 Term ${i}:`, {
+            hasTitle,
+            hasTermsContent,
+            hasFile,
             title: term.title,
             terms: term.terms,
           });
 
-          termFileData.push({
-            fileTitle: term.fileTitle || "", // Provide empty string if undefined
-            file: term.file,
-          });
-        });
+          // FIXED: BLOCK submission if term data is missing but file is present
+          if ((!hasTitle || !hasTermsContent) && hasFile) {
+            console.log("🚫 BLOCKED: File provided without complete term data");
+            alert(
+              `❌ Term #${
+                i + 1
+              }: Please fill out Title and Terms content before uploading a file.`
+            );
+            return null;
+          }
 
-        console.log("🔍 EditTermForm - final termData:", termData);
-        console.log("🔍 EditTermForm - final termFileData:", termFileData);
+          // FIXED: Only include if ALL required fields are filled
+          if (hasTitle && hasTermsContent) {
+            termData.push({
+              title: term.title,
+              terms: term.terms,
+            });
 
+            termFileData.push({
+              fileTitle: term.fileTitle || "",
+              file: term.file,
+            });
+          } else {
+            console.log(`⚠️ Skipping term ${i} - missing required fields`);
+          }
+        }
+
+        // FIXED: Final check - must have at least one valid term
+        if (termData.length === 0) {
+          console.log("❌ No valid terms found");
+          alert(
+            "❌ Please fill out all required fields (Title and Terms content) for at least one term."
+          );
+          return null;
+        }
+
+        console.log("✅ Valid terms:", termData.length);
         return { termData, termFileData };
       },
       removeTermField: (index: number) => {
-        // UPDATED: Allow deletion even when there's only one term
         remove(index);
       },
     }));
 
-    // Render helpers
     const renderFileSection = (index: number) => {
       const hasExistingFile =
         fileData[index]?._id && !watchTerms?.[index]?.file;
       const hasNewFile = !!watchTerms?.[index]?.file;
+      const currentFileData = fileData[index];
 
       return (
         <div className="space-y-4">
@@ -267,15 +309,15 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
             }
           />
 
-          {hasExistingFile && (
+          {hasExistingFile && currentFileData && (
             <ExistingFileDisplay
-              fileData={fileData[index]}
-              onDelete={() => onDeleteFile?.(index, fileData[index]._id!)}
+              fileData={currentFileData}
+              onDelete={() => onDeleteFile?.(index, currentFileData._id!)}
               isDeleting={isDeleting}
             />
           )}
 
-          {hasNewFile && (
+          {hasNewFile && watchTerms[index]?.file && (
             <NewFileDisplay
               fileName={watchTerms[index].file![0].name}
               onClear={() => handleClearFile(index)}
@@ -283,35 +325,30 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
           )}
 
           <div className="text-xs text-gray-500">
-            <p>• File is optional when editing existing term</p>
-            <p>• If you upload a new file, it will replace the existing one</p>
+            <p>
+              •{" "}
+              <strong>
+                File upload is only allowed after filling all term fields
+              </strong>
+            </p>
             <p>• File title is required if you upload a file</p>
-            {fileData[index]?.file && (
-              <p>• To remove a file permanently, use the delete button</p>
-            )}
+            <p>• If you upload a new file, it will replace the existing one</p>
           </div>
         </div>
       );
     };
 
-    // UPDATED: Render function with always visible delete button
     const renderTermForm = (field: { id: string }, index: number) => {
-      // const termItem = editData[index];
-      // Use type assertion to safely access _id
-      // const termWithId = termItem as TermWithId;
-      // const isExistingTerm = !!termWithId?._id;
-      // const isThisTermDeleting = isExistingTerm && isDeletingTerm;
-
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* UPDATED: Always show delete button when there's at least one term */}
+          {/* Delete button */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removeTerm(index)}
-              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
             />
@@ -321,7 +358,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
             <Input
               disabled={false}
               error={errors.terms?.[index]?.title?.message || ""}
-              title="Term Title"
+              title="Term Title *"
               placeholder="Enter term title"
               type="text"
               {...register(`terms.${index}.title`)}
@@ -329,7 +366,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
             <TextArea
               disabled={false}
               error={errors.terms?.[index]?.terms?.message || ""}
-              title="Terms and Conditions"
+              title="Terms and Conditions *"
               placeholder="Enter terms and conditions"
               {...register(`terms.${index}.terms`)}
             />
@@ -342,6 +379,15 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
 
     return (
       <div className="w-full flex flex-col items-center justify-center gap-6">
+        {/* Form-level errors */}
+        {errors.terms?.message && (
+          <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm font-medium">
+              {errors.terms.message}
+            </p>
+          </div>
+        )}
+
         <div className="w-full flex justify-center">
           <IconButton
             action={addTerm}

@@ -2,14 +2,8 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
-import {
-  addVisaFileSchema,
-  type addVisaFileData,
-} from "../../types/visafile/addVisaFileTypes";
-import {
-  addPricelistSchema,
-  type addPricelistData,
-} from "../../types/pricelist/addPricelistTypes";
+import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
+import { type addPricelistData } from "../../types/pricelist/addPricelistTypes";
 import Input from "../input/Input";
 import TextArea from "../input/TextArea";
 import EditFileInput from "../input/EditFileInput";
@@ -35,15 +29,18 @@ interface PricelistFormProps {
   isDeletingPricelist?: boolean;
 }
 
-const pricelistWithFileSchema = addPricelistSchema
-  .merge(
-    addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
-      file: addVisaFileSchema.shape.file.optional(),
-      fileTitle: z.string().optional(),
-    })
-  )
+// FIXED: STRICTER validation - require at least plan name
+const pricelistWithFileSchema = z
+  .object({
+    plan: z.string().min(1, "Plan name is required"),
+    fee: z.string().min(1, "Fee amount is required"),
+    description: z.string().min(1, "Description is required"),
+    fileTitle: z.string().optional(),
+    file: z.any().optional(),
+  })
   .refine(
     (data) => {
+      // Only require file title if file is actually provided
       if (data.file && data.file.length > 0) {
         return !!data.fileTitle?.trim();
       }
@@ -55,13 +52,34 @@ const pricelistWithFileSchema = addPricelistSchema
     }
   );
 
-type PricelistWithFileData = addPricelistData & {
+type PricelistWithFileData = {
+  plan: string;
+  fee: string;
+  description: string;
   fileTitle?: string;
   file?: FileList;
 };
 
+// FIXED: ULTRA STRICT form schema
 const formSchema = z.object({
-  pricelists: z.array(pricelistWithFileSchema),
+  pricelists: z
+    .array(pricelistWithFileSchema)
+    .min(1, "At least one pricelist is required")
+    .refine(
+      (pricelists) => {
+        // Check that every pricelist has the required fields
+        return pricelists.every(
+          (pricelist) =>
+            pricelist.plan.trim() !== "" &&
+            pricelist.fee.trim() !== "" &&
+            pricelist.description.trim() !== ""
+        );
+      },
+      {
+        message:
+          "All pricelists must have Plan Name, Fee Amount, and Description filled out",
+      }
+    ),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -82,7 +100,6 @@ const mapEditDataToDefaultValues = (
   editData: editPricelistData[],
   fileData: visaFileData[]
 ): PricelistWithFileData[] => {
-  // If no edit data, start with one empty price list
   if (editData.length === 0) return [DEFAULT_PRICE_LIST];
 
   return editData.map((data, index) => ({
@@ -135,13 +152,10 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
 
     const removePricelist = useCallback(
       (index: number) => {
-        // Allow deletion even if there's only one price list
         const pricelistItem = editData[index];
         if (pricelistItem?._id && onDeletePricelist) {
-          // If it's an existing pricelist with an ID, call the delete handler
           onDeletePricelist(pricelistItem._id, index);
         } else {
-          // If it's a new pricelist (no ID) or no delete handler, just remove from form
           remove(index);
         }
       },
@@ -170,10 +184,17 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       [setValue]
     );
 
+    // FIXED: ULTRA STRICT getFormData
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
+        console.log("🔄 Validating pricelist form...");
+
+        // First validate with Zod
         const isValid = await trigger();
-        if (!isValid) return null;
+        if (!isValid) {
+          console.log("❌ Zod validation failed");
+          return null;
+        }
 
         const formData = getValues();
         const pricelistData: addPricelistData[] = [];
@@ -183,23 +204,71 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
           ? formData.pricelists
           : [formData.pricelists];
 
-        pricelistsArray.forEach((pricelist) => {
-          pricelistData.push({
+        console.log("📋 Raw pricelists data:", pricelistsArray);
+
+        // FIXED: MANUAL VALIDATION - Check every pricelist has required data
+        for (let i = 0; i < pricelistsArray.length; i++) {
+          const pricelist = pricelistsArray[i];
+
+          const hasPlan = pricelist.plan && pricelist.plan.trim() !== "";
+          const hasFee = pricelist.fee && pricelist.fee.trim() !== "";
+          const hasDescription =
+            pricelist.description && pricelist.description.trim() !== "";
+          const hasFile = pricelist.file && pricelist.file.length > 0;
+
+          console.log(`📝 Pricelist ${i}:`, {
+            hasPlan,
+            hasFee,
+            hasDescription,
+            hasFile,
             plan: pricelist.plan,
             fee: pricelist.fee,
             description: pricelist.description,
           });
 
-          pricelistFileData.push({
-            fileTitle: pricelist.fileTitle || "",
-            file: pricelist.file,
-          });
-        });
+          // FIXED: BLOCK submission if pricelist data is missing but file is present
+          if ((!hasPlan || !hasFee || !hasDescription) && hasFile) {
+            console.log(
+              "🚫 BLOCKED: File provided without complete pricelist data"
+            );
+            alert(
+              `❌ Pricelist #${
+                i + 1
+              }: Please fill out Plan Name, Fee Amount, and Description before uploading a file.`
+            );
+            return null;
+          }
 
+          // FIXED: Only include if ALL required fields are filled
+          if (hasPlan && hasFee && hasDescription) {
+            pricelistData.push({
+              plan: pricelist.plan,
+              fee: pricelist.fee,
+              description: pricelist.description,
+            });
+
+            pricelistFileData.push({
+              fileTitle: pricelist.fileTitle || "",
+              file: pricelist.file,
+            });
+          } else {
+            console.log(`⚠️ Skipping pricelist ${i} - missing required fields`);
+          }
+        }
+
+        // FIXED: Final check - must have at least one valid pricelist
+        if (pricelistData.length === 0) {
+          console.log("❌ No valid pricelists found");
+          alert(
+            "❌ Please fill out all required fields (Plan Name, Fee Amount, and Description) for at least one pricelist."
+          );
+          return null;
+        }
+
+        console.log("✅ Valid pricelists:", pricelistData.length);
         return { pricelistData, pricelistFileData };
       },
       removePricelistField: (index: number) => {
-        // Allow deletion even if there's only one price list
         remove(index);
       },
     }));
@@ -253,35 +322,32 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
           )}
 
           <div className="text-xs text-gray-500">
-            <p>• File is optional when editing existing pricelist</p>
-            <p>• If you upload a new file, it will replace the existing one</p>
+            <p>
+              •{" "}
+              <strong>
+                File upload is only allowed after filling all pricelist fields
+              </strong>
+            </p>
             <p>• File title is required if you upload a file</p>
-            {currentFileData?.file && (
-              <p>• To remove a file permanently, use the delete button</p>
-            )}
+            <p>• If you upload a new file, it will replace the existing one</p>
           </div>
         </div>
       );
     };
 
     const renderPricelistForm = (field: { id: string }, index: number) => {
-      // const pricelistItem = editData[index];
-      // const isExistingPricelist = !!pricelistItem?._id;
-      // const isThisPricelistDeleting = isExistingPricelist && isDeletingPricelist;
-
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* Always show delete button when there's at least one item */}
+          {/* Delete button */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removePricelist(index)}
-              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
-              // isLoading={isThisPricelistDeleting}
             />
           )}
 
@@ -289,7 +355,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             <Input
               disabled={false}
               error={errors.pricelists?.[index]?.plan?.message || ""}
-              title="Plan Name"
+              title="Plan Name *"
               placeholder="Enter visa plan name (e.g., Standard, Express, Premium)"
               type="text"
               {...register(`pricelists.${index}.plan`)}
@@ -297,7 +363,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             <Input
               disabled={false}
               error={errors.pricelists?.[index]?.fee?.message || ""}
-              title="Fee Amount"
+              title="Fee Amount *"
               placeholder="Enter fee amount"
               type="number"
               {...register(`pricelists.${index}.fee`)}
@@ -305,7 +371,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             <TextArea
               disabled={false}
               error={errors.pricelists?.[index]?.description?.message || ""}
-              title="Plan Description"
+              title="Plan Description *"
               placeholder="Enter detailed description of what this plan includes"
               {...register(`pricelists.${index}.description`)}
             />
@@ -318,6 +384,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
 
     return (
       <div className="w-full flex flex-col items-center justify-center gap-6">
+        {/* Form-level errors */}
         <div className="w-full flex justify-center">
           <IconButton
             action={addPricelist}
