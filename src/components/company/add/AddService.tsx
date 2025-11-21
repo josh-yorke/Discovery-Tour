@@ -90,7 +90,7 @@ const AddService = () => {
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col items-center justify-center p-6 gap-6"
+        className="w-full lg:w-2xl flex flex-col items-center justify-center p-6 gap-6"
       >
         <Input
           disabled={false}

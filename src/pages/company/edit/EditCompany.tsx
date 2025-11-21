@@ -39,6 +39,7 @@ const EditCompany = () => {
           data && (
             <>
               <Header
+                style="p-6"
                 url="/company/details"
                 title="Edit Company Details"
                 id="EXISTING"

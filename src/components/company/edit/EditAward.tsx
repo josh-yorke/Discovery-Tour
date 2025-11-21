@@ -303,7 +303,7 @@ const EditAward = ({ id }: { id: string }) => {
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col items-center justify-center p-6 gap-6"
+        className="w-full lg:w-2xl flex flex-col items-center justify-center p-6 gap-6"
       >
         <input type="hidden" {...register("name")} />
         <input type="hidden" {...register("about")} />
@@ -342,34 +342,6 @@ const EditAward = ({ id }: { id: string }) => {
               : ""
           }
         />
-
-        <div className="w-full max-w-md p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-semibold mb-2 text-blue-800">Editing Award:</h3>
-          <p className="text-blue-700">
-            ID: {editingAward.id || editingAward._id}
-          </p>
-          <p className="text-blue-700">
-            Current description: {editingAward.description}
-          </p>
-          <p className="text-blue-700">Current date: {editingAward.date}</p>
-          <p className="text-blue-700">Current images: {awardImages.length}</p>
-        </div>
-
-        {allAwardsWithFiles.filter((item) => item.awardId !== id).length >
-          0 && (
-          <div className="w-full max-w-md p-4 bg-gray-100 rounded-lg">
-            <h3 className="font-semibold mb-2">
-              Other Awards (files will be preserved):
-            </h3>
-            {allAwardsWithFiles
-              .filter((item) => item.awardId !== id)
-              .map((item) => (
-                <p key={item.awardId} className="text-sm text-gray-600">
-                  • Award {item.awardId}: {item.files.length} images
-                </p>
-              ))}
-          </div>
-        )}
 
         <Button
           isLoading={mutation.isPending}

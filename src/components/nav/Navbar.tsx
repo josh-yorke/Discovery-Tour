@@ -26,8 +26,8 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30">
-        <div className=" w-full flex flex-row items-center justify-between px-6 py-4 shadow-black/10 shadow-2xl bg-white ">
+      <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
+        <div className=" w-full lg:w-7xl flex flex-row items-center justify-between px-6 lg:px-2 py-4  bg-white ">
           <NavLink to={"/dashboard"}>
             <img src="/logo.png" alt="/" />
           </NavLink>
@@ -35,7 +35,7 @@ const Navbar = () => {
             <LinkButton
               to="/visas/visa"
               style={`${
-                pathname.startsWith("/visas/visa")
+                pathname.startsWith("/visas")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}

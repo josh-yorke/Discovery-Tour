@@ -41,8 +41,13 @@ const EditVisa = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header title="Edit Visa" url="/visas/visa" id={data._id} />
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <Header
+            style="py-6"
+            title="Edit Visa"
+            url="/visas/visa"
+            id={data._id}
+          />
           <Edit
             type={data.type}
             country={data.country}
@@ -51,7 +56,7 @@ const EditVisa = () => {
             images={images}
             id={data._id}
           />
-        </>
+        </div>
       )}
     </>
   );

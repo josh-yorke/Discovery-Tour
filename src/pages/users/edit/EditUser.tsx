@@ -26,8 +26,8 @@ const EditUser = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header url="/users" title="Edit User" id={id ?? ""} />
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <Header style="p-6" url="/users" title="Edit User" id={id ?? ""} />
           <Edit
             firstName={data.firstName}
             lastName={data.lastName}
@@ -36,7 +36,7 @@ const EditUser = () => {
             role={data.role}
             status={data.status}
           />
-        </>
+        </div>
       )}
     </>
   );

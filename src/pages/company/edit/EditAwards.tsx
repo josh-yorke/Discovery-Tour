@@ -27,6 +27,7 @@ const EditAwards = () => {
           data && (
             <>
               <Header
+                style="p-6"
                 url="/company/awards"
                 title="Edit Award"
                 id={id ? id : ""}

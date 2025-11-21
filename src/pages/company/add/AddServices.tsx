@@ -24,7 +24,12 @@ const AddServices = () => {
         ) : (
           data && (
             <>
-              <Header url="/company/services" title="Add Service" id="" />
+              <Header
+                style="p-6"
+                url="/company/services"
+                title="Add Service"
+                id=""
+              />
               <AddService />
             </>
           )

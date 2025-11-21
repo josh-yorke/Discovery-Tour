@@ -41,8 +41,13 @@ const EditPromotion = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header title="Edit Promotion" url="/promotions" id={data._id} />
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <Header
+            style="p-6"
+            title="Edit Promotion"
+            url="/promotions"
+            id={data._id}
+          />
           <Edit
             status={data.status}
             id={data._id}
@@ -51,7 +56,7 @@ const EditPromotion = () => {
             contents={data.contents}
             tags={data.tags}
           />
-        </>
+        </div>
       )}
     </>
   );

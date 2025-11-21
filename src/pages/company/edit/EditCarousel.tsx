@@ -42,6 +42,7 @@ const EditCarousel = () => {
           data && (
             <>
               <Header
+                style="p-6"
                 url="/company/carousel"
                 title="Manage Carousel"
                 id={id ? id : ""}

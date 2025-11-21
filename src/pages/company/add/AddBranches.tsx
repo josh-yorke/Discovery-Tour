@@ -24,7 +24,12 @@ const AddBranches = () => {
         ) : (
           data && (
             <>
-              <Header url="/company/branches" title="Add Branch" id="" />
+              <Header
+                style="p-6"
+                url="/company/branches"
+                title="Add Branch"
+                id=""
+              />
               <AddBranch />
             </>
           )

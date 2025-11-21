@@ -4,11 +4,11 @@ import Header from "../../../components/users/Header";
 
 const AddUser = () => {
   return (
-    <>
+    <div className="w-full flex flex-col items-center justify-center bg-gray-100">
       <Navbar />
-      <Header title="Add User" url="/users" id="" />
+      <Header style="py-6" title="Add User" url="/users" id="" />
       <Add />
-    </>
+    </div>
   );
 };
 

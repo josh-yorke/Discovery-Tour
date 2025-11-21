@@ -24,7 +24,12 @@ const AddAwards = () => {
         ) : (
           data && (
             <>
-              <Header url="/company/awards" title="Add Award" id="" />
+              <Header
+                style="p-6"
+                url="/company/awards"
+                title="Add Award"
+                id=""
+              />
               <AddAward />
             </>
           )

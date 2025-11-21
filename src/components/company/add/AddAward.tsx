@@ -154,7 +154,7 @@ const AddAward = () => {
     <FormProvider {...methods}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full flex flex-col items-center justify-center p-6 gap-6"
+        className="w-full lg:w-2xl flex flex-col items-center justify-center p-6 gap-6"
       >
         <input type="hidden" {...register("name")} />
         <input type="hidden" {...register("about")} />
@@ -193,17 +193,6 @@ const AddAward = () => {
               : ""
           }
         />
-
-        {/* Display existing awards info */}
-        {existingAwards.length > 0 && (
-          <div className="w-full max-w-md p-4 bg-gray-100 rounded-lg">
-            <h3 className="font-semibold mb-2">Existing Awards:</h3>
-            <p>
-              {existingAwards.length} awards with {existingAwardFiles.length}{" "}
-              images will be preserved
-            </p>
-          </div>
-        )}
 
         <Button
           isLoading={mutation.isPending}

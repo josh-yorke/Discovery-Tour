@@ -41,8 +41,8 @@ const EditNews = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header title="Edit News" url="/news" id={data._id} />
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <Header style="p-6" title="Edit News" url="/news" id={data._id} />
           <Edit
             status={data.status}
             id={data._id}
@@ -51,7 +51,7 @@ const EditNews = () => {
             contents={data.contents}
             tags={data.tags}
           />
-        </>
+        </div>
       )}
     </>
   );

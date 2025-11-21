@@ -4,11 +4,11 @@ import Add from "../../../components/visa/visa/add/Add";
 
 const AddVisa = () => {
   return (
-    <>
+    <div className="w-full flex flex-col items-center justify-center bg-gray-100">
       <Navbar />
-      <Header title="Add Visa" url="/visas/visa" id="" />
+      <Header style="py-6" title="Add Visa" url="/visas/visa" id="" />
       <Add />
-    </>
+    </div>
   );
 };
 

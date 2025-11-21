@@ -27,6 +27,7 @@ const EditServices = () => {
           data && (
             <>
               <Header
+                style="p-6"
                 url="/company/services"
                 title="Manage Branch"
                 id={id ? id : ""}

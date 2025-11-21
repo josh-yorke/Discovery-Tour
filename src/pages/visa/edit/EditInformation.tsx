@@ -7,11 +7,16 @@ const EditInformation = () => {
   const { id } = useParams();
 
   return (
-    <>
+    <div className="w-full flex flex-col items-center justify-center bg-gray-100">
       <Navbar />
-      <Header title="Edit Information" url="/visas/visa" id={id ? id : ""} />
+      <Header
+        style="py-6"
+        title="Edit Information"
+        url="/visas/visa"
+        id={id ? id : ""}
+      />
       <Edit />
-    </>
+    </div>
   );
 };
 

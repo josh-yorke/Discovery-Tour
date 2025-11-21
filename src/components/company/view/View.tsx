@@ -32,7 +32,7 @@ const View = ({
   return (
     <>
       <FormProvider {...methods}>
-        <form className="w-full flex flex-col items-center justify-center gap-4">
+        <form className="w-full lg:w-2xl flex flex-col items-center justify-center gap-4">
           <Input
             type="text"
             disabled={true}

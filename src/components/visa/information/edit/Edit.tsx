@@ -969,8 +969,7 @@ const Edit = () => {
     [updateMutations, addMutations]
   );
 
-  // UPDATED: Optional form submission
-  // UPDATED: Optional form submission with proper type checking
+  // FIXED: Form submission with proper validation to prevent saving files without form data
   const handleFinalSubmit = useCallback(async () => {
     if (!id) {
       alert("No visa ID found. Please select a visa first.");
@@ -980,7 +979,7 @@ const Edit = () => {
     setIsSubmitting(true);
 
     try {
-      // Get form data from all forms - these can be undefined if forms are empty
+      // Get form data from all forms
       const [
         pricelistFormData,
         processFormData,
@@ -996,61 +995,37 @@ const Edit = () => {
       ]);
 
       // Helper function to check if form data has content
-      const hasFormData = (formData: any): boolean => {
+      const hasFormData = (formData: any, type: string): boolean => {
         if (!formData) return false;
 
-        // Check for pricelist data
-        if (
-          "pricelistData" in formData &&
-          Array.isArray(formData.pricelistData) &&
-          formData.pricelistData.length > 0
-        ) {
-          return true;
-        }
-        // Check for process data
-        if (
-          "processData" in formData &&
-          Array.isArray(formData.processData) &&
-          formData.processData.length > 0
-        ) {
-          return true;
-        }
-        // Check for payment data
-        if (
-          "paymentData" in formData &&
-          Array.isArray(formData.paymentData) &&
-          formData.paymentData.length > 0
-        ) {
-          return true;
-        }
-        // Check for term data
-        if (
-          "termData" in formData &&
-          Array.isArray(formData.termData) &&
-          formData.termData.length > 0
-        ) {
-          return true;
-        }
-        // Check for document data
-        if (
-          "documentData" in formData &&
-          Array.isArray(formData.documentData) &&
-          formData.documentData.length > 0
-        ) {
-          return true;
-        }
+        const fieldMap = {
+          pricelist: "pricelistData",
+          process: "processData",
+          payment: "paymentData",
+          term: "termData",
+          document: "documentData",
+        };
 
-        return false;
+        const dataField = fieldMap[type as keyof typeof fieldMap];
+        return (
+          formData[dataField] &&
+          Array.isArray(formData[dataField]) &&
+          formData[dataField].length > 0
+        );
       };
 
       // Check if ALL forms are empty
-      const allFormsEmpty = [
-        pricelistFormData,
-        processFormData,
-        paymentFormData,
-        termFormData,
-        documentFormData,
-      ].every((formData) => !hasFormData(formData));
+      const formChecks = [
+        { data: pricelistFormData, type: "pricelist" },
+        { data: processFormData, type: "process" },
+        { data: paymentFormData, type: "payment" },
+        { data: termFormData, type: "term" },
+        { data: documentFormData, type: "document" },
+      ];
+
+      const allFormsEmpty = formChecks.every(
+        ({ data, type }) => !hasFormData(data, type)
+      );
 
       if (allFormsEmpty) {
         alert("Please fill at least one form before submitting.");
@@ -1062,14 +1037,10 @@ const Edit = () => {
       const submissions: FormSubmission[] = [];
 
       // Handle pricelist submissions if data exists
-      if (
-        pricelistFormData &&
-        "pricelistData" in pricelistFormData &&
-        Array.isArray(pricelistFormData.pricelistData) &&
-        pricelistFormData.pricelistData.length > 0
-      ) {
-        const { pricelistData, pricelistFileData } = pricelistFormData;
+      if (hasFormData(pricelistFormData, "pricelist")) {
+        const { pricelistData, pricelistFileData } = pricelistFormData!;
 
+        // FIX: Only process files if there's corresponding form data
         let safePricelistFileData: any[] = [];
         if (Array.isArray(pricelistFileData)) {
           safePricelistFileData = pricelistFileData;
@@ -1077,48 +1048,49 @@ const Edit = () => {
           safePricelistFileData = [pricelistFileData];
         }
 
-        const pricelistFilePromises = safePricelistFileData.map(
-          async (fileData, index) => {
-            const existingFileId = pricelistFileIds[index]?.[0] || "";
-            if (fileData?.file && fileData.file.length > 0) {
-              return handleFile(
-                fileData.file,
-                fileData.fileTitle,
-                existingFileId
-              );
-            }
-            return existingFileId || "";
+        // FIX: Ensure we only process files for existing form data entries
+        const pricelistArray = Array.isArray(pricelistData)
+          ? pricelistData
+          : [pricelistData];
+
+        const pricelistFilePromises = pricelistArray.map(async (_, index) => {
+          const fileData = safePricelistFileData[index];
+          const existingFileId = pricelistFileIds[index]?.[0] || "";
+
+          // Only process file if there's actual file data AND form data exists for this index
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
           }
-        );
+          return existingFileId || "";
+        });
 
         const pricelistFileIdResults = await Promise.all(pricelistFilePromises);
         setPricelistFileIds(pricelistFileIdResults.map((id) => [id]));
 
-        const pricelistArray = Array.isArray(pricelistData)
-          ? pricelistData
-          : [pricelistData];
         const editPricelistArray = Array.isArray(editData.pricelist)
           ? editData.pricelist
           : [editData.pricelist].filter(Boolean);
 
         pricelistArray.forEach((data, index) => {
-          submissions.push({
-            type: "price",
-            data,
-            fileId: pricelistFileIdResults[index] || "",
-            existingData: editPricelistArray[index],
-          });
+          // FIX: Only create submission if we have valid form data
+          if (data && (data.plan || data.fee || data.description)) {
+            submissions.push({
+              type: "price",
+              data,
+              fileId: pricelistFileIdResults[index] || "",
+              existingData: editPricelistArray[index],
+            });
+          }
         });
       }
 
       // Handle process submissions if data exists
-      if (
-        processFormData &&
-        "processData" in processFormData &&
-        Array.isArray(processFormData.processData) &&
-        processFormData.processData.length > 0
-      ) {
-        const { processData, processFileData } = processFormData;
+      if (hasFormData(processFormData, "process")) {
+        const { processData, processFileData } = processFormData!;
 
         let safeProcessFileData: any[] = [];
         if (Array.isArray(processFileData)) {
@@ -1127,48 +1099,46 @@ const Edit = () => {
           safeProcessFileData = [processFileData];
         }
 
-        const processFilePromises = safeProcessFileData.map(
-          async (fileData, index) => {
-            const existingFileId = processFileIds[index]?.[0] || "";
-            if (fileData?.file && fileData.file.length > 0) {
-              return handleFile(
-                fileData.file,
-                fileData.fileTitle,
-                existingFileId
-              );
-            }
-            return existingFileId || "";
+        const processArray = Array.isArray(processData)
+          ? processData
+          : [processData];
+
+        const processFilePromises = processArray.map(async (_, index) => {
+          const fileData = safeProcessFileData[index];
+          const existingFileId = processFileIds[index]?.[0] || "";
+
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
           }
-        );
+          return existingFileId || "";
+        });
 
         const processFileIdResults = await Promise.all(processFilePromises);
         setProcessFileIds(processFileIdResults.map((id) => [id]));
 
-        const processArray = Array.isArray(processData)
-          ? processData
-          : [processData];
         const editProcessArray = Array.isArray(editData.process)
           ? editData.process
           : [editData.process].filter(Boolean);
 
         processArray.forEach((data, index) => {
-          submissions.push({
-            type: "process",
-            data,
-            fileId: processFileIdResults[index] || "",
-            existingData: editProcessArray[index],
-          });
+          if (data && (data.processTitle || data.process)) {
+            submissions.push({
+              type: "process",
+              data,
+              fileId: processFileIdResults[index] || "",
+              existingData: editProcessArray[index],
+            });
+          }
         });
       }
 
       // Handle payment submissions if data exists
-      if (
-        paymentFormData &&
-        "paymentData" in paymentFormData &&
-        Array.isArray(paymentFormData.paymentData) &&
-        paymentFormData.paymentData.length > 0
-      ) {
-        const { paymentData } = paymentFormData;
+      if (hasFormData(paymentFormData, "payment")) {
+        const { paymentData } = paymentFormData!;
 
         const paymentArray = Array.isArray(paymentData)
           ? paymentData
@@ -1178,23 +1148,23 @@ const Edit = () => {
           : [editData.payment].filter(Boolean);
 
         paymentArray.forEach((data, index) => {
-          submissions.push({
-            type: "payment",
-            data,
-            fileId: "", // Payment doesn't have files
-            existingData: editPaymentArray[index],
-          });
+          if (
+            data &&
+            (data.paymentType || data.accountName || data.accountNo)
+          ) {
+            submissions.push({
+              type: "payment",
+              data,
+              fileId: "", // Payment doesn't have files
+              existingData: editPaymentArray[index],
+            });
+          }
         });
       }
 
       // Handle term submissions if data exists
-      if (
-        termFormData &&
-        "termData" in termFormData &&
-        Array.isArray(termFormData.termData) &&
-        termFormData.termData.length > 0
-      ) {
-        const { termData, termFileData } = termFormData;
+      if (hasFormData(termFormData, "term")) {
+        const { termData, termFileData } = termFormData!;
 
         let safeTermFileData: any[] = [];
         if (Array.isArray(termFileData)) {
@@ -1203,46 +1173,44 @@ const Edit = () => {
           safeTermFileData = [termFileData];
         }
 
-        const termFilePromises = safeTermFileData.map(
-          async (fileData, index) => {
-            const existingFileId = termFileIds[index]?.[0] || "";
-            if (fileData?.file && fileData.file.length > 0) {
-              return handleFile(
-                fileData.file,
-                fileData.fileTitle,
-                existingFileId
-              );
-            }
-            return existingFileId || "";
+        const termArray = Array.isArray(termData) ? termData : [termData];
+
+        const termFilePromises = termArray.map(async (_, index) => {
+          const fileData = safeTermFileData[index];
+          const existingFileId = termFileIds[index]?.[0] || "";
+
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
           }
-        );
+          return existingFileId || "";
+        });
 
         const termFileIdResults = await Promise.all(termFilePromises);
         setTermFileIds(termFileIdResults.map((id) => [id]));
 
-        const termArray = Array.isArray(termData) ? termData : [termData];
         const editTermArray = Array.isArray(editData.term)
           ? editData.term
           : [editData.term].filter(Boolean);
 
         termArray.forEach((data, index) => {
-          submissions.push({
-            type: "terms",
-            data,
-            fileId: termFileIdResults[index] || "",
-            existingData: editTermArray[index],
-          });
+          if (data && (data.title || data.terms)) {
+            submissions.push({
+              type: "terms",
+              data,
+              fileId: termFileIdResults[index] || "",
+              existingData: editTermArray[index],
+            });
+          }
         });
       }
 
       // Handle document submissions if data exists
-      if (
-        documentFormData &&
-        "documentData" in documentFormData &&
-        Array.isArray(documentFormData.documentData) &&
-        documentFormData.documentData.length > 0
-      ) {
-        const { documentData, documentFileData } = documentFormData;
+      if (hasFormData(documentFormData, "document")) {
+        const { documentData, documentFileData } = documentFormData!;
 
         let safeDocumentFileData: any[] = [];
         if (Array.isArray(documentFileData)) {
@@ -1251,37 +1219,40 @@ const Edit = () => {
           safeDocumentFileData = [documentFileData];
         }
 
-        const documentFilePromises = safeDocumentFileData.map(
-          async (fileData, index) => {
-            const existingFileId = documentFileIds[index]?.[0] || "";
-            if (fileData?.file && fileData.file.length > 0) {
-              return handleFile(
-                fileData.file,
-                fileData.fileTitle,
-                existingFileId
-              );
-            }
-            return existingFileId || "";
+        const documentArray = Array.isArray(documentData)
+          ? documentData
+          : [documentData];
+
+        const documentFilePromises = documentArray.map(async (_, index) => {
+          const fileData = safeDocumentFileData[index];
+          const existingFileId = documentFileIds[index]?.[0] || "";
+
+          if (fileData?.file && fileData.file.length > 0) {
+            return handleFile(
+              fileData.file,
+              fileData.fileTitle,
+              existingFileId
+            );
           }
-        );
+          return existingFileId || "";
+        });
 
         const documentFileIdResults = await Promise.all(documentFilePromises);
         setDocumentFileIds(documentFileIdResults.map((id) => [id]));
 
-        const documentArray = Array.isArray(documentData)
-          ? documentData
-          : [documentData];
         const editDocumentArray = Array.isArray(editData.document)
           ? editData.document
           : [editData.document].filter(Boolean);
 
         documentArray.forEach((data, index) => {
-          submissions.push({
-            type: "document",
-            data,
-            fileId: documentFileIdResults[index] || "",
-            existingData: editDocumentArray[index],
-          });
+          if (data && (data.docTitle || data.docDescription)) {
+            submissions.push({
+              type: "document",
+              data,
+              fileId: documentFileIdResults[index] || "",
+              existingData: editDocumentArray[index],
+            });
+          }
         });
       }
 
@@ -1295,36 +1266,37 @@ const Edit = () => {
           formData.append("type", type);
           formData.append("visa", id);
 
+          // FIX: Only add file association if we have a valid file ID
           if (fileId && fileId.trim() && fileId !== "undefined") {
             formData.append("filesAssociated", fileId);
           }
 
           const fieldMappings = {
             price: () => {
-              formData.append("plan", data.plan);
-              formData.append("fee", data.fee);
-              formData.append("description", data.description);
+              formData.append("plan", data.plan || "");
+              formData.append("fee", data.fee || "");
+              formData.append("description", data.description || "");
             },
             process: () => {
-              formData.append("processTitle", data.processTitle);
-              formData.append("process", data.process);
+              formData.append("processTitle", data.processTitle || "");
+              formData.append("process", data.process || "");
             },
             payment: () => {
-              formData.append("paymentType", data.paymentType);
-              formData.append("currency", data.currency);
-              formData.append("accountName", data.accountName);
-              formData.append("bankName", data.bankName);
-              formData.append("accountNo", data.accountNo);
-              formData.append("bankAddress", data.bankAddress);
-              formData.append("swiftCode", data.swiftCode);
+              formData.append("paymentType", data.paymentType || "");
+              formData.append("currency", data.currency || "");
+              formData.append("accountName", data.accountName || "");
+              formData.append("bankName", data.bankName || "");
+              formData.append("accountNo", data.accountNo || "");
+              formData.append("bankAddress", data.bankAddress || "");
+              formData.append("swiftCode", data.swiftCode || "");
             },
             terms: () => {
-              formData.append("title", data.title);
-              formData.append("terms", data.terms);
+              formData.append("title", data.title || "");
+              formData.append("terms", data.terms || "");
             },
             document: () => {
-              formData.append("docTitle", data.docTitle);
-              formData.append("docDescription", data.docDescription);
+              formData.append("docTitle", data.docTitle || "");
+              formData.append("docDescription", data.docDescription || "");
             },
           };
 
