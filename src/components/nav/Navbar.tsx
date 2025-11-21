@@ -28,7 +28,7 @@ const Navbar = () => {
     <>
       <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
         <div className=" w-full lg:w-7xl flex flex-row items-center justify-between px-6 lg:px-2 py-4  bg-white ">
-          <NavLink to={"/dashboard"}>
+          <NavLink to={"/visas/visa"}>
             <img src="/logo.png" alt="/" />
           </NavLink>
           <div className="hidden lg:flex flex-row items-center justify-center gap-6">

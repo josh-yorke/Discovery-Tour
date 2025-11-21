@@ -185,6 +185,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     return (
       <div className="space-y-4">
         <Input
+          style="bg-white"
           disabled={false}
           error={errors.pricelists?.[index]?.fileTitle?.message || ""}
           title="Pricelist File Title"
@@ -244,6 +245,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
         <div className="w-full flex flex-col gap-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.pricelists?.[index]?.plan?.message || ""}
               title="Plan Name"
@@ -252,6 +254,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
               {...register(`pricelists.${index}.plan`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.pricelists?.[index]?.fee?.message || ""}
               title="Fee Amount"

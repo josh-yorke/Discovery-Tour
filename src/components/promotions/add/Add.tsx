@@ -89,6 +89,7 @@ const Add = () => {
         >
           <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.title?.message || ""}
               title="Title"

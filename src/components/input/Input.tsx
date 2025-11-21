@@ -4,6 +4,7 @@ interface InputData {
   placeholder: string;
   error: string | undefined;
   disabled: boolean;
+  style: string;
 }
 
 const Input = ({
@@ -12,6 +13,7 @@ const Input = ({
   type,
   placeholder,
   error,
+  style,
   ...props
 }: InputData) => {
   return (
@@ -19,7 +21,7 @@ const Input = ({
       <p className="font-semibold capitalize">{title}</p>
       <input
         type={type}
-        className="w-full bg-white px-6 py-3 outline-none rounded-lg font-normal"
+        className={`w-full px-6 py-3 outline-none rounded-lg font-normal ${style}`}
         placeholder={placeholder}
         {...props}
         disabled={disabled}

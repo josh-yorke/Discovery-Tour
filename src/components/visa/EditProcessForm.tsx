@@ -243,6 +243,7 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
       return (
         <div className="space-y-4">
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.processes?.[index]?.fileTitle?.message || ""}
             title="Process File Title"
@@ -320,6 +321,7 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
 
           <div className="w-full flex flex-col gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.processes?.[index]?.processTitle?.message || ""}
               title="Process Title"

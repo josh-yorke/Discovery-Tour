@@ -157,6 +157,7 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
     return (
       <div className="space-y-4">
         <Input
+          style="bg-white"
           disabled={false}
           error={errors.processes?.[index]?.fileTitle?.message || ""}
           title="Process File Title"
@@ -215,6 +216,7 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
 
         <div className="w-full flex flex-col gap-4">
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.processes?.[index]?.processTitle?.message || ""}
             title="Process Title"

@@ -163,6 +163,7 @@ const AddAward = () => {
         <input type="hidden" {...register("coreValues")} />
 
         <Input
+          style="bg-white"
           disabled={false}
           title="Award Description"
           placeholder="Award description"
@@ -172,6 +173,7 @@ const AddAward = () => {
         />
 
         <Input
+          style="bg-white"
           disabled={false}
           title="Award Date"
           placeholder="Award date"

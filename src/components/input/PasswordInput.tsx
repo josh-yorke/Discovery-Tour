@@ -4,10 +4,17 @@ import { RiEye2Line, RiEyeCloseLine } from "react-icons/ri";
 interface InputData {
   title: string;
   placeholder: string;
+  style: string;
   error: string | undefined;
 }
 
-const PasswordInput = ({ title, placeholder, error, ...props }: InputData) => {
+const PasswordInput = ({
+  style,
+  title,
+  placeholder,
+  error,
+  ...props
+}: InputData) => {
   const [type, setType] = useState(true);
 
   return (
@@ -16,7 +23,7 @@ const PasswordInput = ({ title, placeholder, error, ...props }: InputData) => {
       <div className="w-full relative flex items-center justify-center">
         <input
           type={type ? "password" : "text"}
-          className="w-full bg-white px-6 py-3 outline-none rounded-lg font-normal"
+          className={`w-full px-6 py-3 outline-none rounded-lg font-normal ${style}`}
           placeholder={placeholder}
           {...props}
         />

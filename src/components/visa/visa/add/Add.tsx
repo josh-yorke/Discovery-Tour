@@ -97,6 +97,7 @@ const Add = () => {
               {...register("country")}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.country?.message || ""}
               title="Visa Type"

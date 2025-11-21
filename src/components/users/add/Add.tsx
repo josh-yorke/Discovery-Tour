@@ -62,6 +62,7 @@ const Add = () => {
       >
         <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-center">
           <Input
+            style="bg-white"
             disabled={false}
             title="First Name"
             type="text"
@@ -70,6 +71,7 @@ const Add = () => {
             {...register("firstName")}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Last Name"
             type="text"
@@ -78,6 +80,7 @@ const Add = () => {
             {...register("lastName")}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Email"
             type="email"
@@ -86,6 +89,7 @@ const Add = () => {
             {...register("email")}
           />
           <PasswordInput
+            style="bg-white"
             title="Password"
             placeholder="enter your password"
             error={errors.password ? errors.password.message : ""}

@@ -285,6 +285,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       return (
         <div className="space-y-4">
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.terms?.[index]?.fileTitle?.message || ""}
             title="Term File Title"
@@ -356,6 +357,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
 
           <div className="w-full flex flex-col gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.terms?.[index]?.title?.message || ""}
               title="Term Title *"

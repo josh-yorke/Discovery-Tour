@@ -192,6 +192,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
 
           <div className="w-full flex flex-col gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.paymentType?.message || ""}
               title="Payment Type"
@@ -207,6 +208,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
               style="bg-white w-full"
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.accountName?.message || ""}
               title="Account Name"
@@ -215,6 +217,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
               {...register(`payments.${index}.accountName`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.bankName?.message || ""}
               title="Bank Name"
@@ -223,6 +226,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
               {...register(`payments.${index}.bankName`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.accountNo?.message || ""}
               title="Account Number"
@@ -231,6 +235,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
               {...register(`payments.${index}.accountNo`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.bankAddress?.message || ""}
               title="Bank Address"
@@ -239,6 +244,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
               {...register(`payments.${index}.bankAddress`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.swiftCode?.message || ""}
               title="SWIFT Code"

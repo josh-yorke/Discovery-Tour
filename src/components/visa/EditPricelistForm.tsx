@@ -282,6 +282,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       return (
         <div className="space-y-4">
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.pricelists?.[index]?.fileTitle?.message || ""}
             title="Pricelist File Title"
@@ -353,6 +354,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
 
           <div className="w-full flex flex-col gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.pricelists?.[index]?.plan?.message || ""}
               title="Plan Name *"
@@ -361,6 +363,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               {...register(`pricelists.${index}.plan`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.pricelists?.[index]?.fee?.message || ""}
               title="Fee Amount *"

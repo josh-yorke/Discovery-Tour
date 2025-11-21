@@ -34,6 +34,7 @@ const View = ({
       <FormProvider {...methods}>
         <form className="w-full lg:w-2xl flex flex-col items-center justify-center gap-4">
           <Input
+            style="bg-white"
             type="text"
             disabled={true}
             title="Name"
@@ -42,6 +43,7 @@ const View = ({
             {...register("name")}
           />
           <Input
+            style="bg-white"
             type="text"
             disabled={true}
             title="Tagline"
@@ -50,6 +52,7 @@ const View = ({
             {...register("tagline")}
           />
           <Input
+            style="bg-white"
             type="text"
             disabled={true}
             title="Core Values"

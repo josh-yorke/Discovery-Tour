@@ -100,6 +100,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
           className="w-full lg:w-2xl min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.title?.message || ""}
             title="Title"

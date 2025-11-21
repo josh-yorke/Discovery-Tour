@@ -41,14 +41,15 @@ const Login = () => {
 
   return (
     <>
-      <div className="w-full h-[100svh] flex flex-col-reverse lg:flex-row items-center justify-center text-sm">
+      <div className="relative w-full h-[100svh] flex flex-col-reverse lg:flex-row items-center justify-center text-sm">
         <Hero />
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="min-h-[80vh] lg:h-full w-full lg:w-[600px] flex flex-col items-center justify-center p-12 gap-4 bg-gray-100"
+          className="absolute w-[360px] rounded-lg flex flex-col items-center justify-center px-8 py-12 gap-4 bg-white"
         >
           <Header />
           <Input
+            style="bg-gray-100"
             disabled={false}
             type="text"
             placeholder="enter you e-mail"
@@ -57,6 +58,7 @@ const Login = () => {
             {...register("email")}
           />
           <PasswordInput
+            style="bg-gray-100"
             title="password"
             placeholder="enter your password"
             error={errors.password && errors.password.message}

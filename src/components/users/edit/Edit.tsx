@@ -84,6 +84,7 @@ const Edit = ({
       >
         <div className="w-full grid grid-cols-1 gap-4">
           <Input
+            style="bg-white"
             disabled={false}
             title="First Name"
             type="text"
@@ -92,6 +93,7 @@ const Edit = ({
             {...register("firstName")}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Last Name"
             type="text"
@@ -100,6 +102,7 @@ const Edit = ({
             {...register("lastName")}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Email"
             type="email"
@@ -108,6 +111,7 @@ const Edit = ({
             {...register("email")}
           />
           <PasswordInput
+            style="bg-white"
             title="Password"
             placeholder="enter your password"
             error={errors.password ? errors.password.message : ""}

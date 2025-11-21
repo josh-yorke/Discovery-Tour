@@ -70,6 +70,7 @@ const Edit = ({
           className="w-full lg:w-2xl flex flex-col items-center justify-center gap-4 p-6"
         >
           <Input
+            style="bg-white"
             disabled={false}
             title="Company Name"
             type="text"
@@ -78,6 +79,7 @@ const Edit = ({
             {...register("name")}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Tagline"
             type="text"
@@ -86,6 +88,7 @@ const Edit = ({
             {...register("tagline")}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Core Values"
             type="text"

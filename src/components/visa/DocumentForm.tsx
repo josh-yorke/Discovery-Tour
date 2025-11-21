@@ -157,6 +157,7 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
     return (
       <div className="space-y-4">
         <Input
+          style="bg-white"
           disabled={false}
           error={errors.documents?.[index]?.fileTitle?.message || ""}
           title="Document File Title"
@@ -215,6 +216,7 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
 
         <div className="w-full flex flex-col gap-4">
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.documents?.[index]?.docTitle?.message || ""}
             title="Document Title"

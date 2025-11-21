@@ -154,6 +154,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
           className="w-full lg:w-2xl flex flex-col items-center justify-center p-6 gap-6"
         >
           <Input
+            style="bg-white"
             disabled={false}
             title="Branch Name"
             placeholder="Branch name"
@@ -162,6 +163,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.branchName?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Email"
             placeholder="Branch email"
@@ -170,6 +172,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.contact?.email?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Phone"
             placeholder="Phone number"
@@ -178,6 +181,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.contact?.phone?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Address"
             placeholder="Branch address"
@@ -186,6 +190,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.contact?.address?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Map Link"
             placeholder="Google Maps link"
@@ -194,6 +199,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.contact?.mapLink?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Facebook"
             placeholder="Facebook link"
@@ -202,6 +208,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.socials?.facebook?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Instagram"
             placeholder="Instagram link"
@@ -210,6 +217,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.socials?.instagram?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="Twitter"
             placeholder="Twitter link"
@@ -218,6 +226,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.socials?.twitter?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="LinkedIn"
             placeholder="LinkedIn link"
@@ -226,6 +235,7 @@ const EditBranch = ({ id }: EditBranchProps) => {
             error={errors.branches?.[0]?.socials?.linkedin?.message || ""}
           />
           <Input
+            style="bg-white"
             disabled={false}
             title="YouTube"
             placeholder="YouTube link"

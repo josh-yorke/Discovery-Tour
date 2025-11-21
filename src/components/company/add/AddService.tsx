@@ -93,6 +93,7 @@ const AddService = () => {
         className="w-full lg:w-2xl flex flex-col items-center justify-center p-6 gap-6"
       >
         <Input
+          style="bg-white"
           disabled={false}
           title="Title"
           placeholder="service title"
@@ -101,6 +102,7 @@ const AddService = () => {
           error={errors.services?.[0]?.title?.message || ""}
         />
         <Input
+          style="bg-white"
           disabled={false}
           title="Description"
           placeholder="service description"

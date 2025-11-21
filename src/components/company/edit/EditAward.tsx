@@ -312,6 +312,7 @@ const EditAward = ({ id }: { id: string }) => {
         <input type="hidden" {...register("coreValues")} />
 
         <Input
+          style="bg-white"
           disabled={false}
           title="Award Description"
           placeholder="Award description"
@@ -321,6 +322,7 @@ const EditAward = ({ id }: { id: string }) => {
         />
 
         <Input
+          style="bg-white"
           disabled={false}
           title="Award Date"
           placeholder="Award date"

@@ -5,7 +5,9 @@ const Hero = () => {
       style={{
         backgroundImage: "url(/Japan.jpg)",
       }}
-    ></div>
+    >
+      <div className="w-full h-full bg-gradient-to-br from-white/20 via-white/60"></div>
+    </div>
   );
 };
 

@@ -112,6 +112,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
         <div className="w-full flex flex-col gap-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.paymentType?.message || ""}
               title="Payment Type"
@@ -130,6 +131,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.accountName?.message || ""}
               title="Account Name"
@@ -138,6 +140,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
               {...register(`payments.${index}.accountName`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.bankName?.message || ""}
               title="Bank Name"
@@ -149,6 +152,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.accountNo?.message || ""}
               title="Account Number"
@@ -157,6 +161,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
               {...register(`payments.${index}.accountNo`)}
             />
             <Input
+              style="bg-white"
               disabled={false}
               error={errors.payments?.[index]?.swiftCode?.message || ""}
               title="SWIFT Code"
@@ -167,6 +172,7 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
           </div>
 
           <Input
+            style="bg-white"
             disabled={false}
             error={errors.payments?.[index]?.bankAddress?.message || ""}
             title="Bank Address"
