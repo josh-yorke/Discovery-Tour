@@ -31,13 +31,13 @@ const VisaCard = ({
             action={() => navigate(`/visas/visa/edit/${id}`)}
             title=""
             icon={<RiPencilFill size={16} />}
-            style="bg-white text-[#1d2087] rounded-full p-3 hover:scale-120"
+            style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
           />
           <IconButton
             action={onDelete}
             title=""
             icon={<RiDeleteBin4Fill size={16} />}
-            style="bg-white text-[#1d2087] rounded-full p-3 hover:scale-120"
+            style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
           />
         </div>
         <ImageCard style="w-full h-full" url={images} />

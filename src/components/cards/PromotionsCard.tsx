@@ -36,13 +36,13 @@ const PromotionsCard = ({
               action={() => navigate(`/promotions/edit/${id}`)}
               title=""
               icon={<RiPencilFill size={16} />}
-              style="bg-white text-[#1d2087] rounded-full p-3 hover:scale-120"
+              style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
             />
             <IconButton
               action={onDelete}
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
-              style="bg-white text-[#1d2087] rounded-full p-3 hover:scale-120"
+              style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
             />
           </div>
           <ImageCard style="w-full h-full" url={images} />
@@ -51,7 +51,7 @@ const PromotionsCard = ({
           <LinkText
             title={title}
             style="font-semibold"
-            url={`/news/view/${id}`}
+            url={`/promotions/view/${id}`}
           />
           <div className="w-full flex flex-col">
             <StatusText status={status} style="" textStyle="font-semibold" />

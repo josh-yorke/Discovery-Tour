@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
-import Header from "../../../components/users/Header";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PageLoader from "../../../components/loader/PageLoader";
 import PageError from "../../../components/error/PageError";
@@ -10,6 +9,7 @@ import Modal from "../../../components/modal/Modal";
 import { getVisa } from "../../../hooks/visa/visa/getVisa";
 import View from "../../../components/visa/visa/view/View";
 import { deleteVisa } from "../../../hooks/visa/visa/deleteVisa";
+import PageHeader from "../../../components/users/PageHeader";
 
 const ViewVisa = () => {
   const { id } = useParams();
@@ -51,9 +51,14 @@ const ViewVisa = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header title="View Visa" url="/visas/visa" id={data._id} />
-          <div className="w-full flex flex-col p-6 gap-6 bg-gray-100">
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <PageHeader
+            style="py-6"
+            title="View Visa"
+            url="/visas/visa"
+            id={data._id}
+          />
+          <div className="w-full lg:w-7xl flex flex-col py-6 gap-6 bg-gray-100">
             <ImageCard
               url={data.images}
               style="h-[30vh] md:h-[60vh] rounded-lg overflow-hidden"
@@ -69,7 +74,7 @@ const ViewVisa = () => {
               onDelete={() => handleDelete(data._id)}
             />
           </div>
-        </>
+        </div>
       )}
       {modal && (
         <Modal

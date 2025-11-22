@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
-import Header from "../../../components/users/Header";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOneNews } from "../../../hooks/news/getOneNews";
 import PageLoader from "../../../components/loader/PageLoader";
@@ -10,6 +9,7 @@ import View from "../../../components/news/view/View";
 import { useState } from "react";
 import { deleteNews } from "../../../hooks/news/deleteNews";
 import Modal from "../../../components/modal/Modal";
+import PageHeader from "../../../components/users/PageHeader";
 
 const ViewNews = () => {
   const { id } = useParams();
@@ -51,9 +51,14 @@ const ViewNews = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header title="View News" url="/news" id={data._id} />
-          <div className="w-full flex flex-col p-6 gap-6 bg-gray-100">
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <PageHeader
+            style="py-6"
+            title="View News"
+            url="/news"
+            id={data._id}
+          />
+          <div className="w-full lg:w-7xl flex flex-col py-6 gap-6 bg-gray-100">
             <ImageCard
               url={data.images}
               style="h-[30vh] md:h-[60vh] rounded-lg overflow-hidden"
@@ -69,7 +74,7 @@ const ViewNews = () => {
               images={[]}
             />
           </div>
-        </>
+        </div>
       )}
       {modal && (
         <Modal

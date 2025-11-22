@@ -8,8 +8,8 @@ import ImageCard from "../../../components/cards/ImageCard";
 import PageLoader from "../../../components/loader/PageLoader";
 import PageError from "../../../components/error/PageError";
 import Navbar from "../../../components/nav/Navbar";
-import Header from "../../../components/users/Header";
 import View from "../../../components/promotions/view/View";
+import PageHeader from "../../../components/users/PageHeader";
 
 const ViewPromotion = () => {
   const { id } = useParams();
@@ -51,9 +51,14 @@ const ViewPromotion = () => {
           <PageLoader />
         ) : null
       ) : (
-        <>
-          <Header title="View Promotion" url="/promotions" id={data._id} />
-          <div className="w-full flex flex-col p-6 gap-6">
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <PageHeader
+            style="py-6"
+            title="View Promotion"
+            url="/promotions"
+            id={data._id}
+          />
+          <div className="w-full lg:w-7xl flex flex-col py-6 gap-6">
             <ImageCard
               url={data.images}
               style="h-[30vh] md:h-[60vh] rounded-lg overflow-hidden"
@@ -69,7 +74,7 @@ const ViewPromotion = () => {
               images={[]}
             />
           </div>
-        </>
+        </div>
       )}
       {modal && (
         <Modal
