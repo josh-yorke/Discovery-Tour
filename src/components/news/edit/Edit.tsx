@@ -117,7 +117,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
             {...register("contents")}
           />
           <InputOption
-            disabled={true}
+            disabled={false}
             options={["draft", "published"]}
             {...register("status")}
             style="w-full bg-white"
