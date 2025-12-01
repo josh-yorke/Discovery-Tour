@@ -5,11 +5,11 @@ import { useNavigate, useParams } from "react-router";
 import { deletePromotion } from "../../../hooks/promotions/deletePromotion";
 import Modal from "../../../components/modal/Modal";
 import ImageCard from "../../../components/cards/ImageCard";
-import PageLoader from "../../../components/loader/PageLoader";
-import PageError from "../../../components/error/PageError";
 import Navbar from "../../../components/nav/Navbar";
 import View from "../../../components/promotions/view/View";
 import PageHeader from "../../../components/users/PageHeader";
+import SectionLoader from "../../../components/loader/SectionLoader";
+import SectionError from "../../../components/error/SectionError";
 
 const ViewPromotion = () => {
   const { id } = useParams();
@@ -46,9 +46,9 @@ const ViewPromotion = () => {
       <Navbar />
       {isLoading || isError ? (
         isError ? (
-          <PageError title="Reload" action={refetch} error={error.message} />
+          <SectionError action={refetch} error={error.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
@@ -61,7 +61,7 @@ const ViewPromotion = () => {
           <div className="w-full lg:w-7xl flex flex-col py-6 gap-6">
             <ImageCard
               url={data.images}
-              style="h-[30vh] md:h-[60vh] rounded-lg overflow-hidden"
+              style="aspect-3/2 rounded-lg overflow-hidden"
             />
             <View
               onDelete={() => handleDelete(data._id)}

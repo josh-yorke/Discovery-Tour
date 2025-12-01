@@ -61,7 +61,7 @@ const ViewVisa = () => {
           <div className="w-full lg:w-7xl flex flex-col py-6 gap-6 bg-gray-100">
             <ImageCard
               url={data.images}
-              style="h-[30vh] md:h-[60vh] rounded-lg overflow-hidden"
+              style="aspect-3/2 rounded-lg overflow-hidden"
             />
             <View
               country={data.country}

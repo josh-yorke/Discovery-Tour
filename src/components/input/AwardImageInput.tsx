@@ -20,17 +20,19 @@ const AwardImageInput = ({
   error,
   initialFiles = [],
 }: Props) => {
-  const [previewFiles, setPreviewFiles] = useState<File[]>([]);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   useEffect(() => {
     if (initialFiles.length > 0) {
-      const urls = initialFiles.map((file) => URL.createObjectURL(file));
-      setPreviewFiles(initialFiles);
-      setPreviewUrls(urls);
+      // Take only the first file if multiple are provided
+      const file = initialFiles[0];
+      const url = URL.createObjectURL(file);
+      setPreviewFile(file);
+      setPreviewUrl(url);
 
       const dataTransfer = new DataTransfer();
-      initialFiles.forEach((file) => dataTransfer.items.add(file));
+      dataTransfer.items.add(file);
       setValue(name, dataTransfer.files, {
         shouldValidate: true,
         shouldDirty: true,
@@ -40,119 +42,106 @@ const AwardImageInput = ({
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
+    // Take only the first file
+    const file = files[0];
+    const fileName = file.name;
+    const baseName =
+      fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
     const allowedPattern = /^[a-zA-Z0-9._-]+$/;
 
-    const validFiles: File[] = [];
-    const invalidFiles: string[] = [];
-
-    Array.from(files).forEach((file) => {
-      const fileName = file.name;
-      const baseName =
-        fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-      if (allowedPattern.test(baseName)) {
-        validFiles.push(file);
-      } else {
-        invalidFiles.push(fileName);
-      }
-    });
-
-    if (invalidFiles.length > 0) {
+    if (!allowedPattern.test(baseName)) {
       alert(
-        `The following files were not added because they contain special characters:\n\n${invalidFiles.join(
-          "\n"
-        )}\n\nOnly letters, numbers, underscores (_), hyphens (-), and dots (.) are allowed.`
+        `The file "${fileName}" was not added because it contains special characters.\n\nOnly letters, numbers, underscores (_), hyphens (-), and dots (.) are allowed.`
       );
+      return;
     }
 
-    if (validFiles.length === 0) return;
+    // Clean up previous URL if exists
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
 
-    // Create new arrays with the selected files (don't append to existing)
-    const newUrls = validFiles.map((file) => URL.createObjectURL(file));
+    const newUrl = URL.createObjectURL(file);
+    setPreviewFile(file);
+    setPreviewUrl(newUrl);
 
-    // Set the new files (replace existing ones)
-    setPreviewFiles(validFiles);
-    setPreviewUrls(newUrls);
-
-    // Create DataTransfer with ONLY the new files
+    // Create DataTransfer with only the selected file
     const dataTransfer = new DataTransfer();
-    validFiles.forEach((file) => dataTransfer.items.add(file));
+    dataTransfer.items.add(file);
 
-    console.log("Setting files to form:", validFiles.length, "files");
+    console.log("Setting file to form:", file.name);
     setValue(name, dataTransfer.files, {
       shouldValidate: true,
       shouldDirty: true,
     });
-
-    // Clean up previous URLs if any
-    previewUrls.forEach((url) => URL.revokeObjectURL(url));
   };
 
-  const handleRemove = (index: number) => {
-    const updatedFiles = previewFiles.filter((_, i) => i !== index);
-    const updatedUrls = previewUrls.filter((_, i) => i !== index);
+  const handleRemove = () => {
+    // Clean up the URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
 
-    setPreviewFiles(updatedFiles);
-    setPreviewUrls(updatedUrls);
+    setPreviewFile(null);
+    setPreviewUrl("");
 
+    // Set empty file list
     const dataTransfer = new DataTransfer();
-    updatedFiles.forEach((file) => dataTransfer.items.add(file));
     setValue(name, dataTransfer.files, {
       shouldValidate: true,
       shouldDirty: true,
     });
-
-    // Clean up the removed URL
-    URL.revokeObjectURL(previewUrls[index]);
   };
 
-  // Clean up URLs on unmount
+  // Clean up URL on unmount
   useEffect(() => {
     return () => {
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
     };
-  }, [previewUrls]);
+  }, [previewUrl]);
 
   return (
     <div className="w-full flex flex-col gap-2">
       <p className="text-sm font-semibold capitalize">{title}</p>
       <input
         type="file"
-        multiple
         accept="image/*"
         onChange={handleImageChange}
         className="text-sm font-normal px-6 py-3 bg-white rounded-lg"
         disabled={disabled}
       />
 
-      {previewFiles.length > 0 && (
+      {previewFile && (
         <div className="mt-2">
           <p className="text-sm text-gray-600">
-            Selected files: {previewFiles.length}
+            Selected file: {previewFile.name}
           </p>
         </div>
       )}
 
       <div className="flex flex-wrap gap-4 mt-4">
-        {previewUrls.map((url, index) => (
-          <div key={index} className="relative">
+        {previewUrl && (
+          <div className="relative">
             <img
-              src={url}
-              alt={`preview-${index}`}
+              src={previewUrl}
+              alt="preview"
               className="w-[200px] h-[200px] object-cover object-center rounded-2xl"
             />
             {!disabled && (
               <button
                 type="button"
-                onClick={() => handleRemove(index)}
+                onClick={handleRemove}
                 className="absolute top-4 right-4 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
               >
                 <RiCloseLine size={16} />
               </button>
             )}
           </div>
-        ))}
+        )}
       </div>
       {error && <p className="text-xs font-semibold text-red-500">{error}</p>}
     </div>

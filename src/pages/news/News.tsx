@@ -10,10 +10,10 @@ import { useState } from "react";
 import type z from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getNews } from "../../hooks/news/getNews";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import NewsParent from "../../components/news/NewsParent";
 import Pagination from "../../components/pagination/Pagination";
+import SectionLoader from "../../components/loader/SectionLoader";
+import SectionError from "../../components/error/SectionError";
 
 const News = () => {
   const { register, handleSubmit, setValue, getValues } = useForm<
@@ -57,9 +57,9 @@ const News = () => {
           action={handleSubmit(onSubmit)}
         />
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           <>
             {data && <NewsParent news={data.news} isLoading={isLoading} />}

@@ -5,7 +5,7 @@ const ViewCarousel = ({ carousel }: companyCarousel) => {
   return (
     <>
       <div className="w-full flex flex-col gap-2">
-        <ImageCard url={carousel} style="h-[40vh] lg:h-[80vh]" />
+        <ImageCard url={carousel} style="w-full aspect-[3/2]" />
       </div>
     </>
   );

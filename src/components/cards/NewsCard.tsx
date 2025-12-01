@@ -28,7 +28,9 @@ const NewsCard = ({
   return (
     <>
       <div className="w-full flex flex-col items-center justify-center bg-white rounded-lg overflow-hidden shadow-xl shadow-black/10">
-        <div className="relative w-full h-[40vh]">
+        <div className="relative w-full aspect-[3/2]">
+          {" "}
+          {/* Changed to 3:2 aspect ratio */}
           <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
             <IconButton
               action={() => navigate(`/news/edit/${id}`)}

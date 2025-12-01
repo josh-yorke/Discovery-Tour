@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "../../components/nav/Navbar";
 import { getDetails } from "../../hooks/company/getDetails";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import View from "../../components/company/view/View";
 import IconButton from "../../components/button/IconButton";
 import { RiPencilLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
+import SectionError from "../../components/error/SectionError";
+import SectionLoader from "../../components/loader/SectionLoader";
 
 const Company = () => {
   const navigate = useNavigate();
@@ -32,9 +32,9 @@ const Company = () => {
           />
         </div>
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           data && (
             <>

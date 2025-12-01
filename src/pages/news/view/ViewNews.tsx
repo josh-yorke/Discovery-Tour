@@ -2,14 +2,14 @@ import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOneNews } from "../../../hooks/news/getOneNews";
-import PageLoader from "../../../components/loader/PageLoader";
-import PageError from "../../../components/error/PageError";
 import ImageCard from "../../../components/cards/ImageCard";
 import View from "../../../components/news/view/View";
 import { useState } from "react";
 import { deleteNews } from "../../../hooks/news/deleteNews";
 import Modal from "../../../components/modal/Modal";
 import PageHeader from "../../../components/users/PageHeader";
+import SectionError from "../../../components/error/SectionError";
+import SectionLoader from "../../../components/loader/SectionLoader";
 
 const ViewNews = () => {
   const { id } = useParams();
@@ -46,9 +46,9 @@ const ViewNews = () => {
       <Navbar />
       {isLoading || isError ? (
         isError ? (
-          <PageError title="Reload" action={refetch} error={error.message} />
+          <SectionError action={refetch} error={error.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
@@ -61,7 +61,7 @@ const ViewNews = () => {
           <div className="w-full lg:w-7xl flex flex-col py-6 gap-6 bg-gray-100">
             <ImageCard
               url={data.images}
-              style="h-[30vh] md:h-[60vh] rounded-lg overflow-hidden"
+              style="aspect-3/2 rounded-lg overflow-hidden"
             />
             <View
               onDelete={() => handleDelete(data._id)}

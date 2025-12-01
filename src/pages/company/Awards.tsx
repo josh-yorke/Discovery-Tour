@@ -3,12 +3,12 @@ import { useNavigate } from "react-router";
 import { RiAddLine } from "react-icons/ri";
 import { useState, useEffect } from "react";
 import ViewAwards from "../../components/company/view/ViewAwards";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import IconButton from "../../components/button/IconButton";
 import Navbar from "../../components/nav/Navbar";
 import { getAwards } from "../../hooks/company/getAwards";
 import YearPicker from "../../components/input/YearInput";
+import SectionLoader from "../../components/loader/SectionLoader";
+import SectionError from "../../components/error/SectionError";
 
 const Awards = () => {
   const navigate = useNavigate();
@@ -60,9 +60,9 @@ const Awards = () => {
         </div>
 
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : data ? (
           <div className="w-full flex flex-col gap-6 items-center justify-center">
             {/* Year Picker */}
@@ -78,20 +78,10 @@ const Awards = () => {
             {selectedYearAwards.length > 0 ? (
               <ViewAwards awards={selectedYearAwards} />
             ) : (
-              <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <div className="text-4xl mb-4">🏆</div>
-                <p className="text-lg font-semibold text-gray-700 mb-2">
-                  No Awards in {selectedYear}
+              <div className="h-[60vh] flex items-center justify-center">
+                <p className="text-sm font-normal">
+                  No Awards found for {selectedYear}
                 </p>
-                <p className="text-gray-500 mb-4">
-                  There are no awards recorded for this year.
-                </p>
-                <button
-                  onClick={() => navigate("/company/awards/add")}
-                  className="px-6 py-2 bg-[#1d2087] hover:bg-[#3b3eac] text-white rounded-lg transition-colors text-sm"
-                >
-                  Add Award for {selectedYear}
-                </button>
               </div>
             )}
           </div>

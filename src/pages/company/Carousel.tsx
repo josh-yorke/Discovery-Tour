@@ -4,9 +4,9 @@ import { getDetails } from "../../hooks/company/getDetails";
 import Navbar from "../../components/nav/Navbar";
 import IconButton from "../../components/button/IconButton";
 import { RiPencilLine } from "react-icons/ri";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import ViewCarousel from "../../components/company/view/ViewCarousel";
+import SectionError from "../../components/error/SectionError";
+import SectionLoader from "../../components/loader/SectionLoader";
 
 const Carousel = () => {
   const navigate = useNavigate();
@@ -32,9 +32,9 @@ const Carousel = () => {
           />
         </div>
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           data && (
             <>

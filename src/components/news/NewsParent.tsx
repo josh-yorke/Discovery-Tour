@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { newsData } from "../../types/news/newsDataTypes";
-import PageLoader from "../loader/PageLoader";
 import { useState } from "react";
 import NewsCard from "../cards/NewsCard";
 import { deleteNews } from "../../hooks/news/deleteNews";
 import Modal from "../modal/Modal";
+import SectionLoader from "../loader/SectionLoader";
 
 interface ParentProps {
   news: newsData[];
@@ -32,7 +32,7 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
     }
   };
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading) return <SectionLoader />;
 
   return (
     <>

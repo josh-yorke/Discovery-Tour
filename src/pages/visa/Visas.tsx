@@ -9,11 +9,11 @@ import type z from "zod";
 import { useState } from "react";
 import { getVisas } from "../../hooks/visa/visa/getVisas";
 import Navbar from "../../components/nav/Navbar";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import VisaParent from "../../components/visa/visa/VisaParent";
 import Pagination from "../../components/pagination/Pagination";
 import VisaSearch from "../../components/search/searchform/VisaSearch";
+import SectionError from "../../components/error/SectionError";
+import SectionLoader from "../../components/loader/SectionLoader";
 
 const Visas = () => {
   const { register, handleSubmit, setValue, getValues } = useForm<
@@ -47,8 +47,6 @@ const Visas = () => {
     });
   };
 
-  if (isLoading) return <PageLoader />;
-
   return (
     <>
       <Navbar />
@@ -58,11 +56,10 @@ const Visas = () => {
           action={handleSubmit(onSubmit)}
           result={data?.visas}
         />
-
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           <>
             {data && <VisaParent visas={data.visas} isLoading={isLoading} />}

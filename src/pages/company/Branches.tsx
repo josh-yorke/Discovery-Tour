@@ -1,12 +1,12 @@
 import { RiAddLine } from "react-icons/ri";
 import IconButton from "../../components/button/IconButton";
 import ViewBranches from "../../components/company/view/ViewBranches";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import Navbar from "../../components/nav/Navbar";
 import { useNavigate } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getDetails } from "../../hooks/company/getDetails";
+import SectionError from "../../components/error/SectionError";
+import SectionLoader from "../../components/loader/SectionLoader";
 
 const Branches = () => {
   const navigate = useNavigate();
@@ -32,9 +32,9 @@ const Branches = () => {
           />
         </div>
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           data && (
             <>

@@ -83,7 +83,7 @@ const ViewAwards = ({ awards }: companyAwards) => {
             key={award._id}
             url={award.images}
             description={award.description}
-            style="h-[40vh] w-full rounded-lg"
+            style="aspect-[3/2] w-full rounded-lg"
             date={award.date}
           />
         ))}

@@ -10,10 +10,10 @@ import { useForm } from "react-hook-form";
 import type z from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getPromotions } from "../../hooks/promotions/getPromotions";
-import PageError from "../../components/error/PageError";
-import PageLoader from "../../components/loader/PageLoader";
 import Pagination from "../../components/pagination/Pagination";
 import PromotionsParent from "../../components/promotions/PromotionsParent";
+import SectionError from "../../components/error/SectionError";
+import SectionLoader from "../../components/loader/SectionLoader";
 
 const Promotions = () => {
   const { register, handleSubmit, setValue, getValues } = useForm<
@@ -58,9 +58,9 @@ const Promotions = () => {
           action={handleSubmit(onSubmit)}
         />
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           <>
             {data && (
