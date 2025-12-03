@@ -12,6 +12,7 @@ import { getDetails } from "../../../hooks/company/getDetails";
 import PageLoader from "../../loader/PageLoader";
 import { useEffect } from "react";
 import Button from "../../button/Button";
+import TextArea from "../../input/TextArea";
 
 const AddService = () => {
   const queryClient = useQueryClient();
@@ -101,12 +102,10 @@ const AddService = () => {
           {...register("services.0.title")}
           error={errors.services?.[0]?.title?.message || ""}
         />
-        <Input
-          style="bg-white"
+        <TextArea
           disabled={false}
           title="Description"
           placeholder="service description"
-          type="text"
           {...register("services.0.description")}
           error={errors.services?.[0]?.description?.message || ""}
         />

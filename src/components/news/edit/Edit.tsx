@@ -19,7 +19,14 @@ interface EditInputsProps extends editNewsData {
   id: string;
 }
 
-const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
+const EditInputs = ({
+  id,
+  tags,
+  title,
+  contents,
+  status,
+  images,
+}: EditInputsProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -30,6 +37,7 @@ const EditInputs = ({ id, tags, title, contents, images }: EditInputsProps) => {
       title: title,
       contents: contents,
       images: images,
+      status: status,
     },
   });
 

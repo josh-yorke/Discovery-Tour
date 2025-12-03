@@ -51,9 +51,7 @@ const View = ({
             error=""
             {...register("tagline")}
           />
-          <Input
-            style="bg-white"
-            type="text"
+          <TextArea
             disabled={true}
             title="Core Values"
             placeholder=""

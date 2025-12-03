@@ -87,11 +87,9 @@ const Edit = ({
             error={errors.tagline?.message || ""}
             {...register("tagline")}
           />
-          <Input
-            style="bg-white"
+          <TextArea
             disabled={false}
             title="Core Values"
-            type="text"
             placeholder="core values"
             error={errors.coreValues?.message || ""}
             {...register("coreValues")}

@@ -12,6 +12,7 @@ import {
   editServiceSchema,
   type editServiceData,
 } from "../../../types/company/editCompanyTypes";
+import TextArea from "../../input/TextArea";
 
 interface EditBranchProps {
   id: string;
@@ -117,12 +118,10 @@ const EditService = ({ id }: EditBranchProps) => {
           {...register("services.0.title")}
           error={errors.services?.[0]?.title?.message || ""}
         />
-        <Input
-          style="bg-white"
+        <TextArea
           disabled={false}
           title="Description"
           placeholder="service description"
-          type="text"
           {...register("services.0.description")}
           error={errors.services?.[0]?.description?.message || ""}
         />

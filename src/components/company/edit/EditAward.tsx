@@ -140,6 +140,12 @@ const EditAward = ({ id }: { id: string }) => {
 
   useEffect(() => {
     if (companyData && editingAward) {
+      let formattedDate = "";
+      if (editingAward.date) {
+        const date = new Date(editingAward.date);
+        formattedDate = date.toISOString().split("T")[0];
+      }
+
       reset({
         name: companyData.name || "",
         about: companyData.about || "",
@@ -150,7 +156,7 @@ const EditAward = ({ id }: { id: string }) => {
           {
             images: undefined,
             description: editingAward.description || "",
-            date: editingAward.date || "",
+            date: formattedDate,
           },
         ],
       });

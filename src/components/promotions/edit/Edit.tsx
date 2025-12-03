@@ -19,7 +19,14 @@ interface EditInputsProps extends editPromotionData {
   id: string;
 }
 
-const Edit = ({ id, tags, title, contents, images }: EditInputsProps) => {
+const Edit = ({
+  id,
+  tags,
+  title,
+  contents,
+  status,
+  images,
+}: EditInputsProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -30,6 +37,7 @@ const Edit = ({ id, tags, title, contents, images }: EditInputsProps) => {
       title: title,
       contents: contents,
       images: images,
+      status: status,
     },
   });
 
