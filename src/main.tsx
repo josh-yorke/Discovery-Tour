@@ -37,6 +37,10 @@ import EditVisa from "./pages/visa/edit/EditVisa";
 import ViewVisa from "./pages/visa/view/ViewVisa";
 import AddInformation from "./pages/visa/add/AddInformation";
 import EditInformation from "./pages/visa/edit/EditInformation";
+import Blogs from "./pages/blogs/Blogs";
+import ViewBlog from "./pages/blogs/view/ViewBlog";
+import AddBlog from "./pages/blogs/add/AddBlog";
+import EditBlog from "./pages/blogs/edit/EditBlog";
 
 const router = createBrowserRouter([
   {
@@ -297,6 +301,38 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditInformation />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/blogs",
+    element: (
+      <RouteProtection>
+        <Blogs />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/blogs/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewBlog />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/blogs/add",
+    element: (
+      <RouteProtection>
+        <AddBlog />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/blogs/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditBlog />
       </RouteProtection>
     ),
   },

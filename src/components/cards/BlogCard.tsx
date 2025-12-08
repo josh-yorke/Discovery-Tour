@@ -4,9 +4,10 @@ import ImageCard from "./ImageCard";
 import { useNavigate } from "react-router";
 import LinkText from "../nav/LinkText";
 import StatusText from "./StatusText";
+import type { blogData } from "../../types/blogs/blogDataTypes";
 
-interface CardProps {
-  id: string;
+interface CardProps extends blogData {
+  _id: string;
   title: string;
   contents: string;
   tags: string[];
@@ -15,13 +16,15 @@ interface CardProps {
   onDelete: () => void;
 }
 
-const NewsCard = ({
-  id,
+const BlogCard = ({
+  _id,
   title,
   contents,
   images,
   status,
   onDelete,
+  readingTimeUnit,
+  readingTimeValue,
 }: CardProps) => {
   const navigate = useNavigate();
 
@@ -31,7 +34,7 @@ const NewsCard = ({
       <div className="relative w-full aspect-[3/2]">
         <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
           <IconButton
-            action={() => navigate(`/news/edit/${id}`)}
+            action={() => navigate(`/blogs/edit/${_id}`)}
             title=""
             icon={<RiPencilFill size={16} />}
             style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
@@ -44,6 +47,9 @@ const NewsCard = ({
           />
         </div>
         <ImageCard style="w-full h-full" url={images} />
+        <div className="absolute left-4 bottom-4 z-10 rounded-md bg-black/30 backdrop-blur-sm text-white text-xs px-4 py-2">
+          <p>{`${readingTimeValue} ${readingTimeUnit}`}</p>
+        </div>
       </div>
 
       {/* Content container that grows independently */}
@@ -51,7 +57,7 @@ const NewsCard = ({
         <LinkText
           title={title}
           style="font-semibold"
-          url={`/news/view/${id}`}
+          url={`/blogs/view/${_id}`}
         />
         <StatusText status={status} style="" textStyle="font-semibold" />
         <p className="text-xs font-normal line-clamp-2 flex-1">{`${contents}`}</p>
@@ -60,4 +66,4 @@ const NewsCard = ({
   );
 };
 
-export default NewsCard;
+export default BlogCard;

@@ -8,10 +8,12 @@ import {
   RiMessage3Line,
   RiMoneyDollarCircleFill,
   RiMoneyDollarCircleLine,
-  RiSuitcase2Fill,
-  RiSuitcase2Line,
+  RiRedPacketFill,
+  RiRedPacketLine,
   RiUser4Fill,
   RiUser4Line,
+  RiWalletFill,
+  RiWalletLine,
 } from "react-icons/ri";
 import LinkButton from "./LinkButton";
 import LogoutButton from "../button/LogoutButton";
@@ -29,7 +31,7 @@ const Navbar = () => {
       <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
         <div className=" w-full lg:w-7xl flex flex-row items-center justify-between px-6 lg:px-2 py-4  bg-white ">
           <NavLink to={"/visas/visa"}>
-            <img src="/logo.png" alt="/" />
+            <img src="/Logov2.svg" alt="/" width={200} />
           </NavLink>
           <div className="hidden lg:flex flex-row items-center justify-center gap-6">
             <LinkButton
@@ -41,12 +43,29 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/visas") ? (
-                  <RiSuitcase2Fill size={16} />
+                  <RiWalletFill size={16} />
                 ) : (
-                  <RiSuitcase2Line size={16} />
+                  <RiWalletLine size={16} />
                 )
               }
               title="Visa"
+            />
+
+            <LinkButton
+              to="/promotions"
+              style={`${
+                pathname.startsWith("/promotions")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/promotions") ? (
+                  <RiMoneyDollarCircleFill size={16} />
+                ) : (
+                  <RiMoneyDollarCircleLine size={16} />
+                )
+              }
+              title="Promotions"
             />
 
             <LinkButton
@@ -65,22 +84,24 @@ const Navbar = () => {
               }
               title="News"
             />
+
             <LinkButton
-              to="/promotions"
+              to="/blogs"
               style={`${
-                pathname.startsWith("/promotions")
+                pathname.startsWith("/blogs")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
-                pathname.startsWith("/promotions") ? (
-                  <RiMoneyDollarCircleFill size={16} />
+                pathname.startsWith("/blogs") ? (
+                  <RiRedPacketFill size={16} />
                 ) : (
-                  <RiMoneyDollarCircleLine size={16} />
+                  <RiRedPacketLine size={16} />
                 )
               }
-              title="Promotions"
+              title="Blogs"
             />
+
             <HoverLink
               options={[
                 "details",
@@ -158,12 +179,29 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/visas/visa") ? (
-                    <RiSuitcase2Fill size={16} />
+                    <RiWalletFill size={16} />
                   ) : (
-                    <RiSuitcase2Line size={16} />
+                    <RiWalletLine size={16} />
                   )
                 }
                 title="Visa"
+              />
+
+              <LinkButton
+                to="/promotions"
+                style={`${
+                  pathname.startsWith("/promotions")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/promotions") ? (
+                    <RiMoneyDollarCircleFill size={16} />
+                  ) : (
+                    <RiMoneyDollarCircleLine size={16} />
+                  )
+                }
+                title="Promotions"
               />
 
               <LinkButton
@@ -182,21 +220,22 @@ const Navbar = () => {
                 }
                 title="News"
               />
+
               <LinkButton
-                to="/promotions"
+                to="/blogs"
                 style={`${
-                  pathname.startsWith("/promotions")
+                  pathname.startsWith("/blogs")
                     ? "font-semibold text-[#1d2087]"
                     : "font-normal"
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
-                  pathname.startsWith("/promotions") ? (
-                    <RiMoneyDollarCircleFill size={16} />
+                  pathname.startsWith("/blogs") ? (
+                    <RiRedPacketFill size={16} />
                   ) : (
-                    <RiMoneyDollarCircleLine size={16} />
+                    <RiRedPacketLine size={16} />
                   )
                 }
-                title="Promotions"
+                title="Blogs"
               />
               <DropdownLink
                 options={[
