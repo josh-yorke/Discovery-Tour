@@ -44,6 +44,7 @@ const VerifyEmail = ({ message, action, code, onVerify }: ModalProps) => {
           <RiChatCheckFill size={40} className="text-[#1d2087]" />
           <p>{message}</p>
           <Input
+            style=""
             disabled={false}
             title="Code"
             type="text"

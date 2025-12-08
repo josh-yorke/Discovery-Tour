@@ -1,7 +1,7 @@
 import z from "zod";
 
 export const addVisaFileSchema = z.object({
-  fileTitle: z.string().min(5, "file title is required").optional(),
+  fileTitle: z.string().min(2, "file title is required").optional(),
   file: z
     .any()
     .refine(
@@ -12,7 +12,7 @@ export const addVisaFileSchema = z.object({
 });
 
 export const editVisaFileSchema = z.object({
-  fileTitle: z.string().min(5, "file title is required").optional(),
+  fileTitle: z.string().min(2, "file title is required").optional(),
   file: z
     .any()
     .refine(

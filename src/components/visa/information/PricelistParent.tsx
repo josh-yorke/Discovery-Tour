@@ -44,7 +44,7 @@ const PricelistParent = ({ pricelistData, isLoading }: ParentProps) => {
               fee={pricelist.fee}
               description={pricelist.description}
               visa={pricelist.visa}
-              filesAssociated={pricelist.filesAssociated}
+              filesAssociated={pricelist.filesAssociated ?? ""}
               id={pricelist._id}
               onDelete={() => handleDelete(pricelist._id)}
             />

@@ -55,7 +55,7 @@ export const addAwardSchema = z.object({
           (value) => value instanceof FileList && value.length > 0,
           "At least one image is required"
         ),
-      description: z.string().min(5, "award description is required"),
+      description: z.string().min(2, "award description is required"),
     })
   ),
 });

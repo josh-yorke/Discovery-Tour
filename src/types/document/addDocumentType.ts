@@ -1,13 +1,13 @@
 import z from "zod";
 
 export const addDocumentSchema = z.object({
-  docDescription: z.string().min(5, "document description is required"),
-  docTitle: z.string().min(5, "document title is required"),
+  docDescription: z.string().min(2, "document description is required"),
+  docTitle: z.string().min(2, "document title is required"),
 });
 
 export const editDocumentSchema = z.object({
-  description: z.string().min(5, "document description is required"),
-  title: z.string().min(5, "document title is required"),
+  description: z.string().min(2, "document description is required"),
+  title: z.string().min(2, "document title is required"),
   fileTitle: z.string().optional(),
   file: z.string().optional(),
   filesAssociated: z.string().optional(),

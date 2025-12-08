@@ -41,7 +41,9 @@ const Add = () => {
     const formData = new FormData();
 
     formData.append("type", "file");
-    formData.append("fileTitle", data.fileTitle);
+    if (data.fileTitle) {
+      formData.append("fileTitle", data.fileTitle);
+    }
     Array.from(data.file).forEach((file: any) => {
       formData.append("file", file);
     });
@@ -60,6 +62,7 @@ const Add = () => {
         >
           <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
             <Input
+              style=""
               disabled={false}
               error={errors.fileTitle?.message || ""}
               title="File Title"

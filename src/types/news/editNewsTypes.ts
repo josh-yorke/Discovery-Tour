@@ -1,8 +1,8 @@
 import z from "zod";
 
 export const editNewsSchema = z.object({
-  title: z.string().min(5, "post title is required"),
-  contents: z.string().min(5, "post contents is required"),
+  title: z.string().min(2, "news title is required"),
+  contents: z.string().min(2, "news contents is required"),
   images: z
     .any()
     .refine(

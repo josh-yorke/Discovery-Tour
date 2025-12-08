@@ -14,10 +14,13 @@ import {
 } from "../../../types/blogs/addBlogTypes";
 import { addBlog } from "../../../hooks/blogs/addBlog";
 import RelatedLinksInput from "../../input/RelatedLinksInput";
+import { useState } from "react";
+import Modal from "../../modal/Modal";
 
 const Add = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [message, showMessage] = useState<string | null>(null);
 
   const methods = useForm<addBlogData>({
     resolver: zodResolver(addBlogSchema),
@@ -41,6 +44,9 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["blogs"], exact: false });
       navigate("/blogs");
       reset();
+    },
+    onError: (error) => {
+      showMessage(error.message);
     },
   });
 
@@ -132,7 +138,7 @@ const Add = () => {
               title="Reading Time Value"
               placeholder="reading time value"
               type="number"
-              {...register("readingTimeValue")}
+              {...register("readingTimeValue", { valueAsNumber: true })}
             />
             <InputOption
               disabled={false}
@@ -168,6 +174,15 @@ const Add = () => {
           </div>
         </form>
       </FormProvider>
+      {message && (
+        <Modal
+          message={message}
+          success={mutation.isSuccess}
+          action={() => {
+            showMessage(null);
+          }}
+        />
+      )}
     </>
   );
 };

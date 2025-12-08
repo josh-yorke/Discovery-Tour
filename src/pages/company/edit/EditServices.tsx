@@ -29,7 +29,7 @@ const EditServices = () => {
               <Header
                 style="p-6"
                 url="/company/services"
-                title="Manage Branch"
+                title="Manage Services"
                 id={id ? id : ""}
               />
               <EditService id={id ? id : ""} />

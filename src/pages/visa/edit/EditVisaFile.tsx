@@ -41,7 +41,12 @@ const EditVisaFile = () => {
         ) : null
       ) : (
         <>
-          <Header title="Edit Visa File" url="/visas/files" id={data._id} />
+          <Header
+            style=""
+            title="Edit Visa File"
+            url="/visas/files"
+            id={data._id}
+          />
           <Edit id={data._id} file={file} fileTitle={data.fileTitle} />
         </>
       )}

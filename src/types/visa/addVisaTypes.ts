@@ -1,8 +1,8 @@
 import z from "zod";
 
 export const addVisaSchema = z.object({
-  country: z.string().min(5, "post title is required"),
-  type: z.string().min(5, "post contents is required"),
+  country: z.string().min(2, "post title is required"),
+  type: z.string().min(2, "post contents is required"),
   images: z
     .any()
     .refine(

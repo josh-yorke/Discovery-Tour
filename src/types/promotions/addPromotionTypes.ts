@@ -1,8 +1,8 @@
 import z from "zod";
 
 export const addPromotionSchema = z.object({
-  title: z.string().min(5, "promotion title is required"),
-  contents: z.string().min(5, "promotion contents is required"),
+  title: z.string().min(2, "promotion title is required"),
+  contents: z.string().min(2, "promotion contents is required"),
   images: z
     .any()
     .refine(

@@ -6,7 +6,7 @@ const AddVisaFile = () => {
   return (
     <>
       <Navbar />
-      <Header title="Add Visa File" url="/visas/files" id="" />
+      <Header style="" title="Add Visa File" url="/visas/files" id="" />
       <Add />
     </>
   );

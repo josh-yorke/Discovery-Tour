@@ -12,15 +12,7 @@ interface CardProps {
   id: string;
 }
 
-const PricelistCard = ({
-  id,
-  plan,
-  fee,
-  onDelete,
-  description,
-  visa,
-  filesAssociated,
-}: CardProps) => {
+const PricelistCard = ({ id, plan, onDelete }: CardProps) => {
   const navigate = useNavigate();
 
   return (

@@ -1,8 +1,8 @@
 import z from "zod";
 
 export const addProcessSchema = z.object({
-  processTitle: z.string().min(5, "title is required"),
-  process: z.string().min(5, "process is required"),
+  processTitle: z.string().min(2, "title is required"),
+  process: z.string().min(2, "process is required"),
 });
 
 export const editProcessSchema = z.object({

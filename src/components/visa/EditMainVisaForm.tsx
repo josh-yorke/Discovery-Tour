@@ -216,6 +216,7 @@ const EditMainVisaForm = forwardRef<MainVisaFormHandle, EditMainVisaFormProps>(
             {...register("country")}
           />
           <Input
+            style=""
             disabled={false}
             error={errors.country?.message || ""}
             title="Visa Type"
@@ -224,6 +225,7 @@ const EditMainVisaForm = forwardRef<MainVisaFormHandle, EditMainVisaFormProps>(
             {...register("type")}
           />
           <Input
+            style=""
             disabled={false}
             error={errors.eligibleApplicants?.message || ""}
             title="Eligible Applicants"
