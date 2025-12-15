@@ -10,7 +10,6 @@ import { updateVisa } from "../../../../hooks/visa/visa/updateVisa";
 import Button from "../../../button/Button";
 import ImageInput from "../../../input/ImageInput";
 import TextArea from "../../../input/TextArea";
-import Input from "../../../input/Input";
 import InputOption from "../../../input/InputOption";
 import { getTerm } from "../../../../hooks/visa/terms/getTerm";
 import { getPayment } from "../../../../hooks/visa/payment/getPayment";
