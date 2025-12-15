@@ -17,11 +17,32 @@ export const getVisas = async (data: visaSearchData) => {
   }
 };
 
+export const getVisaCountries = async () => {
+  try {
+    const res = await api.get(`/global-fields?type=country`);
+
+    const countries = [
+      ...new Set(res.data.data.map((item: any) => item.country)),
+    ];
+    return {
+      countries,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
 export const getVisaTypes = async () => {
   try {
-    const res = await api.get(`/visas`);
-    console.log(res);
-    return res.data.data;
+    const res = await api.get(`/global-fields?type=visa-type`);
+
+    const visaTypes = [
+      ...new Set(res.data.data.map((item: any) => item.visaType)),
+    ];
+    return {
+      visaTypes,
+    };
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);

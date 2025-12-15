@@ -1,20 +1,23 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import {
   addVisaSchema,
   type addVisaData,
 } from "../../../../types/visa/addVisaTypes";
-import Input from "../../../input/Input";
 import TextArea from "../../../input/TextArea";
 import InputOption from "../../../input/InputOption";
 import ImageInput from "../../../input/ImageInput";
 import Button from "../../../button/Button";
 import { addVisa } from "../../../../hooks/visa/visa/addVisa";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Modal from "../../../modal/Modal";
 import ActionButton from "../../../button/ActionButton";
+import {
+  getVisaCountries,
+  getVisaTypes,
+} from "../../../../hooks/visa/visa/getVisas";
 
 const Add = () => {
   const queryClient = useQueryClient();
@@ -23,6 +26,28 @@ const Add = () => {
   const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
   const methods = useForm<addVisaData>({
     resolver: zodResolver(addVisaSchema),
+  });
+
+  const { data: countriesData } = useQuery({
+    queryKey: ["visaCountries"],
+    queryFn: getVisaCountries,
+    select: (data) => {
+      if (!data?.countries) return [];
+      return data.countries.filter(
+        (country): country is string => typeof country === "string"
+      );
+    },
+  });
+
+  const { data: visaTypesData } = useQuery({
+    queryKey: ["visaTypes"],
+    queryFn: getVisaTypes,
+    select: (data) => {
+      if (!data?.visaTypes) return [];
+      return data.visaTypes.filter(
+        (type): type is string => typeof type === "string"
+      );
+    },
   });
 
   const {
@@ -79,6 +104,9 @@ const Add = () => {
     onSubmit(data);
   };
 
+  const countries = useMemo(() => countriesData || [], [countriesData]);
+  const types = useMemo(() => visaTypesData || [], [visaTypesData]);
+
   return (
     <>
       <FormProvider {...methods}>
@@ -86,25 +114,25 @@ const Add = () => {
           onSubmit={handleSubmit(onSubmit, (err) => {
             console.log(err);
           })}
-          className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+          className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-start">
             <InputOption
               disabled={false}
               style="bg-white w-full"
               title="Country"
-              options={["Korea", "Japan", "Resident"]}
+              options={countries}
               {...register("country")}
             />
-            <Input
-              style="bg-white"
+
+            <InputOption
               disabled={false}
-              error={errors.country?.message || ""}
+              style="bg-white w-full"
               title="Visa Type"
-              placeholder="visa type"
-              type="text"
+              options={types}
               {...register("type")}
             />
+
             <TextArea
               disabled={false}
               error={errors.eligibleApplicants?.message || ""}

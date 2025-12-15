@@ -6,9 +6,12 @@ import {
 } from "../../types/visa/visaSearchTypes";
 import { useForm } from "react-hook-form";
 import type z from "zod";
-import { useState, useCallback } from "react";
-import { getVisas } from "../../hooks/visa/visa/getVisas";
-import { getVisaTypes } from "../../hooks/visa/visa/getVisas";
+import { useState, useCallback, useMemo } from "react";
+import {
+  getVisas,
+  getVisaTypes,
+  getVisaCountries,
+} from "../../hooks/visa/visa/getVisas";
 import Navbar from "../../components/nav/Navbar";
 import VisaParent from "../../components/visa/visa/VisaParent";
 import Pagination from "../../components/pagination/Pagination";
@@ -36,10 +39,26 @@ const Visas = () => {
     type: "",
   });
 
-  // Fetch visa types for dropdown (only once on mount)
   const { data: visaTypesData } = useQuery({
     queryKey: ["visaTypes"],
     queryFn: getVisaTypes,
+    select: (data) => {
+      if (!data?.visaTypes) return [];
+      return data.visaTypes.filter(
+        (type): type is string => typeof type === "string"
+      );
+    },
+  });
+
+  const { data: countriesData } = useQuery({
+    queryKey: ["visaCountries"],
+    queryFn: getVisaCountries,
+    select: (data) => {
+      if (!data?.countries) return [];
+      return data.countries.filter(
+        (country): country is string => typeof country === "string"
+      );
+    },
   });
 
   const onSubmit = (data: z.input<typeof visaSearchSchema>) => {
@@ -47,7 +66,6 @@ const Visas = () => {
     setValue("page", 1);
   };
 
-  // Memoize the query function to prevent unnecessary re-renders
   const fetchVisas = useCallback(async () => {
     return await getVisas(searchParams);
   }, [searchParams]);
@@ -67,16 +85,20 @@ const Visas = () => {
     });
   };
 
+  const types = useMemo(() => visaTypesData || [], [visaTypesData]);
+  const countries = useMemo(() => countriesData || [], [countriesData]);
+
   return (
     <>
       <Navbar />
-      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] px-6 py-12 gap-12">
+      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <VisaSearch
           visaType={register("type")}
           country={register("country")}
           search={register("search")}
           action={handleSubmit(onSubmit)}
-          result={visaTypesData} // Pass visa types to search component
+          countries={countries}
+          types={types}
         />
         {isError ? (
           <SectionError action={refetch} error={error?.message} />

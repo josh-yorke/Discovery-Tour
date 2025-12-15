@@ -1,5 +1,4 @@
 import type { UseFormRegisterReturn } from "react-hook-form";
-import { useState, useEffect } from "react";
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
@@ -11,7 +10,8 @@ interface FormProps {
   country: UseFormRegisterReturn;
   visaType: UseFormRegisterReturn;
   action: () => void;
-  result: any[]; // This should contain the visa data
+  types: string[];
+  countries: string[];
 }
 
 const VisaSearch = ({
@@ -19,23 +19,10 @@ const VisaSearch = ({
   search,
   country,
   visaType,
-  result,
+  types,
+  countries,
 }: FormProps) => {
   const navigate = useNavigate();
-  const [visaTypes, setVisaTypes] = useState<string[]>([]);
-
-  // Extract unique visa types from the result data
-  useEffect(() => {
-    if (result && Array.isArray(result)) {
-      // Extract all unique types from the visa data
-      const types = [
-        ...new Set(result.map((visa) => visa.type).filter(Boolean)),
-      ];
-      setVisaTypes(types);
-    } else {
-      setVisaTypes([]);
-    }
-  }, [result]);
 
   return (
     <form
@@ -56,15 +43,10 @@ const VisaSearch = ({
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options
-          options={["Japan", "Korea", "Resident"]}
-          {...country}
-          title="Country"
-        />
+        <Options options={countries} {...country} title="Country" />
 
-        {/* Visa Type Dropdown - Only show if there are visa types available */}
-        {visaTypes.length > 0 && (
-          <Options options={visaTypes} {...visaType} title="Visa Type" />
+        {types.length > 0 && (
+          <Options options={types} {...visaType} title="Visa Type" />
         )}
 
         <IconButton
