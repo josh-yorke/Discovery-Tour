@@ -2,7 +2,7 @@ import api from "../../axios/axios";
 
 export const getPricelist = async (id?: string) => {
   try {
-    const res = await api.get(`/visa-dependents/?visaId=${id}&type=price`);
+    const res = await api.get(`/shared-fields/?visaId=${id}&type=price`);
     console.log(res);
     return res.data.data;
   } catch (error: any) {

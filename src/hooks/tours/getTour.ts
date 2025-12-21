@@ -1,8 +1,8 @@
-import api from "../../axios/axios";
+import api from "../axios/axios";
 
-export const getTerm = async (id?: string) => {
+export const getTour = async (id?: string) => {
   try {
-    const res = await api.get(`/shared-fields/?visaId=${id}&type=terms`);
+    const res = await api.get(`/tours/${id}`);
     console.log(res);
     return res.data.data;
   } catch (error: any) {

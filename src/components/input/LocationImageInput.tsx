@@ -11,7 +11,7 @@ interface Props {
   title: string;
 }
 
-const ImageInput = ({
+const LocationImageInput = ({
   title,
   disabled,
   setValue,
@@ -29,7 +29,7 @@ const ImageInput = ({
 
       const dataTransfer = new DataTransfer();
       initialFiles.forEach((file) => dataTransfer.items.add(file));
-      setValue("images", dataTransfer.files);
+      setValue("mainLocationImages", dataTransfer.files);
     }
     console.log(initialFiles);
   }, [initialFiles, setValue]);
@@ -73,7 +73,7 @@ const ImageInput = ({
 
     const dataTransfer = new DataTransfer();
     updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    setValue("images", dataTransfer.files);
+    setValue("mainLocationImages", dataTransfer.files);
   };
 
   const handleRemove = (index: number) => {
@@ -88,7 +88,7 @@ const ImageInput = ({
 
     const dataTransfer = new DataTransfer();
     updatedFiles.forEach((file) => dataTransfer.items.add(file));
-    setValue("images", dataTransfer.files);
+    setValue("mainLocationImages", dataTransfer.files);
   };
 
   return (
@@ -128,4 +128,4 @@ const ImageInput = ({
   );
 };
 
-export default ImageInput;
+export default LocationImageInput;

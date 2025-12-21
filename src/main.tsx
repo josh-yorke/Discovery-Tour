@@ -41,6 +41,9 @@ import Blogs from "./pages/blogs/Blogs";
 import ViewBlog from "./pages/blogs/view/ViewBlog";
 import AddBlog from "./pages/blogs/add/AddBlog";
 import EditBlog from "./pages/blogs/edit/EditBlog";
+import Tours from "./pages/tours/Tours";
+import AddTour from "./pages/tours/AddTour";
+import EditTour from "./pages/tours/EditTour";
 
 const router = createBrowserRouter([
   {
@@ -333,6 +336,30 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditBlog />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/tours",
+    element: (
+      <RouteProtection>
+        <Tours />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/tours/add",
+    element: (
+      <RouteProtection>
+        <AddTour />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/tours/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditTour />
       </RouteProtection>
     ),
   },

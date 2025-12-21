@@ -10,6 +10,8 @@ import {
   RiMoneyDollarCircleLine,
   RiRedPacketFill,
   RiRedPacketLine,
+  RiShip2Fill,
+  RiShip2Line,
   RiUser4Fill,
   RiUser4Line,
   RiWalletFill,
@@ -49,6 +51,23 @@ const Navbar = () => {
                 )
               }
               title="Visa"
+            />
+
+            <LinkButton
+              to="/tours"
+              style={`${
+                pathname.startsWith("/tours")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/tours") ? (
+                  <RiShip2Fill size={16} />
+                ) : (
+                  <RiShip2Line size={16} />
+                )
+              }
+              title="Tours"
             />
 
             <LinkButton
@@ -162,8 +181,8 @@ const Navbar = () => {
         </div>
         <div
           className={`${
-            nav ? "top-0" : "top-[-100%]"
-          } fixed top-0 h-[100svh] bg-white w-full z-20 duration-300`}
+            nav ? "top-0" : "top-full"
+          } fixed top-0 h-screen bg-white w-full z-20 duration-300`}
         >
           <div className="relative w-full h-full flex flex-col items-center justify-center gap-4 py-12">
             <NavLink to={"/dashboard"} className="pb-6">
@@ -185,6 +204,23 @@ const Navbar = () => {
                   )
                 }
                 title="Visa"
+              />
+
+              <LinkButton
+                to="/tours"
+                style={`${
+                  pathname.startsWith("/tours")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/tours") ? (
+                    <RiShip2Fill size={16} />
+                  ) : (
+                    <RiShip2Line size={16} />
+                  )
+                }
+                title="Tours"
               />
 
               <LinkButton
@@ -237,6 +273,7 @@ const Navbar = () => {
                 }
                 title="Blogs"
               />
+
               <DropdownLink
                 options={[
                   "details",

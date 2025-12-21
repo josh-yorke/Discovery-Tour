@@ -481,7 +481,7 @@ const Add = () => {
   };
 
   return (
-    <div className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+    <div className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
       <FormTabs formType={formType} setFormType={setFormType} />
 
       {/* Pricelist Section */}

@@ -2,7 +2,7 @@ import api from "../../axios/axios";
 
 export const addVisaFile = async (data: FormData) => {
   try {
-    const res = await api.post(`/visa-dependents`, data);
+    const res = await api.post(`/shared-fields`, data);
 
     return res.data.data._id;
   } catch (error: any) {

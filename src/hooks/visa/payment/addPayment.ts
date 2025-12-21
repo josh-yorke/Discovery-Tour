@@ -2,7 +2,7 @@ import api from "../../axios/axios";
 
 export const addPayment = async (data: FormData) => {
   try {
-    const res = await api.post(`/visa-dependents`, data);
+    const res = await api.post(`/shared-fields`, data);
 
     return res.data.message;
   } catch (error: any) {

@@ -19,7 +19,7 @@ export const getVisas = async (data: visaSearchData) => {
 
 export const getVisaCountries = async () => {
   try {
-    const res = await api.get(`/global-fields?type=country`);
+    const res = await api.get(`/categories-available?type=country`);
 
     const countries = [
       ...new Set(res.data.data.map((item: any) => item.country)),
@@ -35,7 +35,7 @@ export const getVisaCountries = async () => {
 
 export const getVisaTypes = async () => {
   try {
-    const res = await api.get(`/global-fields?type=visa-type`);
+    const res = await api.get(`/categories-available?type=visa-type`);
 
     const visaTypes = [
       ...new Set(res.data.data.map((item: any) => item.visaType)),

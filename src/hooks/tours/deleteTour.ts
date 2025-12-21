@@ -1,8 +1,8 @@
-import api from "../../axios/axios";
+import api from "../axios/axios";
 
-export const addTerm = async (data: FormData) => {
+export const deleteTour = async (id: string) => {
   try {
-    const res = await api.post(`/shared-fields`, data);
+    const res = await api.delete(`/tours/${id}`);
 
     return res.data.message;
   } catch (error: any) {
