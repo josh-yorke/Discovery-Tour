@@ -56,7 +56,7 @@ const ViewNews = () => {
           <div className="w-full lg:w-7xl flex flex-col p-6 gap-6 bg-gray-100">
             <ImageCard
               url={data.images}
-              style="aspect-3/2 rounded-lg overflow-hidden"
+              style="aspect-3/2 rounded-3xl overflow-hidden"
             />
             <View
               onDelete={() => handleDelete(data._id)}

@@ -20,7 +20,7 @@ const RelatedLinksInput = ({ disabled, error }: RelatedLinksInputProps) => {
           <button
             type="button"
             onClick={() => append("")}
-            className="p-2 rounded-lg bg-white cursor-pointer"
+            className="p-2 rounded-full bg-white cursor-pointer"
           >
             <RiAddLine size={16} />
           </button>
@@ -33,7 +33,7 @@ const RelatedLinksInput = ({ disabled, error }: RelatedLinksInputProps) => {
             <input
               disabled={disabled}
               type="url"
-              className="text-sm font-normal bg-white rounded-lg pl-10 pr-6 py-3 w-full"
+              className="text-sm font-normal bg-white rounded-full pl-10 pr-6 py-3 w-full"
               placeholder="https://example.com"
               {...register(`relatedLinks.${index}`)}
             />
@@ -45,7 +45,7 @@ const RelatedLinksInput = ({ disabled, error }: RelatedLinksInputProps) => {
             <button
               type="button"
               onClick={() => remove(index)}
-              className="p-3 rounded-lg bg-white cursor-pointer"
+              className="p-3 rounded-full bg-white cursor-pointer"
             >
               <RiDeleteBin2Line size={16} />
             </button>

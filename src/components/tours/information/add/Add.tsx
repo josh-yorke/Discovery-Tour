@@ -1,4 +1,3 @@
-// Add.tsx
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useState, useRef } from "react";
@@ -31,8 +30,6 @@ import TermForm from "../../../visa/TermForm";
 import type { DocumentFormHandle } from "../../../visa/DocumentForm";
 import { addDocument } from "../../../../hooks/visa/document/addDocument";
 import DocumentForm from "../../../visa/DocumentForm";
-
-// Import the updated itinerary hook with raw data support
 import {
   addItinerary,
   type AddItineraryPayload,
@@ -81,7 +78,6 @@ const Add = () => {
     mutationFn: addScope,
   });
 
-  // Updated: Use raw data for itinerary instead of FormData
   const itineraryMutation = useMutation<string, Error, AddItineraryPayload>({
     mutationFn: addItinerary,
   });
@@ -155,7 +151,6 @@ const Add = () => {
       Array.isArray(formData.itineraryData) &&
       formData.itineraryData.length > 0
     ) {
-      // Enhanced check for itinerary data
       return formData.itineraryData.some(
         (itinerary: any) =>
           itinerary.title?.trim() ||
@@ -250,7 +245,6 @@ const Add = () => {
 
       if (accommodationFormData && hasFormData(accommodationFormData)) {
         const { accommodationData } = accommodationFormData;
-
         const safeAccommodationData = Array.isArray(accommodationData)
           ? accommodationData
           : [accommodationData];
@@ -293,7 +287,6 @@ const Add = () => {
 
       if (cityFormData && hasFormData(cityFormData)) {
         const { cityData } = cityFormData;
-
         const safeCityData = Array.isArray(cityData) ? cityData : [cityData];
 
         for (let i = 0; i < safeCityData.length; i++) {
@@ -310,7 +303,6 @@ const Add = () => {
 
       if (scopeFormData && hasFormData(scopeFormData)) {
         const { scopeData } = scopeFormData;
-
         const safeScopeData = Array.isArray(scopeData)
           ? scopeData
           : [scopeData];
@@ -336,12 +328,8 @@ const Add = () => {
         }
       }
 
-      // FIXED: Itinerary section with proper type handling
       if (itineraryFormData && hasFormData(itineraryFormData)) {
         const { itineraryData } = itineraryFormData;
-
-        console.log("📝 Processing itinerary data:", itineraryData);
-
         const safeItineraryData = Array.isArray(itineraryData)
           ? itineraryData
           : [itineraryData];
@@ -349,7 +337,6 @@ const Add = () => {
         for (let i = 0; i < safeItineraryData.length; i++) {
           const itineraryItem = safeItineraryData[i];
 
-          // Filter out empty activities and meals
           const filteredActivities = Array.isArray(itineraryItem.activities)
             ? itineraryItem.activities.filter(
                 (activity: any) =>
@@ -365,13 +352,11 @@ const Add = () => {
               )
             : [];
 
-          // CRITICAL FIX: Ensure mealCount is always a string
           const processedMeals = filteredMeals.map((meal: any) => ({
             ...meal,
             mealCount: String(meal.mealCount || ""),
           }));
 
-          // Prepare the raw payload with proper types
           const payload: AddItineraryPayload = {
             type: "tour-itinerary",
             tour: tourId,
@@ -379,10 +364,8 @@ const Add = () => {
             location: itineraryItem.location || "",
             dayOrder: parseInt(itineraryItem.dayOrder) || 0,
             activities: filteredActivities,
-            meals: processedMeals, // Use the processed meals with string mealCount
+            meals: processedMeals,
           };
-
-          console.log("📤 Submitting itinerary payload:", payload);
 
           allSubmissions.push(itineraryMutation.mutateAsync(payload));
         }
@@ -390,7 +373,6 @@ const Add = () => {
 
       if (pricelistFormData && hasFormData(pricelistFormData)) {
         const { pricelistData, pricelistFileData } = pricelistFormData;
-
         const pricelistFileUploadPromises = [];
 
         const safePricelistFileData = Array.isArray(pricelistFileData)
@@ -414,7 +396,6 @@ const Add = () => {
         const pricelistFileUploadIds = await Promise.all(
           pricelistFileUploadPromises
         );
-
         const safePricelistData = Array.isArray(pricelistData)
           ? pricelistData
           : [pricelistData];
@@ -446,7 +427,6 @@ const Add = () => {
 
       if (processFormData && hasFormData(processFormData)) {
         const { processData, processFileData } = processFormData;
-
         const processFileUploadPromises = [];
         const safeProcessFileData = Array.isArray(processFileData)
           ? processFileData
@@ -469,7 +449,6 @@ const Add = () => {
         const processFileUploadIds = await Promise.all(
           processFileUploadPromises
         );
-
         const safeProcessData = Array.isArray(processData)
           ? processData
           : [processData];
@@ -500,7 +479,6 @@ const Add = () => {
 
       if (paymentFormData && hasFormData(paymentFormData)) {
         const { paymentData } = paymentFormData;
-
         const safePaymentData = Array.isArray(paymentData)
           ? paymentData
           : [paymentData];
@@ -535,7 +513,6 @@ const Add = () => {
 
       if (termFormData && hasFormData(termFormData)) {
         const { termData, termFileData } = termFormData;
-
         const termFileUploadPromises = [];
         const safeTermFileData = Array.isArray(termFileData)
           ? termFileData
@@ -556,7 +533,6 @@ const Add = () => {
         }
 
         const termFileUploadIds = await Promise.all(termFileUploadPromises);
-
         const safeTermData = Array.isArray(termData) ? termData : [termData];
 
         for (let i = 0; i < safeTermData.length; i++) {
@@ -580,7 +556,6 @@ const Add = () => {
 
       if (documentFormData && hasFormData(documentFormData)) {
         const { documentData, documentFileData } = documentFormData;
-
         const documentFileUploadPromises = [];
         const safeDocumentFileData = Array.isArray(documentFileData)
           ? documentFileData
@@ -603,7 +578,6 @@ const Add = () => {
         const documentFileUploadIds = await Promise.all(
           documentFileUploadPromises
         );
-
         const safeDocumentData = Array.isArray(documentData)
           ? documentData
           : [documentData];

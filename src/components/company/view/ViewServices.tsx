@@ -59,7 +59,7 @@ const ViewServices = ({ services }: companyServices) => {
       <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {services.map((service) => (
           <div
-            className="w-full flex flex-col items-center justify-center p-12 rounded-lg gap-6 bg-white"
+            className="w-full flex flex-col items-center justify-center p-12 rounded-3xl gap-6 bg-white"
             key={service._id}
           >
             <div className="p-3 rounded-full bg-black/10">
@@ -77,14 +77,14 @@ const ViewServices = ({ services }: companyServices) => {
               <IconButton
                 icon={<RiPencilLine size={16} color="white" />}
                 title="Edit"
-                style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
                 action={() => navigate(`/company/services/edit/${service._id}`)}
               />
 
               <IconButton
                 icon={<RiDeleteBin4Fill size={16} color="white" />}
                 title="Delete"
-                style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
                 action={() => handleDeleteService(service._id)}
               />
             </div>

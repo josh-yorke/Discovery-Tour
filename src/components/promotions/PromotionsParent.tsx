@@ -49,6 +49,7 @@ const PromotionsParent = ({ promotions, isLoading }: ParentProps) => {
               tags={promotion.tags}
               contents={promotion.contents}
               status={promotion.status}
+              savedAt={promotion.savedAt}
               onDelete={() => {
                 handleDelete(promotion._id);
               }}

@@ -1,7 +1,5 @@
-import { RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
+import { RiInformationFill } from "react-icons/ri";
 import type { visaData } from "../../../../types/visa/visaDataTypes";
-import IconButton from "../../../button/IconButton";
-import TitleText from "../../../cards/TitleText";
 import Documents from "../../../../pages/visa/view/sections/Documents";
 import Processes from "../../../../pages/visa/view/sections/Processes";
 import Pricelists from "../../../../pages/visa/view/sections/Pricelists";
@@ -14,71 +12,96 @@ interface ViewProps extends visaData {
 }
 
 const View = ({
-  onDelete,
-  country,
   _id,
   mainDescription,
   eligibleApplicants,
   type,
+  country,
 }: ViewProps) => {
   return (
     <>
       <div className="w-full flex flex-col gap-12 ">
-        <div className="w-full flex flex-col items-start justify-center gap-2">
-          <TitleText style="" title={country} />
-
-          <div className="w-full flex flex-row gap-2">
-            <IconButton
-              style="px-3 py-2 rounded-sm bg-gray-200"
-              action={() => {
-                window.open(`/visas/visa/edit/${_id}`, "_blank");
-              }}
-              title="Edit"
-              icon={<RiPencilFill size={16} />}
-            />
-            <IconButton
-              style="px-3 py-2 rounded-sm bg-gray-200"
-              action={() => onDelete(_id)}
-              title="Delete"
-              icon={<RiDeleteBin4Fill size={16} />}
-            />
-          </div>
-        </div>
-        <div
-          className="w-full bg-white p-6 rounded-lg flex flex-col items-center gap-4"
-          id="information"
-        >
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col items-start">
-              <p className="text-xl font-semibold text-black uppercase">
-                {country}
+        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+          <div className="w-full flex items-center gap-3">
+            <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+              <RiInformationFill size={20} className="text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-base md:text-lg font-semibold text-black uppercase">
+                Country Information
               </p>
             </div>
           </div>
 
           <div className="w-full border-b border-black/6" />
 
-          <div className="w-full flex flex-col gap-2">
-            <p className="text-base font-semibold text-[#1d2087]">Visa Type</p>
-            <p className="text-sm font-normal">{type}</p>
+          <div className="w-full flex items-center justify-center gap-6">
+            <div className="flex flex-col items-start">
+              <p className="text-xl font-semibold text-black uppercase">
+                {country}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+          <div className="w-full flex items-center gap-3">
+            <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+              <RiInformationFill size={20} className="text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-base md:text-lg font-semibold text-black uppercase">
+                Visa Type
+              </p>
+            </div>
           </div>
 
           <div className="w-full border-b border-black/6" />
 
-          <div className="w-full flex flex-col gap-2">
-            <p className="text-base font-semibold text-[#1d2087]">
-              Visa Description
-            </p>
-            <p className="text-sm font-normal">{mainDescription}</p>
+          <div className="w-full">
+            <p className="text-sm font-normal text-gray-800">{type}</p>
+          </div>
+        </div>
+
+        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+          <div className="w-full flex items-center gap-3">
+            <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+              <RiInformationFill size={20} className="text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-base md:text-lg font-semibold text-black uppercase">
+                Visa Description
+              </p>
+            </div>
           </div>
 
           <div className="w-full border-b border-black/6" />
 
-          <div className="w-full flex flex-col gap-2">
-            <p className="text-base font-semibold text-[#1d2087]">
-              Eligible Applicants
+          <div className="w-full">
+            <p className="text-sm font-normal text-gray-800">
+              {mainDescription}
             </p>
-            <p className="text-sm font-normal">{eligibleApplicants}</p>
+          </div>
+        </div>
+
+        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+          <div className="w-full flex items-center gap-3">
+            <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+              <RiInformationFill size={20} className="text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-base md:text-lg font-semibold text-black uppercase">
+                Eligible Applicants
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full border-b border-black/6" />
+
+          <div className="w-full">
+            <p className="text-sm font-normal text-gray-800">
+              {eligibleApplicants}
+            </p>
           </div>
         </div>
 

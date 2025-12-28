@@ -25,7 +25,7 @@ const PromotionsSearch = ({ search, status, action }: FormProps) => {
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
         <SearchInput placeholder="search for promotions" {...search} />
-        <button className="p-3.5 rounded-lg bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer">
+        <button className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer">
           <RiSearchLine size={14} color="white" />
         </button>
       </div>
@@ -35,7 +35,7 @@ const PromotionsSearch = ({ search, status, action }: FormProps) => {
           icon={<RiAddLine size={16} />}
           title="New"
           action={() => navigate("/promotions/add")}
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-lg"
+          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>
     </form>

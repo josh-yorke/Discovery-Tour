@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import LinkText from "../nav/LinkText";
 import StatusText from "./StatusText";
 import type { blogData } from "../../types/blogs/blogDataTypes";
+import MutedTag from "../button/MutedTag";
 
 interface CardProps extends blogData {
   _id: string;
@@ -23,15 +24,14 @@ const BlogCard = ({
   images,
   status,
   onDelete,
+  tags,
   readingTimeUnit,
   readingTimeValue,
 }: CardProps) => {
   const navigate = useNavigate();
-
   return (
-    <div className="w-full flex flex-col bg-white rounded-lg overflow-hidden shadow-xl shadow-black/10">
-      {/* Image container with fixed aspect ratio */}
-      <div className="relative w-full aspect-[3/2]">
+    <div className="w-full flex flex-col items-center justify-start bg-white rounded-3xl p-2 gap-2 overflow-hidden shadow-xl shadow-black/10">
+      <div className="relative w-full aspect-3/2 rounded-2xl overflow-hidden">
         <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
           <IconButton
             action={() => navigate(`/blogs/edit/${_id}`)}
@@ -46,21 +46,32 @@ const BlogCard = ({
             style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
           />
         </div>
-        <ImageCard style="w-full h-full" url={images} />
-        <div className="absolute left-4 bottom-4 z-10 rounded-md bg-black/30 backdrop-blur-sm text-white text-xs px-4 py-2">
-          <p>{`${readingTimeValue} ${readingTimeUnit}`}</p>
+        <div className="absolute top-4 left-4 z-10">
+          <div className="flex px-4 py-2 rounded-lg items-center justify-start text-white bg-black/30">
+            <p className="text-xs font-normal whitespace-nowrap">
+              {`${readingTimeValue} ${readingTimeUnit}`}
+            </p>
+          </div>
         </div>
+        <ImageCard style="w-full h-full object-cover" url={images} />
       </div>
-
-      {/* Content container that grows independently */}
-      <div className="flex flex-col flex-1 p-6 gap-2">
-        <LinkText
-          title={title}
-          style="font-semibold"
-          url={`/blogs/view/${_id}`}
-        />
+      <div className="w-full flex flex-col items-start justify-center p-2 gap-2 flex-1">
         <StatusText status={status} style="" textStyle="font-semibold" />
-        <p className="text-xs font-normal line-clamp-2 flex-1">{`${contents}`}</p>
+        <div className="w-fill flex flex-col items-start justify-center gap-1 flex-1">
+          <LinkText
+            title={title}
+            url={`/blogs/view/${_id}`}
+            style="font-bold text-[#1d2087] hover:text-[#393ca3]"
+          />
+          <p className="text-xs font-normal line-clamp-2">{`${contents}`}</p>
+        </div>
+        <div className="w-full border-t border-black/6 border-0 my-2" />
+
+        <div className="w-full flex flex-row items-center justify-start gap-2">
+          {tags.map((tag: string, id) => (
+            <MutedTag color="text-[#1d2087]" key={id} tag={tag} />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ const UserCard = ({
 
   return (
     <div
-      className="w-full flex flex-col items-center justify-center p-6 rounded-lg bg-white"
+      className="w-full flex flex-col items-center justify-center p-6 rounded-3xl bg-white"
       key={id}
     >
       <div className="w-full flex flex-col items-start justify-center gap-2">
@@ -35,10 +35,10 @@ const UserCard = ({
           <p>{email}</p>
         </div>
         <div className="w-full flex flex-row gap-2">
-          <p className="text-xs font-normal px-3 py-2 bg-[#1d2087] text-white rounded-sm uppercase">
+          <p className="text-xs font-normal px-3 py-2 bg-[#1d2087] text-white rounded-xl uppercase">
             {role}
           </p>
-          <p className="text-xs font-normal px-3 py-2 bg-[#1d2087] text-white rounded-sm uppercase">
+          <p className="text-xs font-normal px-3 py-2 bg-[#1d2087] text-white rounded-xl uppercase">
             {status}
           </p>
         </div>
@@ -47,13 +47,13 @@ const UserCard = ({
             icon={<RiPencilLine size={16} />}
             title="Edit"
             action={() => navigate(`/users/edit/${id}`)}
-            style="bg-gray-200 text-black p-3 rounded-md"
+            style="bg-gray-200 text-black p-3 rounded-xl"
           />
           <IconButton
             icon={<RiDeleteBin4Line size={16} />}
             title="Delete"
             action={onDelete}
-            style="bg-gray-200 text-black p-3 rounded-md"
+            style="bg-gray-200 text-black p-3 rounded-xl"
           />
         </div>
       </div>

@@ -39,7 +39,6 @@ import { deleteDocument } from "../../../../hooks/visa/document/deleteDocument";
 import { deletePayment } from "../../../../hooks/visa/payment/deletePayment";
 import Modal from "../../../modal/Modal";
 
-// Types
 export type FormType =
   | "pricelist"
   | "process"
@@ -81,7 +80,6 @@ interface ErrorState {
   action?: "addOrUpdate" | "delete";
 }
 
-// Constants
 const FORM_TYPES: FormType[] = [
   "pricelist",
   "process",
@@ -90,7 +88,6 @@ const FORM_TYPES: FormType[] = [
   "document",
 ];
 
-// Custom hook for data fetching
 const useEditData = (id: string | undefined) => {
   const [editData, setEditData] = useState<EditData>({});
   const [fileData, setFileData] = useState<FileData>({});
@@ -138,19 +135,15 @@ const useEditData = (id: string | undefined) => {
         const pricelistArray = Array.isArray(pricelistData)
           ? pricelistData
           : [pricelistData].filter(Boolean);
-
         const processArray = Array.isArray(processData)
           ? processData
           : [processData].filter(Boolean);
-
         const termArray = Array.isArray(termData)
           ? termData
           : [termData].filter(Boolean);
-
         const documentArray = Array.isArray(documentData)
           ? documentData
           : [documentData].filter(Boolean);
-
         const paymentArray = Array.isArray(paymentData)
           ? paymentData
           : [paymentData].filter(Boolean);
@@ -163,7 +156,6 @@ const useEditData = (id: string | undefined) => {
           document: documentArray,
         });
 
-        // Handle file IDs for pricelist
         const pricelistFileIdsArray = pricelistArray.map((pricelist) =>
           pricelist?.filesAssociated
             ? Array.isArray(pricelist.filesAssociated)
@@ -171,10 +163,8 @@ const useEditData = (id: string | undefined) => {
               : [pricelist.filesAssociated]
             : []
         );
-
         setPricelistFileIds(pricelistFileIdsArray);
 
-        // Handle file IDs for process
         const processFileIdsArray = processArray.map((processItem) =>
           processItem?.filesAssociated
             ? Array.isArray(processItem.filesAssociated)
@@ -182,10 +172,8 @@ const useEditData = (id: string | undefined) => {
               : [processItem.filesAssociated]
             : []
         );
-
         setProcessFileIds(processFileIdsArray);
 
-        // Handle file IDs for term
         const termFileIdsArray = termArray.map((termItem) =>
           termItem?.filesAssociated
             ? Array.isArray(termItem.filesAssociated)
@@ -193,10 +181,8 @@ const useEditData = (id: string | undefined) => {
               : [termItem.filesAssociated]
             : []
         );
-
         setTermFileIds(termFileIdsArray);
 
-        // Handle file IDs for document
         const documentFileIdsArray = documentArray.map((documentItem) =>
           documentItem?.filesAssociated
             ? Array.isArray(documentItem.filesAssociated)
@@ -204,13 +190,10 @@ const useEditData = (id: string | undefined) => {
               : [documentItem.filesAssociated]
             : []
         );
-
         setDocumentFileIds(documentFileIdsArray);
 
-        // Fetch file data
         const fileFetchPromises: Promise<FileFetchResult>[] = [];
 
-        // Pricelist files
         pricelistArray.forEach((pricelist, index) => {
           if (pricelist?.filesAssociated) {
             const fileId = Array.isArray(pricelist.filesAssociated)
@@ -226,7 +209,6 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
-        // Process files
         processArray.forEach((processItem, index) => {
           if (processItem?.filesAssociated) {
             const fileId = Array.isArray(processItem.filesAssociated)
@@ -242,7 +224,6 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
-        // Term files
         termArray.forEach((termItem, index) => {
           if (termItem?.filesAssociated) {
             const fileId = Array.isArray(termItem.filesAssociated)
@@ -258,7 +239,6 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
-        // Document files
         documentArray.forEach((documentItem, index) => {
           if (documentItem?.filesAssociated) {
             const fileId = Array.isArray(documentItem.filesAssociated)
@@ -301,7 +281,6 @@ const useEditData = (id: string | undefined) => {
         setFileData(organizedFileData);
       } catch (error: any) {
         console.error("Error fetching edit data:", error);
-        // We'll handle this error in the component level
         throw error;
       } finally {
         setIsLoadingData(false);
@@ -328,7 +307,6 @@ const useEditData = (id: string | undefined) => {
   };
 };
 
-// Custom hook for mutations
 const useFormMutations = () => {
   const queryClient = useQueryClient();
 
@@ -363,7 +341,6 @@ const useFormMutations = () => {
     document: useMutation({ mutationFn: addDocument }),
   };
 
-  // Delete mutations
   const deletePricelistMutation = useMutation({
     mutationFn: deletePricelist,
     onSuccess: () => {
@@ -435,7 +412,6 @@ const useFormMutations = () => {
   };
 };
 
-// Fix the mutation parameter type issue
 interface UpdateMutationParams {
   id: string;
   data: FormData;
@@ -502,24 +478,20 @@ const Edit = () => {
     setMessage(message);
   }, []);
 
-  // File handling
   const handleFile = useCallback(
     async (
       fileData: FileList | undefined,
       fileTitle: string | undefined,
       existingFileId?: string
     ): Promise<string> => {
-      // If no file data and no existing file ID, return empty string
       if ((!fileData || fileData.length === 0) && !existingFileId) {
         return "";
       }
 
-      // If no file data but we have existing file ID, return the existing ID
       if ((!fileData || fileData.length === 0) && existingFileId) {
         return existingFileId;
       }
 
-      // If we have file data, proceed with upload/update
       const formData = new FormData();
       formData.append("type", "file");
 
@@ -527,7 +499,6 @@ const Edit = () => {
         fileTitle?.trim() || (existingFileId ? "Updated File" : "New File");
       formData.append("fileTitle", finalFileTitle);
 
-      // FIX: Convert FileList to array properly
       const filesArray = Array.from(fileData!);
       filesArray.forEach((file: File) => {
         formData.append("file", file);
@@ -564,7 +535,6 @@ const Edit = () => {
     [fileMutation, fileAddMutation, showMessage]
   );
 
-  // Function to handle pricelist deletion
   const handleDeletePricelist = useCallback(
     async (pricelistId: string, index: number) => {
       if (
@@ -578,15 +548,11 @@ const Edit = () => {
         setDeletingPricelistId(pricelistId);
         await deletePricelistMutation.mutateAsync(pricelistId);
 
-        // Remove the field from the form immediately using the exposed method
-        if (pricelistFormRef.current) {
-          const formHandle = pricelistFormRef.current as any;
-          if (formHandle.removePricelistField) {
-            formHandle.removePricelistField(index);
-          }
+        const formHandle = pricelistFormRef.current as any;
+        if (formHandle.removePricelistField) {
+          formHandle.removePricelistField(index);
         }
 
-        // Update local state after successful deletion
         setEditData((prev) => ({
           ...prev,
           pricelist: prev.pricelist?.filter((_, i) => i !== index) || [],
@@ -624,7 +590,6 @@ const Edit = () => {
     ]
   );
 
-  // Function to handle process deletion
   const handleDeleteProcess = useCallback(
     async (processId: string, index: number) => {
       if (
@@ -638,15 +603,11 @@ const Edit = () => {
         setDeletingProcessId(processId);
         await deleteProcessMutation.mutateAsync(processId);
 
-        // Remove the field from the form immediately using the exposed method
-        if (processFormRef.current) {
-          const formHandle = processFormRef.current as any;
-          if (formHandle.removeProcessField) {
-            formHandle.removeProcessField(index);
-          }
+        const formHandle = processFormRef.current as any;
+        if (formHandle.removeProcessField) {
+          formHandle.removeProcessField(index);
         }
 
-        // Update local state after successful deletion
         setEditData((prev) => ({
           ...prev,
           process: prev.process?.filter((_, i) => i !== index) || [],
@@ -684,7 +645,6 @@ const Edit = () => {
     ]
   );
 
-  // Function to handle term deletion
   const handleDeleteTerm = useCallback(
     async (termId: string, index: number) => {
       if (
@@ -698,15 +658,11 @@ const Edit = () => {
         setDeletingTermId(termId);
         await deleteTermMutation.mutateAsync(termId);
 
-        // Remove the field from the form immediately using the exposed method
-        if (termFormRef.current) {
-          const formHandle = termFormRef.current as any;
-          if (formHandle.removeTermField) {
-            formHandle.removeTermField(index);
-          }
+        const formHandle = termFormRef.current as any;
+        if (formHandle.removeTermField) {
+          formHandle.removeTermField(index);
         }
 
-        // Update local state after successful deletion
         setEditData((prev) => ({
           ...prev,
           term: prev.term?.filter((_, i) => i !== index) || [],
@@ -738,7 +694,6 @@ const Edit = () => {
     [deleteTermMutation, setEditData, setFileData, setTermFileIds, showMessage]
   );
 
-  // Function to handle document deletion
   const handleDeleteDocument = useCallback(
     async (documentId: string, index: number) => {
       if (
@@ -752,15 +707,11 @@ const Edit = () => {
         setDeletingDocumentId(documentId);
         await deleteDocumentMutation.mutateAsync(documentId);
 
-        // Remove the field from the form immediately using the exposed method
-        if (documentFormRef.current) {
-          const formHandle = documentFormRef.current as any;
-          if (formHandle.removeDocumentField) {
-            formHandle.removeDocumentField(index);
-          }
+        const formHandle = documentFormRef.current as any;
+        if (formHandle.removeDocumentField) {
+          formHandle.removeDocumentField(index);
         }
 
-        // Update local state after successful deletion
         setEditData((prev) => ({
           ...prev,
           document: prev.document?.filter((_, i) => i !== index) || [],
@@ -798,7 +749,6 @@ const Edit = () => {
     ]
   );
 
-  // Function to handle payment deletion
   const handleDeletePayment = useCallback(
     async (paymentId: string, index: number) => {
       if (
@@ -812,15 +762,11 @@ const Edit = () => {
         setDeletingPaymentId(paymentId);
         await deletePaymentMutation.mutateAsync(paymentId);
 
-        // Remove the field from the form immediately using the exposed method
-        if (paymentFormRef.current) {
-          const formHandle = paymentFormRef.current as any;
-          if (formHandle.removePaymentField) {
-            formHandle.removePaymentField(index);
-          }
+        const formHandle = paymentFormRef.current as any;
+        if (formHandle.removePaymentField) {
+          formHandle.removePaymentField(index);
         }
 
-        // Update local state after successful deletion
         setEditData((prev) => ({
           ...prev,
           payment: prev.payment?.filter((_, i) => i !== index) || [],
@@ -845,7 +791,6 @@ const Edit = () => {
     [deletePaymentMutation, setEditData, showMessage]
   );
 
-  // UPDATED: Fixed handleDeleteFile function
   const handleDeleteFile = useCallback(
     async (fileId: string, fileType: FormType, index?: number) => {
       if (
@@ -861,7 +806,6 @@ const Edit = () => {
         setDeletingFileId(fileId);
         await fileDeleteMutation.mutateAsync(fileId);
 
-        // Update local state - remove file from filesAssociated
         const updateState = {
           pricelist: () => {
             if (index !== undefined) {
@@ -1043,7 +987,6 @@ const Edit = () => {
     ]
   );
 
-  // Form submission
   const getMutationFunction = useCallback(
     (type: string, hasExistingData: boolean) => {
       const typeMapping: Record<string, keyof typeof updateMutations> = {
@@ -1070,7 +1013,6 @@ const Edit = () => {
     [updateMutations, addMutations]
   );
 
-  // FIXED: Form submission with proper validation to prevent saving files without form data
   const handleFinalSubmit = useCallback(async () => {
     if (!id) {
       showMessage({
@@ -1084,7 +1026,6 @@ const Edit = () => {
     setIsSubmitting(true);
 
     try {
-      // Get form data from all forms
       const [
         pricelistFormData,
         processFormData,
@@ -1099,7 +1040,6 @@ const Edit = () => {
         documentFormRef.current?.getFormData(),
       ]);
 
-      // Helper function to check if form data has content
       const hasFormData = (formData: any, type: string): boolean => {
         if (!formData) return false;
 
@@ -1119,7 +1059,6 @@ const Edit = () => {
         );
       };
 
-      // Check if ALL forms are empty
       const formChecks = [
         { data: pricelistFormData, type: "pricelist" },
         { data: processFormData, type: "process" },
@@ -1142,14 +1081,11 @@ const Edit = () => {
         return;
       }
 
-      // Prepare submissions for each form type only if they have data
       const submissions: FormSubmission[] = [];
 
-      // Handle pricelist submissions if data exists
       if (hasFormData(pricelistFormData, "pricelist")) {
         const { pricelistData, pricelistFileData } = pricelistFormData!;
 
-        // FIX: Only process files if there's corresponding form data
         let safePricelistFileData: any[] = [];
         if (Array.isArray(pricelistFileData)) {
           safePricelistFileData = pricelistFileData;
@@ -1157,7 +1093,6 @@ const Edit = () => {
           safePricelistFileData = [pricelistFileData];
         }
 
-        // FIX: Ensure we only process files for existing form data entries
         const pricelistArray = Array.isArray(pricelistData)
           ? pricelistData
           : [pricelistData];
@@ -1166,7 +1101,6 @@ const Edit = () => {
           const fileData = safePricelistFileData[index];
           const existingFileId = pricelistFileIds[index]?.[0] || "";
 
-          // Only process file if there's actual file data AND form data exists for this index
           if (fileData?.file && fileData.file.length > 0) {
             return handleFile(
               fileData.file,
@@ -1185,7 +1119,6 @@ const Edit = () => {
           : [editData.pricelist].filter(Boolean);
 
         pricelistArray.forEach((data, index) => {
-          // FIX: Only create submission if we have valid form data
           if (data && (data.plan || data.fee || data.description)) {
             submissions.push({
               type: "price",
@@ -1197,7 +1130,6 @@ const Edit = () => {
         });
       }
 
-      // Handle process submissions if data exists
       if (hasFormData(processFormData, "process")) {
         const { processData, processFileData } = processFormData!;
 
@@ -1245,7 +1177,6 @@ const Edit = () => {
         });
       }
 
-      // Handle payment submissions if data exists
       if (hasFormData(paymentFormData, "payment")) {
         const { paymentData } = paymentFormData!;
 
@@ -1264,14 +1195,13 @@ const Edit = () => {
             submissions.push({
               type: "payment",
               data,
-              fileId: "", // Payment doesn't have files
+              fileId: "",
               existingData: editPaymentArray[index],
             });
           }
         });
       }
 
-      // Handle term submissions if data exists
       if (hasFormData(termFormData, "term")) {
         const { termData, termFileData } = termFormData!;
 
@@ -1317,7 +1247,6 @@ const Edit = () => {
         });
       }
 
-      // Handle document submissions if data exists
       if (hasFormData(documentFormData, "document")) {
         const { documentData, documentFileData } = documentFormData!;
 
@@ -1365,7 +1294,6 @@ const Edit = () => {
         });
       }
 
-      // Execute mutations only for forms that have data
       const mutationPromises = submissions.map(
         ({ type, data, fileId, existingData }) => {
           const hasExistingData = !!existingData?._id;
@@ -1375,7 +1303,6 @@ const Edit = () => {
           formData.append("type", type);
           formData.append("visa", id);
 
-          // FIX: Only add file association if we have a valid file ID
           if (fileId && fileId.trim() && fileId !== "undefined") {
             formData.append("filesAssociated", fileId);
           }
@@ -1514,14 +1441,44 @@ const Edit = () => {
   };
 
   return (
-    <div className="w-full min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+    <>
+      <div className="w-full min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+        <FormTabs formType={formType} setFormType={setFormType} />
+
+        {FORM_TYPES.map((type) => (
+          <div
+            key={type}
+            className={`w-full lg:w-2xl ${
+              formType === type ? "block" : "hidden"
+            }`}
+          >
+            {type === "pricelist" && (
+              <EditPricelistForm {...formProps.pricelist} />
+            )}
+            {type === "process" && <EditProcessForm {...formProps.process} />}
+            {type === "payment" && <EditPaymentForm {...formProps.payment} />}
+            {type === "term" && <EditTermForm {...formProps.term} />}
+            {type === "document" && (
+              <EditDocumentForm {...formProps.document} />
+            )}
+          </div>
+        ))}
+
+        <div className="w-full lg:w-2xl">
+          <ActionButton
+            action={handleFinalSubmit}
+            isLoading={isLoading}
+            title="Save Visa Information"
+            style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
+          />
+        </div>
+      </div>
       {message && (
         <Modal
           message={message.message}
           success={message.type === "success"}
           action={() => {
             showMessage(null);
-            // Only navigate for successful add/update operations, not for delete operations
             if (
               message.type === "success" &&
               message.action === "addOrUpdate"
@@ -1531,35 +1488,7 @@ const Edit = () => {
           }}
         />
       )}
-
-      <FormTabs formType={formType} setFormType={setFormType} />
-
-      {FORM_TYPES.map((type) => (
-        <div
-          key={type}
-          className={`w-full lg:w-2xl ${
-            formType === type ? "block" : "hidden"
-          }`}
-        >
-          {type === "pricelist" && (
-            <EditPricelistForm {...formProps.pricelist} />
-          )}
-          {type === "process" && <EditProcessForm {...formProps.process} />}
-          {type === "payment" && <EditPaymentForm {...formProps.payment} />}
-          {type === "term" && <EditTermForm {...formProps.term} />}
-          {type === "document" && <EditDocumentForm {...formProps.document} />}
-        </div>
-      ))}
-
-      <div className="w-full lg:w-2xl">
-        <ActionButton
-          action={handleFinalSubmit}
-          isLoading={isLoading}
-          title="Save Visa Information"
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
-        />
-      </div>
-    </div>
+    </>
   );
 };
 

@@ -10,9 +10,10 @@ import {
   RiNumber7,
   RiNumber8,
   RiNumber9,
+  RiMoneyCnyCircleFill,
 } from "react-icons/ri";
-import SectionError from "../../../../components/error/SectionError";
 import SectionLoader from "../../../../components/loader/SectionLoader";
+import SectionError from "../../../../components/error/SectionError";
 import { getVisaPayments } from "../../../../hooks/visa/visa/getVisa";
 
 interface PaymentData {
@@ -75,16 +76,21 @@ const Payments = ({ visaId }: PaymentsProps) => {
 
   return (
     <div
-      className="w-full bg-white p-4 sm:p-6 rounded-lg flex flex-col items-center gap-4"
+      className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4"
       id="payment"
     >
-      <div className="w-full flex flex-col gap-2">
-        <p className="text-lg sm:text-base font-semibold text-black uppercase">
-          Payment Information
-        </p>
-        <p className="text-sm font-normal text-gray-600">
-          Bank account details for visa payment
-        </p>
+      <div className="w-full flex items-start gap-3">
+        <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+          <RiMoneyCnyCircleFill size={20} className="text-white" />{" "}
+        </div>
+        <div className="flex flex-col">
+          <p className="text-base md:text-lg font-semibold text-black uppercase">
+            Payment Information
+          </p>
+          <p className="text-xs font-normal text-gray-600">
+            Bank account details for visa payment
+          </p>
+        </div>
       </div>
 
       <div className="w-full border-b border-black/6" />
@@ -108,7 +114,7 @@ const Payments = ({ visaId }: PaymentsProps) => {
                     <p className="text-base font-semibold text-[#1d2087]">
                       {payment.type}
                     </p>
-                    <span className="text-xs font-semibold text-gray-500 px-2 py-1 bg-gray-100 rounded">
+                    <span className="text-xs font-semibold text-gray-500 px-2 py-1 bg-gray-100 rounded-2xl">
                       {payment.currency}
                     </span>
                   </div>

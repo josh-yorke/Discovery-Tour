@@ -100,7 +100,7 @@ const CustomImageInput = ({
         multiple
         accept="image/*"
         onChange={handleImageChange}
-        className="text-sm font-normal px-6 py-3 bg-white rounded-lg"
+        className="text-sm font-normal px-6 py-3 bg-white rounded-full"
         disabled={disabled}
       />
 
@@ -110,7 +110,7 @@ const CustomImageInput = ({
             <img
               src={url}
               alt={`preview-${index}`}
-              className="w-50 h-50 object-cover object-center rounded-2xl"
+              className="w-50 h-50 object-cover object-center rounded-3xl"
             />
             {!disabled && (
               <button

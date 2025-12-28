@@ -16,7 +16,7 @@ const TextArea = ({
     <div className="w-full flex flex-col items-start justify-center gap-2">
       <p className="text-sm font-semibold">{title}</p>
       <textarea
-        className="p-2 rounded-2xl outline-none w-full px-6 py-3 text-sm font-normal bg-white"
+        className="p-2 rounded-3xl outline-none w-full px-6 py-3 text-sm font-normal bg-white"
         placeholder={placeholder}
         disabled={disabled}
         rows={16}

@@ -1,5 +1,4 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
-
 import {
   RiCheckboxCircleFill,
   RiNumber1,
@@ -11,14 +10,15 @@ import {
   RiNumber7,
   RiNumber8,
   RiNumber9,
+  RiShoppingBasketFill,
 } from "react-icons/ri";
-import SectionError from "../../../../components/error/SectionError";
-import SectionLoader from "../../../../components/loader/SectionLoader";
+import api from "../../../../hooks/axios/axios";
 import {
   getVisaFile,
   getVisaPricelists,
 } from "../../../../hooks/visa/visa/getVisa";
-import api from "../../../../hooks/axios/axios";
+import SectionLoader from "../../../../components/loader/SectionLoader";
+import SectionError from "../../../../components/error/SectionError";
 
 interface FileData {
   _id: string;
@@ -157,16 +157,21 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
 
   return (
     <div
-      className="w-full bg-white p-4 sm:p-6 rounded-lg flex flex-col items-center gap-4"
+      className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4"
       id="pricelist"
     >
-      <div className="w-full flex flex-col gap-2">
-        <p className="text-lg sm:text-base font-semibold text-black uppercase">
-          Price List
-        </p>
-        <p className="text-sm font-normal text-gray-600">
-          Available plans and pricing for visa application
-        </p>
+      <div className="w-full flex items-start gap-3">
+        <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+          <RiShoppingBasketFill size={20} className="text-white" />{" "}
+        </div>
+        <div className="flex flex-col">
+          <p className="text-base md:text-lg font-semibold text-black uppercase">
+            Price List
+          </p>
+          <p className="text-xs font-normal text-gray-600">
+            Available plans and pricing for visa application
+          </p>
+        </div>
       </div>
 
       <div className="w-full border-b border-black/6" />
@@ -212,7 +217,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                 {pricelist.filesAssociated.length > 0 && (
                   <div className="space-y-3 sm:space-y-4 ml-11 sm:ml-14">
                     {isErrorFiles && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-2xl">
                         <p className="text-red-600 text-xs sm:text-sm">
                           Failed to load some files
                         </p>
@@ -232,7 +237,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                         {pricelist.filesAssociated.map((fileId) => (
                           <div
                             key={fileId}
-                            className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg animate-pulse"
+                            className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-2xl animate-pulse"
                           >
                             <div className="h-6 w-6 sm:h-8 sm:w-8 bg-gray-300 rounded"></div>
                             <div className="flex-1">
@@ -259,7 +264,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                           return (
                             <div
                               key={file._id}
-                              className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 sm:p-3 rounded-lg ${
+                              className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 sm:p-3 rounded-2xl ${
                                 isFileError
                                   ? "bg-red-50 border border-red-200"
                                   : "bg-gray-50"
@@ -281,10 +286,10 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                                     )}
                                   </div>
                                   <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
-                                    <span className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded">
+                                    <span className="text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full">
                                       {getFileType(file.file)}
                                     </span>
-                                    <span className="text-xs text-gray-500 truncate max-w-[150px] sm:max-w-xs">
+                                    <span className="text-xs text-gray-500 truncate max-w-37.5 sm:max-w-xs">
                                       {file.file}
                                     </span>
                                   </div>
@@ -297,7 +302,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                                     href={fileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#1d2087] text-white rounded-md hover:bg-[#393ca3] transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#1d2087] text-white rounded-full hover:bg-[#393ca3] transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
                                   >
                                     Download
                                   </a>
@@ -305,7 +310,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                                 {isFileError && (
                                   <button
                                     onClick={() => fileQuery?.refetch()}
-                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs sm:text-sm font-medium"
+                                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors text-xs sm:text-sm font-medium"
                                   >
                                     Retry
                                   </button>

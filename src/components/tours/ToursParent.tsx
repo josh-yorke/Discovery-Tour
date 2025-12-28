@@ -49,7 +49,7 @@ const ToursParent = ({ tours, isLoading }: ParentProps) => {
               images={tour.images}
               tags={tour.tags}
               category={tour.category}
-              type={tour.type}
+              type={tour.typeV2}
             />
           ))}
         </div>

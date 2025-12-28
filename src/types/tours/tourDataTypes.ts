@@ -3,7 +3,7 @@ import z from "zod";
 const tourDataSchema = z.object({
   _id: z.string(),
   country: z.string(),
-  type: z.object({
+  typeV2: z.object({
     _id: z.string(),
     tourType: z.string(),
     savedAt: z.string(),

@@ -136,7 +136,6 @@ const FORM_TYPES: FormType[] = [
   "document",
 ];
 
-// Map form types to backend types
 const getBackendType = (type: FormType): string => {
   const typeMap: Record<FormType, string> = {
     accommodation: "tour-accommodation",
@@ -207,35 +206,27 @@ const useEditData = (tourId: string | undefined) => {
         const accommodationArray = Array.isArray(accommodationData)
           ? accommodationData
           : [accommodationData].filter(Boolean);
-
         const cityArray = Array.isArray(cityData)
           ? cityData
           : [cityData].filter(Boolean);
-
         const scopeArray = Array.isArray(scopeData)
           ? scopeData
           : [scopeData].filter(Boolean);
-
         const itineraryArray = Array.isArray(itineraryData)
           ? itineraryData
           : [itineraryData].filter(Boolean);
-
         const pricelistArray = Array.isArray(pricelistData)
           ? pricelistData
           : [pricelistData].filter(Boolean);
-
         const processArray = Array.isArray(processData)
           ? processData
           : [processData].filter(Boolean);
-
         const paymentArray = Array.isArray(paymentData)
           ? paymentData
           : [paymentData].filter(Boolean);
-
         const termArray = Array.isArray(termData)
           ? termData
           : [termData].filter(Boolean);
-
         const documentArray = Array.isArray(documentData)
           ? documentData
           : [documentData].filter(Boolean);
@@ -259,7 +250,6 @@ const useEditData = (tourId: string | undefined) => {
               : [pricelist.filesAssociated]
             : []
         );
-
         setPricelistFileIds(pricelistFileIdsArray);
 
         const processFileIdsArray = processArray.map((processItem) =>
@@ -269,7 +259,6 @@ const useEditData = (tourId: string | undefined) => {
               : [processItem.filesAssociated]
             : []
         );
-
         setProcessFileIds(processFileIdsArray);
 
         const termFileIdsArray = termArray.map((termItem) =>
@@ -279,7 +268,6 @@ const useEditData = (tourId: string | undefined) => {
               : [termItem.filesAssociated]
             : []
         );
-
         setTermFileIds(termFileIdsArray);
 
         const documentFileIdsArray = documentArray.map((documentItem) =>
@@ -289,7 +277,6 @@ const useEditData = (tourId: string | undefined) => {
               : [documentItem.filesAssociated]
             : []
         );
-
         setDocumentFileIds(documentFileIdsArray);
 
         const fileFetchPromises: Promise<FileFetchResult>[] = [];
@@ -737,11 +724,9 @@ const Edit = () => {
         setDeletingAccommodationId(accommodationId);
         await deleteAccommodationMutation.mutateAsync(accommodationId);
 
-        if (accommodationFormRef.current) {
-          const formHandle = accommodationFormRef.current as any;
-          if (formHandle.removeAccommodationField) {
-            formHandle.removeAccommodationField(index);
-          }
+        const formHandle = accommodationFormRef.current as any;
+        if (formHandle.removeAccommodationField) {
+          formHandle.removeAccommodationField(index);
         }
 
         setEditData((prev) => ({
@@ -782,11 +767,9 @@ const Edit = () => {
         setDeletingCityId(cityId);
         await deleteCityMutation.mutateAsync(cityId);
 
-        if (cityFormRef.current) {
-          const formHandle = cityFormRef.current as any;
-          if (formHandle.removeCityField) {
-            formHandle.removeCityField(index);
-          }
+        const formHandle = cityFormRef.current as any;
+        if (formHandle.removeCityField) {
+          formHandle.removeCityField(index);
         }
 
         setEditData((prev) => ({
@@ -826,11 +809,9 @@ const Edit = () => {
         setDeletingScopeId(scopeId);
         await deleteScopeMutation.mutateAsync(scopeId);
 
-        if (scopeFormRef.current) {
-          const formHandle = scopeFormRef.current as any;
-          if (formHandle.removeScopeField) {
-            formHandle.removeScopeField(index);
-          }
+        const formHandle = scopeFormRef.current as any;
+        if (formHandle.removeScopeField) {
+          formHandle.removeScopeField(index);
         }
 
         setEditData((prev) => ({
@@ -859,11 +840,6 @@ const Edit = () => {
 
   const handleDeleteItinerary = useCallback(
     async (itineraryId: string, index: number) => {
-      console.log("=== DELETE ITINERARY DEBUG ===");
-      console.log("Itinerary ID:", itineraryId);
-      console.log("Index:", index);
-
-      // First, validate the itinerary ID
       if (!itineraryId || itineraryId.trim() === "") {
         console.error("Invalid or empty itinerary ID:", itineraryId);
         showMessage({
@@ -882,16 +858,10 @@ const Edit = () => {
 
       try {
         setDeletingItineraryId(itineraryId);
-
-        console.log("Calling deleteItineraryMutation with ID:", itineraryId);
-
-        // Call the delete mutation
         await deleteItineraryMutation.mutateAsync(itineraryId);
 
-        // Remove from local state immediately for better UX
         setEditData((prev) => {
           const newItineraries = [...(prev.itinerary || [])];
-          // Remove the item at the specified index
           newItineraries.splice(index, 1);
           return {
             ...prev,
@@ -906,14 +876,11 @@ const Edit = () => {
         });
       } catch (error: any) {
         console.error("Error deleting itinerary:", error);
-        console.error("Error details:", error.message);
 
-        // Check if it's a 404 (already deleted) error
         if (
           error.message?.includes("404") ||
           error.message?.includes("not found")
         ) {
-          // Item was already deleted, just update the UI
           setEditData((prev) => {
             const newItineraries = [...(prev.itinerary || [])];
             newItineraries.splice(index, 1);
@@ -956,11 +923,9 @@ const Edit = () => {
         setDeletingPricelistId(pricelistId);
         await deletePricelistMutation.mutateAsync(pricelistId);
 
-        if (pricelistFormRef.current) {
-          const formHandle = pricelistFormRef.current as any;
-          if (formHandle.removePricelistField) {
-            formHandle.removePricelistField(index);
-          }
+        const formHandle = pricelistFormRef.current as any;
+        if (formHandle.removePricelistField) {
+          formHandle.removePricelistField(index);
         }
 
         setEditData((prev) => ({
@@ -1013,11 +978,9 @@ const Edit = () => {
         setDeletingProcessId(processId);
         await deleteProcessMutation.mutateAsync(processId);
 
-        if (processFormRef.current) {
-          const formHandle = processFormRef.current as any;
-          if (formHandle.removeProcessField) {
-            formHandle.removeProcessField(index);
-          }
+        const formHandle = processFormRef.current as any;
+        if (formHandle.removeProcessField) {
+          formHandle.removeProcessField(index);
         }
 
         setEditData((prev) => ({
@@ -1070,11 +1033,9 @@ const Edit = () => {
         setDeletingPaymentId(paymentId);
         await deletePaymentMutation.mutateAsync(paymentId);
 
-        if (paymentFormRef.current) {
-          const formHandle = paymentFormRef.current as any;
-          if (formHandle.removePaymentField) {
-            formHandle.removePaymentField(index);
-          }
+        const formHandle = paymentFormRef.current as any;
+        if (formHandle.removePaymentField) {
+          formHandle.removePaymentField(index);
         }
 
         setEditData((prev) => ({
@@ -1114,11 +1075,9 @@ const Edit = () => {
         setDeletingTermId(termId);
         await deleteTermMutation.mutateAsync(termId);
 
-        if (termFormRef.current) {
-          const formHandle = termFormRef.current as any;
-          if (formHandle.removeTermField) {
-            formHandle.removeTermField(index);
-          }
+        const formHandle = termFormRef.current as any;
+        if (formHandle.removeTermField) {
+          formHandle.removeTermField(index);
         }
 
         setEditData((prev) => ({
@@ -1165,11 +1124,9 @@ const Edit = () => {
         setDeletingDocumentId(documentId);
         await deleteDocumentMutation.mutateAsync(documentId);
 
-        if (documentFormRef.current) {
-          const formHandle = documentFormRef.current as any;
-          if (formHandle.removeDocumentField) {
-            formHandle.removeDocumentField(index);
-          }
+        const formHandle = documentFormRef.current as any;
+        if (formHandle.removeDocumentField) {
+          formHandle.removeDocumentField(index);
         }
 
         setEditData((prev) => ({
@@ -1871,129 +1828,121 @@ const Edit = () => {
         });
       }
 
-      const mutationPromises = submissions.map(
-        ({ type, data, fileId, existingData }) => {
-          const hasExistingData = !!existingData?._id;
-          const mutation = getMutationFunction(type, hasExistingData);
-          const backendType = getBackendType(type);
+      // Process submissions SEQUENTIALLY instead of in parallel
+      for (const submission of submissions) {
+        const { type, data, fileId, existingData } = submission;
+        const hasExistingData = !!existingData?._id;
+        const mutation = getMutationFunction(type, hasExistingData);
+        const backendType = getBackendType(type);
 
-          if (type === "itinerary") {
-            const itineraryPayload = data as AddItineraryPayload;
+        if (type === "itinerary") {
+          const itineraryPayload = data as AddItineraryPayload;
 
-            if (hasExistingData) {
-              return (mutation as any).mutateAsync({
-                id: existingData._id,
-                data: itineraryPayload,
-              });
-            } else {
-              return (mutation as any).mutateAsync(itineraryPayload);
-            }
+          if (hasExistingData) {
+            await (mutation as any).mutateAsync({
+              id: existingData._id,
+              data: itineraryPayload,
+            });
           } else {
-            const formData = new FormData();
-            formData.append("type", backendType);
-            formData.append("tour", id);
+            await (mutation as any).mutateAsync(itineraryPayload);
+          }
+        } else {
+          const formData = new FormData();
+          formData.append("type", backendType);
+          formData.append("tour", id);
 
-            if (fileId && fileId.trim() && fileId !== "undefined") {
-              formData.append("filesAssociated", fileId);
-            }
+          if (fileId && fileId.trim() && fileId !== "undefined") {
+            formData.append("filesAssociated", fileId);
+          }
 
-            const fieldMappings: Record<string, () => void> = {
-              accommodation: () => {
-                formData.append(
-                  "accommodationName",
-                  data.accommodationName || ""
-                );
-                formData.append(
-                  "accommodationDescription",
-                  data.accommodationDescription || ""
-                );
-                formData.append(
-                  "accommodationStar",
-                  data.accommodationStar || ""
-                );
-                formData.append(
-                  "accommodationWebsite",
-                  data.accommodationWebsite || ""
-                );
+          const fieldMappings: Record<string, () => void> = {
+            accommodation: () => {
+              formData.append(
+                "accommodationName",
+                data.accommodationName || ""
+              );
+              formData.append(
+                "accommodationDescription",
+                data.accommodationDescription || ""
+              );
+              formData.append(
+                "accommodationStar",
+                data.accommodationStar || ""
+              );
+              formData.append(
+                "accommodationWebsite",
+                data.accommodationWebsite || ""
+              );
 
-                // Handle images properly for accommodation
-                if (data.images) {
-                  // If it's a FileList, convert to array
-                  if (data.images instanceof FileList) {
-                    const filesArray = Array.from(data.images);
-                    filesArray.forEach((file: any) => {
-                      if (file && file instanceof File) {
-                        formData.append("accommodationImages", file);
-                      }
-                    });
-                  }
-                  // If it's already an array of Files
-                  else if (Array.isArray(data.images)) {
-                    data.images.forEach((file: File) => {
-                      if (file && file instanceof File) {
-                        formData.append("accommodationImages", file);
-                      }
-                    });
-                  }
+              if (data.images) {
+                if (data.images instanceof FileList) {
+                  const filesArray = Array.from(data.images);
+                  filesArray.forEach((file: any) => {
+                    if (file && file instanceof File) {
+                      formData.append("accommodationImages", file);
+                    }
+                  });
+                } else if (Array.isArray(data.images)) {
+                  data.images.forEach((file: File) => {
+                    if (file && file instanceof File) {
+                      formData.append("accommodationImages", file);
+                    }
+                  });
                 }
-              },
-              city: () => {
-                formData.append("city", data.city || "");
-              },
-              scope: () => {
-                formData.append("scopeCategory", data.scopeCategory || "");
-                formData.append("scopeType", data.scopeType || "");
-                formData.append("scopeTitle", data.scopeTitle || "");
-                formData.append(
-                  "scopeDescription",
-                  data.scopeDescription || ""
-                );
-              },
-              pricelist: () => {
-                formData.append("plan", data.plan || "");
-                formData.append("fee", data.fee || "");
-                formData.append("description", data.description || "");
-              },
-              process: () => {
-                formData.append("processTitle", data.processTitle || "");
-                formData.append("process", data.process || "");
-              },
-              payment: () => {
-                formData.append("paymentType", data.paymentType || "");
-                formData.append("currency", data.currency || "");
-                formData.append("accountName", data.accountName || "");
-                formData.append("bankName", data.bankName || "");
-                formData.append("accountNo", data.accountNo || "");
-                formData.append("bankAddress", data.bankAddress || "");
-                formData.append("swiftCode", data.swiftCode || "");
-              },
-              term: () => {
-                formData.append("title", data.title || "");
-                formData.append("terms", data.terms || "");
-              },
-              document: () => {
-                formData.append("docTitle", data.docTitle || "");
-                formData.append("docDescription", data.docDescription || "");
-              },
-            };
+              }
+            },
+            city: () => {
+              formData.append("city", data.city || "");
+            },
+            scope: () => {
+              formData.append("scopeCategory", data.scopeCategory || "");
+              formData.append("scopeType", data.scopeType || "");
+              formData.append("scopeTitle", data.scopeTitle || "");
+              formData.append("scopeDescription", data.scopeDescription || "");
+            },
+            pricelist: () => {
+              formData.append("plan", data.plan || "");
+              formData.append("fee", data.fee || "");
+              formData.append("description", data.description || "");
+            },
+            process: () => {
+              formData.append("processTitle", data.processTitle || "");
+              formData.append("process", data.process || "");
+            },
+            payment: () => {
+              formData.append("paymentType", data.paymentType || "");
+              formData.append("currency", data.currency || "");
+              formData.append("accountName", data.accountName || "");
+              formData.append("bankName", data.bankName || "");
+              formData.append("accountNo", data.accountNo || "");
+              formData.append("bankAddress", data.bankAddress || "");
+              formData.append("swiftCode", data.swiftCode || "");
+            },
+            term: () => {
+              formData.append("title", data.title || "");
+              formData.append("terms", data.terms || "");
+            },
+            document: () => {
+              formData.append("docTitle", data.docTitle || "");
+              formData.append("docDescription", data.docDescription || "");
+            },
+          };
 
-            if (fieldMappings[type]) {
-              fieldMappings[type]();
-            }
+          if (fieldMappings[type]) {
+            fieldMappings[type]();
+          }
 
-            if (hasExistingData) {
-              return (mutation as any).mutateAsync({
-                id: existingData._id,
-                data: formData,
-              });
-            } else {
-              return (mutation as any).mutateAsync(formData);
-            }
+          if (hasExistingData) {
+            await (mutation as any).mutateAsync({
+              id: existingData._id,
+              data: formData,
+            });
+          } else {
+            await (mutation as any).mutateAsync(formData);
           }
         }
-      );
+      }
 
-      await Promise.all(mutationPromises);
       invalidateQueries();
 
       showMessage({
@@ -2001,6 +1950,10 @@ const Edit = () => {
         type: "success",
         action: "addOrUpdate",
       });
+
+      setTimeout(() => {
+        navigate("/tours");
+      }, 2000);
     } catch (error: any) {
       console.error("Update error:", error);
       showMessage({
@@ -2023,12 +1976,12 @@ const Edit = () => {
     handleFile,
     getMutationFunction,
     invalidateQueries,
-    navigate,
     setPricelistFileIds,
     setProcessFileIds,
     setTermFileIds,
     setDocumentFileIds,
     showMessage,
+    navigate,
   ]);
 
   const isLoading = isLoadingData || isSubmitting;
@@ -2109,14 +2062,52 @@ const Edit = () => {
   };
 
   return (
-    <div className="w-full min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+    <>
+      <div className="w-full min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+        <FormTabs formType={formType} setFormType={setFormType} />
+
+        {FORM_TYPES.map((type) => (
+          <div
+            key={type}
+            className={`w-full lg:w-2xl ${
+              formType === type ? "block" : "hidden"
+            }`}
+          >
+            {type === "accommodation" && (
+              <EditAccommodationForm {...formProps.accommodation} />
+            )}
+            {type === "city" && <EditCityForm {...formProps.city} />}
+            {type === "scope" && <EditScopeForm {...formProps.scope} />}
+            {type === "itinerary" && (
+              <EditItineraryForm {...formProps.itinerary} />
+            )}
+            {type === "pricelist" && (
+              <EditPricelistForm {...formProps.pricelist} />
+            )}
+            {type === "process" && <EditProcessForm {...formProps.process} />}
+            {type === "payment" && <EditPaymentForm {...formProps.payment} />}
+            {type === "term" && <EditTermForm {...formProps.term} />}
+            {type === "document" && (
+              <EditDocumentForm {...formProps.document} />
+            )}
+          </div>
+        ))}
+
+        <div className="w-full lg:w-2xl">
+          <ActionButton
+            action={handleFinalSubmit}
+            isLoading={isLoading}
+            title="Save Tour Information"
+            style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
+          />
+        </div>
+      </div>
       {message && (
         <Modal
           message={message.message}
           success={message.type === "success"}
           action={() => {
             showMessage(null);
-            // Only navigate for successful add/update operations, not for delete operations
             if (
               message.type === "success" &&
               message.action === "addOrUpdate"
@@ -2126,43 +2117,7 @@ const Edit = () => {
           }}
         />
       )}
-
-      <FormTabs formType={formType} setFormType={setFormType} />
-
-      {FORM_TYPES.map((type) => (
-        <div
-          key={type}
-          className={`w-full lg:w-2xl ${
-            formType === type ? "block" : "hidden"
-          }`}
-        >
-          {type === "accommodation" && (
-            <EditAccommodationForm {...formProps.accommodation} />
-          )}
-          {type === "city" && <EditCityForm {...formProps.city} />}
-          {type === "scope" && <EditScopeForm {...formProps.scope} />}
-          {type === "itinerary" && (
-            <EditItineraryForm {...formProps.itinerary} />
-          )}
-          {type === "pricelist" && (
-            <EditPricelistForm {...formProps.pricelist} />
-          )}
-          {type === "process" && <EditProcessForm {...formProps.process} />}
-          {type === "payment" && <EditPaymentForm {...formProps.payment} />}
-          {type === "term" && <EditTermForm {...formProps.term} />}
-          {type === "document" && <EditDocumentForm {...formProps.document} />}
-        </div>
-      ))}
-
-      <div className="w-full lg:w-2xl">
-        <ActionButton
-          action={handleFinalSubmit}
-          isLoading={isLoading}
-          title="Save Tour Information"
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm duration-300 w-full"
-        />
-      </div>
-    </div>
+    </>
   );
 };
 

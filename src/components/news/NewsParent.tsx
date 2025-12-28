@@ -47,6 +47,8 @@ const NewsParent = ({ news, isLoading }: ParentProps) => {
               tags={news.tags}
               contents={news.contents}
               status={news.status}
+              savedAt={news.savedAt}
+              slug={news.slug}
               onDelete={() => {
                 handleDelete(news._id);
               }}

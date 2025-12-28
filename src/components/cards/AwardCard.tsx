@@ -25,10 +25,10 @@ const AwardCard = ({
 }: ImageProps) => {
   return (
     <div className={`w-full relative overflow-hidden  ${style}`}>
-      <div className="relative w-full aspect-[3/2] rounded-lg overflow-hidden">
+      <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
         <ImageCard url={url} style="w-full h-full" />
 
-        <div className="absolute inset-0 bg-gradient-to-tr from-white to-white/10 flex flex-col justify-end p-6 gap-2">
+        <div className="absolute inset-0 bg-linear-to-tr from-white to-white/10 flex flex-col justify-end p-6 gap-2">
           <div className="w-full flex flex-col items-start justify-center">
             <p className="text-md font-semibold uppercase text-[#1d2087]">
               {description}
@@ -47,13 +47,13 @@ const AwardCard = ({
               }}
               icon={<RiPencilFill size={16} />}
               title="Edit"
-              style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white px-3 py-2 rounded-lg"
+              style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white px-3 py-2 rounded-xl"
             />
             <IconButton
               action={action}
               icon={<RiDeleteBin4Fill size={16} />}
               title="Delete"
-              style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white px-3 py-2 rounded-lg"
+              style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white px-3 py-2 rounded-xl"
             />
           </div>
         </div>

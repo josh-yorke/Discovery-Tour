@@ -19,7 +19,7 @@ const Services = () => {
   return (
     <>
       <Navbar />
-      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] px-6 py-12 gap-12">
+      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-svh px-6 py-12 gap-12">
         <div className="w-full flex flex-col items-center justify-center gap-2">
           <p className="text-md font-semibold text-[#1d2087]">
             Manage Services
@@ -27,7 +27,7 @@ const Services = () => {
           <IconButton
             action={() => navigate("/company/services/add")}
             title="New Service"
-            style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white p-3 rounded-lg"
+            style="bg-[#1d2087] hover:bg-[#3b3eac] duration-300 text-white p-3 rounded-full"
             icon={<RiAddLine size={16} />}
           />
         </div>

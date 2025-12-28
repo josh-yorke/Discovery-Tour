@@ -71,12 +71,12 @@ const ViewBranches = ({ branches }: companyBranches) => {
           {branches.map((branch) => (
             <div
               key={branch._id}
-              className="w-full flex flex-col items-center justify-center rounded-lg bg-cover bg-center overflow-hidden"
+              className="w-full flex flex-col items-center justify-center rounded-3xl bg-cover bg-center overflow-hidden"
               style={{
                 backgroundImage: "url(/Japan.jpg)",
               }}
             >
-              <div className="w-full flex flex-col items-center justify-center gap-4 p-6 bg-gradient-to-tr from-white to-white/20">
+              <div className="w-full flex flex-col items-center justify-center gap-4 p-6 bg-linear-to-tr from-white to-white/20">
                 <p className="text-md font-bold text-center uppercase text-[#1d2087]">
                   {branch.branchName}
                 </p>
@@ -84,7 +84,7 @@ const ViewBranches = ({ branches }: companyBranches) => {
                   <IconButton
                     icon={<RiPencilLine size={16} color="white" />}
                     title="Edit"
-                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
                     action={() =>
                       navigate(`/company/branches/edit/${branch._id}`)
                     }
@@ -93,7 +93,7 @@ const ViewBranches = ({ branches }: companyBranches) => {
                   <IconButton
                     icon={<RiDeleteBin4Fill size={16} color="white" />}
                     title="Delete"
-                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-lg text-white"
+                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
                     action={() => handleDeleteBranch(branch._id)}
                   />
                 </div>

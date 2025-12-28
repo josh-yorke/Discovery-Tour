@@ -90,7 +90,7 @@ const YearPicker: React.FC<YearPickerProps> = ({
       {/* Input Trigger */}
       <div
         onClick={togglePicker}
-        className="w-full px-6 py-3 rounded-lg bg-white cursor-pointer transition-colors flex items-center justify-between"
+        className="w-full px-6 py-3 rounded-full bg-white cursor-pointer transition-colors flex items-center justify-between"
       >
         <span className="text-sm font-medium">{selectedYear}</span>
         <RiCalendar2Fill size={14} className="text-gray-500" />
@@ -98,13 +98,13 @@ const YearPicker: React.FC<YearPickerProps> = ({
 
       {/* Dropdown Calendar */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-lg z-10">
+        <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-3xl shadow-lg z-10">
           {/* Header */}
           <div className="flex items-center justify-between p-3">
             <button
               onClick={handlePrevDecade}
               disabled={currentDecade <= minYear}
-              className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
                 className="w-4 h-4"
@@ -128,7 +128,7 @@ const YearPicker: React.FC<YearPickerProps> = ({
             <button
               onClick={handleNextDecade}
               disabled={currentDecade + 11 >= maxYear}
-              className="p-1 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
                 className="w-4 h-4"
@@ -159,7 +159,7 @@ const YearPicker: React.FC<YearPickerProps> = ({
                   onClick={() => isAvailable && handleYearSelect(year)}
                   disabled={!isAvailable}
                   className={`
-                    aspect-square p-1 rounded text-center transition-all transform hover:scale-105 text-sm
+                    aspect-square p-1 rounded-xl text-center transition-all transform hover:scale-105 text-sm
                     ${
                       isSelected
                         ? "bg-[#1d2087] text-white scale-105"

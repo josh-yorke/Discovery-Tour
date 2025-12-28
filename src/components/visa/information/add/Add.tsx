@@ -11,7 +11,6 @@ import ActionButton from "../../../button/ActionButton";
 import type { PricelistFormHandle } from "../../PricelistForm";
 import type { ProcessFormHandle } from "../../ProcessForm";
 import type { PaymentFormHandle } from "../../PaymentForm";
-
 import FormTabs from "./FormTab";
 import PricelistForm from "../../PricelistForm";
 import ProcessForm from "../../ProcessForm";
@@ -38,44 +37,36 @@ const Add = () => {
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
 
-  // File upload mutation
   const fileMutation = useMutation<string, Error, FormData>({
     mutationFn: addVisaFile,
   });
 
-  // Pricelist mutation
   const pricelistMutation = useMutation<string, Error, FormData>({
     mutationFn: addPriceList,
   });
 
-  // Process mutation
   const processMutation = useMutation<string, Error, FormData>({
     mutationFn: addProcess,
   });
 
-  // Payment mutation
   const paymentMutation = useMutation<string, Error, FormData>({
     mutationFn: addPayment,
   });
 
-  // Term mutation
   const termMutation = useMutation<string, Error, FormData>({
     mutationFn: addTerm,
   });
 
-  // Document mutation
   const documentMutation = useMutation<string, Error, FormData>({
     mutationFn: addDocument,
   });
 
-  // Upload file and return fileId
   const uploadFile = async (
     fileData: File[],
     fileTitle: string
   ): Promise<string> => {
-    // Check if fileData exists and has files
     if (!fileData || fileData.length === 0) {
-      return ""; // Return empty string if no file
+      return "";
     }
 
     const formData = new FormData();
@@ -90,11 +81,9 @@ const Add = () => {
     return fileId;
   };
 
-  // Helper function to check if form data has content
   const hasFormData = (formData: any): boolean => {
     if (!formData) return false;
 
-    // Check for pricelist data
     if (
       "pricelistData" in formData &&
       Array.isArray(formData.pricelistData) &&
@@ -102,7 +91,6 @@ const Add = () => {
     ) {
       return true;
     }
-    // Check for process data
     if (
       "processData" in formData &&
       Array.isArray(formData.processData) &&
@@ -110,7 +98,6 @@ const Add = () => {
     ) {
       return true;
     }
-    // Check for payment data
     if (
       "paymentData" in formData &&
       Array.isArray(formData.paymentData) &&
@@ -118,7 +105,6 @@ const Add = () => {
     ) {
       return true;
     }
-    // Check for term data
     if (
       "termData" in formData &&
       Array.isArray(formData.termData) &&
@@ -126,7 +112,6 @@ const Add = () => {
     ) {
       return true;
     }
-    // Check for document data
     if (
       "documentData" in formData &&
       Array.isArray(formData.documentData) &&
@@ -138,7 +123,6 @@ const Add = () => {
     return false;
   };
 
-  // Handle final submission of all forms with file uploads
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
 
@@ -151,14 +135,12 @@ const Add = () => {
         return;
       }
 
-      // Get form data from all forms using refs - these can be null/undefined if forms are empty
       const pricelistFormData = await pricelistFormRef.current?.getFormData();
       const processFormData = await processFormRef.current?.getFormData();
       const paymentFormData = await paymentFormRef.current?.getFormData();
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
 
-      // Check if ALL forms are empty
       const allFormsEmpty = [
         pricelistFormData,
         processFormData,
@@ -173,24 +155,16 @@ const Add = () => {
         return;
       }
 
-      // Prepare submissions for each form type only if they have data
       const allSubmissions = [];
 
-      // Handle pricelist submissions if data exists
       if (pricelistFormData && hasFormData(pricelistFormData)) {
         const { pricelistData, pricelistFileData } = pricelistFormData;
 
-        console.log("Uploading pricelist files...");
-
-        // Handle multiple pricelist file uploads
         const pricelistFileUploadPromises = [];
-
-        // Ensure pricelistFileData is an array
         const safePricelistFileData = Array.isArray(pricelistFileData)
           ? pricelistFileData
           : [pricelistFileData];
 
-        // Upload files for each pricelist entry
         for (let i = 0; i < safePricelistFileData.length; i++) {
           const fileData = safePricelistFileData[i];
           if (fileData?.file && fileData.file.length > 0) {
@@ -208,10 +182,6 @@ const Add = () => {
         const pricelistFileUploadIds = await Promise.all(
           pricelistFileUploadPromises
         );
-
-        console.log("Pricelist files uploaded:", pricelistFileUploadIds);
-
-        // Submit multiple pricelists
         const safePricelistData = Array.isArray(pricelistData)
           ? pricelistData
           : [pricelistData];
@@ -241,13 +211,9 @@ const Add = () => {
         }
       }
 
-      // Handle process submissions if data exists
       if (processFormData && hasFormData(processFormData)) {
         const { processData, processFileData } = processFormData;
 
-        console.log("Uploading process files...");
-
-        // Process file upload
         const processFileUploadPromises = [];
         const safeProcessFileData = Array.isArray(processFileData)
           ? processFileData
@@ -270,10 +236,6 @@ const Add = () => {
         const processFileUploadIds = await Promise.all(
           processFileUploadPromises
         );
-
-        console.log("Process files uploaded:", processFileUploadIds);
-
-        // Submit multiple processes
         const safeProcessData = Array.isArray(processData)
           ? processData
           : [processData];
@@ -302,13 +264,9 @@ const Add = () => {
         }
       }
 
-      // Handle payment submissions if data exists
       if (paymentFormData && hasFormData(paymentFormData)) {
         const { paymentData } = paymentFormData;
 
-        console.log("Submitting payment methods...");
-
-        // Submit multiple payments
         const safePaymentData = Array.isArray(paymentData)
           ? paymentData
           : [paymentData];
@@ -334,7 +292,6 @@ const Add = () => {
           );
           paymentFormDataToSubmit.append("swiftCode", paymentItem.swiftCode);
           paymentFormDataToSubmit.append("visa", visaId);
-          // No filesAssociated for payment
 
           allSubmissions.push(
             paymentMutation.mutateAsync(paymentFormDataToSubmit)
@@ -342,13 +299,9 @@ const Add = () => {
         }
       }
 
-      // Handle term submissions if data exists
       if (termFormData && hasFormData(termFormData)) {
         const { termData, termFileData } = termFormData;
 
-        console.log("Uploading term files...");
-
-        // Term file upload
         const termFileUploadPromises = [];
         const safeTermFileData = Array.isArray(termFileData)
           ? termFileData
@@ -369,10 +322,6 @@ const Add = () => {
         }
 
         const termFileUploadIds = await Promise.all(termFileUploadPromises);
-
-        console.log("Term files uploaded:", termFileUploadIds);
-
-        // Submit multiple terms
         const safeTermData = Array.isArray(termData) ? termData : [termData];
 
         for (let i = 0; i < safeTermData.length; i++) {
@@ -394,13 +343,9 @@ const Add = () => {
         }
       }
 
-      // Handle document submissions if data exists
       if (documentFormData && hasFormData(documentFormData)) {
         const { documentData, documentFileData } = documentFormData;
 
-        console.log("Uploading document files...");
-
-        // Document file upload
         const documentFileUploadPromises = [];
         const safeDocumentFileData = Array.isArray(documentFileData)
           ? documentFileData
@@ -423,10 +368,6 @@ const Add = () => {
         const documentFileUploadIds = await Promise.all(
           documentFileUploadPromises
         );
-
-        console.log("Document files uploaded:", documentFileUploadIds);
-
-        // Submit multiple documents
         const safeDocumentData = Array.isArray(documentData)
           ? documentData
           : [documentData];
@@ -455,14 +396,8 @@ const Add = () => {
         }
       }
 
-      console.log("Submitting forms...");
-
-      // Execute only the mutations that have data
       await Promise.all(allSubmissions);
 
-      console.log("All submissions completed successfully");
-
-      // Invalidate queries and navigate on success
       queryClient.invalidateQueries({ queryKey: ["pricelist"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["process"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["payment"], exact: false });
@@ -484,7 +419,6 @@ const Add = () => {
     <div className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
       <FormTabs formType={formType} setFormType={setFormType} />
 
-      {/* Pricelist Section */}
       <div
         className={`w-full lg:w-2xl ${
           formType === "pricelist" ? "block" : "hidden"
@@ -493,7 +427,6 @@ const Add = () => {
         <PricelistForm ref={pricelistFormRef} />
       </div>
 
-      {/* Process Section */}
       <div
         className={`w-full lg:w-2xl ${
           formType === "process" ? "block" : "hidden"
@@ -502,7 +435,6 @@ const Add = () => {
         <ProcessForm ref={processFormRef} />
       </div>
 
-      {/* Payment Section */}
       <div
         className={`w-full lg:w-2xl ${
           formType === "payment" ? "block" : "hidden"
@@ -511,7 +443,6 @@ const Add = () => {
         <PaymentForm ref={paymentFormRef} />
       </div>
 
-      {/* Term Section */}
       <div
         className={`w-full lg:w-2xl ${
           formType === "term" ? "block" : "hidden"
@@ -520,7 +451,6 @@ const Add = () => {
         <TermForm ref={termFormRef} />
       </div>
 
-      {/* Document Section */}
       <div
         className={`w-full lg:w-2xl ${
           formType === "document" ? "block" : "hidden"
@@ -529,7 +459,6 @@ const Add = () => {
         <DocumentForm ref={documentFormRef} />
       </div>
 
-      {/* Single Submit Button */}
       <div className="w-full lg:w-2xl mt-8">
         <ActionButton
           action={handleFinalSubmit}

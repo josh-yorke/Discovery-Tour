@@ -36,7 +36,7 @@ const ToursSearch = ({
         <SearchInput placeholder="search tours" {...search} />
         <button
           type="submit"
-          className="p-3.5 rounded-lg bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
+          className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
         >
           <RiSearchLine size={14} color="white" />
         </button>
@@ -53,7 +53,7 @@ const ToursSearch = ({
           icon={<RiAddLine size={16} />}
           title="New"
           action={() => navigate("/tours/add")}
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-lg"
+          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>
     </form>

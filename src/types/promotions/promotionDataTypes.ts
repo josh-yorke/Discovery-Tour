@@ -7,6 +7,7 @@ export const promotionDataSchema = z.object({
   tags: z.array(z.string()),
   images: z.array(z.string()),
   status: z.string(),
+  savedAt: z.string(),
 });
 
 export type promotionData = z.infer<typeof promotionDataSchema>;

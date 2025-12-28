@@ -20,7 +20,7 @@ const TagsInput = ({ disabled, error }: TagsProps) => {
           <button
             type="button"
             onClick={() => append("")}
-            className="p-2 rounded-lg bg-white cursor-pointer"
+            className="p-2 rounded-full bg-white cursor-pointer"
           >
             <RiAddLine size={16} />
           </button>
@@ -32,7 +32,7 @@ const TagsInput = ({ disabled, error }: TagsProps) => {
           <input
             disabled={disabled}
             type="text"
-            className="text-sm font-normal bg-white rounded-lg px-6 py-3 w-full"
+            className="text-sm font-normal bg-white rounded-full px-6 py-3 w-full"
             placeholder="enter a tag"
             {...register(`tags.${index}`)}
           />
@@ -40,7 +40,7 @@ const TagsInput = ({ disabled, error }: TagsProps) => {
             <button
               type="button"
               onClick={() => remove(index)}
-              className="p-3 rounded-lg bg-white cursor-pointer"
+              className="p-3 rounded-full bg-white cursor-pointer"
             >
               <RiDeleteBin2Line size={16} />
             </button>

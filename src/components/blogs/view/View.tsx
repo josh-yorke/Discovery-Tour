@@ -36,7 +36,6 @@ const View = ({
     setIsExpanded(!isExpanded);
   };
 
-  // Filter valid links
   const validLinks = relatedLinks
     ? relatedLinks.filter(
         (link): link is string => link !== null && link !== undefined
@@ -48,14 +47,14 @@ const View = ({
       <div className="w-full flex flex-col gap-6">
         <div className="w-full flex flex-col items-start justify-center gap-2">
           <TitleText style="text-[#1d2087]" title={title} />
-          <div className="w-full flex flex-row gap-2">
+          <div className="w-full flex flex-wrap gap-2">
             {tags.map((tag: string) => (
               <Tags key={tag} title={tag} />
             ))}
           </div>
           <div className="w-full flex flex-row gap-2">
             <IconButton
-              style="px-3 py-2 rounded-sm bg-gray-200 hover:bg-gray-300"
+              style="px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300"
               action={() => {
                 window.open(`/blogs/edit/${_id}`, "_blank");
               }}
@@ -63,14 +62,14 @@ const View = ({
               icon={<RiPencilFill size={16} />}
             />
             <IconButton
-              style="px-3 py-2 rounded-sm bg-gray-200 hover:bg-gray-300"
+              style="px-3 py-2 rounded-full bg-gray-200 hover:bg-gray-300"
               action={() => onDelete(_id)}
               title="Delete"
               icon={<RiDeleteBin4Fill size={16} />}
             />
           </div>
         </div>
-        <div className="w-full border-2 border-dashed p-6 rounded-lg border-[#1d2087]">
+        <div className="w-full border-2 border-dashed p-6 rounded-3xl border-[#1d2087]">
           <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Status */}
             <div className="flex flex-col items-center gap-1">
@@ -115,7 +114,7 @@ const View = ({
             </div>
           </div>
         </div>
-        <pre className="whitespace-pre-line font-sans bg-white p-6 rounded-lg shadow-xl shadow-black/6 flex flex-col gap-6">
+        <pre className="whitespace-pre-line font-sans bg-white p-6 rounded-3xl shadow-xl shadow-black/6 flex flex-col gap-6">
           <div className="w-full flex flex-row items-center justify-between gap-2">
             <p className="text-base uppercase font-semibold text-[#1d2087]">
               Blog Information
@@ -137,8 +136,8 @@ const View = ({
           </p>
         </pre>
 
-        {/* Related Links Section */}
-        <div className="whitespace-pre-line font-sans bg-white p-6 rounded-lg shadow-xl shadow-black/6 flex flex-col gap-4">
+        {/* Related Links Section - Always show, but conditionally display content */}
+        <div className="whitespace-pre-line font-sans bg-white p-6 rounded-3xl shadow-xl shadow-black/6 flex flex-col gap-4">
           <div className="w-full flex flex-row items-center justify-between gap-2">
             <p className="text-base uppercase font-semibold text-[#1d2087]">
               Related Links & Resources
@@ -155,7 +154,7 @@ const View = ({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-sm text-[#1d2087] hover:text-[#0a0d5c] transition-colors group"
                 >
-                  <div className="w-8 h-8 flex items-center justify-center bg-[#1d2087]/10 rounded-md shrink-0">
+                  <div className="w-8 h-8 flex items-center justify-center bg-[#1d2087]/10 rounded-2xl shrink-0">
                     <span className="text-xs font-semibold text-[#1d2087]">
                       {index + 1}
                     </span>
