@@ -41,6 +41,12 @@ const Edit = ({
   const [message, showMessage] = useState<string | null>(null);
   const navigate = useNavigate();
   const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
+
+  // Log the type prop to see what you're receiving
+  console.log("Edit component - type prop:", type);
+  console.log("Edit component - type prop type:", typeof type);
+  console.log("Edit component - type prop JSON:", JSON.stringify(type));
+
   const methods = useForm<addTourData>({
     resolver: zodResolver(addTourSchema),
     defaultValues: {
@@ -83,16 +89,16 @@ const Edit = ({
   const mutation = useMutation<
     { id: string; message: string },
     Error,
-    FormData // The mutation expects FormData, not an object
+    FormData
   >({
-    mutationFn: (formData) => updateTour(id, formData), // Pass the FormData directly
+    mutationFn: (formData) => updateTour(id, formData),
     onSuccess: (data) => {
       localStorage.setItem("tourId", data.id);
       showMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ["tours"], exact: false });
 
       if (redirectTo === "information") {
-        navigate(`/tours/information/add`);
+        navigate(`/tours/information/edit/${id}`);
       } else {
         navigate(`/tours`);
       }
@@ -105,6 +111,9 @@ const Edit = ({
   });
 
   const onSubmit = (data: addTourData) => {
+    console.log("onSubmit - form data type field:", data.type);
+    console.log("onSubmit - form data type field type:", typeof data.type);
+
     const formData = new FormData();
 
     formData.append("country", data.country);
@@ -126,7 +135,7 @@ const Edit = ({
       formData.append("mainLocationImages", file);
     });
 
-    mutation.mutate(formData); // Pass FormData directly
+    mutation.mutate(formData);
   };
 
   const handleProceedToInformation = (data: addTourData) => {
@@ -142,7 +151,7 @@ const Edit = ({
       <FormProvider {...methods}>
         <form
           onSubmit={handleSubmit(onSubmit, (err) => {
-            console.log(err);
+            console.log("Form submission errors:", err);
           })}
           className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
@@ -163,13 +172,11 @@ const Edit = ({
               {...register("type")}
             />
 
-            <Input
-              style="bg-white"
+            <InputOption
               disabled={false}
-              error={errors.category?.message || ""}
+              style="bg-white w-full"
               title="Category"
-              placeholder="category"
-              type="text"
+              options={["international", "domestic"]}
               {...register("category")}
             />
 
@@ -216,6 +223,7 @@ const Edit = ({
               }
               initialFiles={images}
             />
+
             <LocationImageInput
               title="Location Images"
               disabled={false}
@@ -228,6 +236,7 @@ const Edit = ({
               }
               initialFiles={mainLocationImages}
             />
+
             <div className="w-full flex flex-row gap-4">
               <Button
                 isLoading={mutation.isPending}
@@ -252,7 +261,11 @@ const Edit = ({
           action={() => {
             showMessage(null);
             if (mutation.isSuccess) {
-              navigate("/tours/information/add");
+              if (redirectTo === "information") {
+                navigate(`/tours/information/edit/${id}`);
+              } else {
+                navigate("/tours");
+              }
             }
           }}
         />

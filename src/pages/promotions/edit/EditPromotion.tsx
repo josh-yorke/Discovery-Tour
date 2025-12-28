@@ -43,7 +43,7 @@ const EditPromotion = () => {
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
           <Header
-            style="p-6"
+            style="px-6 lg:px-0 py-6"
             title="Edit Promotion"
             url="/promotions"
             id={data._id}

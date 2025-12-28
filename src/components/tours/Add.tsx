@@ -139,13 +139,11 @@ const Add = () => {
               {...register("type")}
             />
 
-            <Input
-              style="bg-white"
+            <InputOption
               disabled={false}
-              error={errors.category?.message || ""}
+              style="bg-white w-full"
               title="Category"
-              placeholder="category"
-              type="text"
+              options={["international", "domestic"]}
               {...register("category")}
             />
 

@@ -42,7 +42,12 @@ const EditNews = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <Header style="p-6" title="Edit News" url="/news" id={data._id} />
+          <Header
+            style="px-6 lg:px-0 py-6"
+            title="Edit News"
+            url="/news"
+            id={data._id}
+          />
           <Edit
             status={data.status}
             id={data._id}

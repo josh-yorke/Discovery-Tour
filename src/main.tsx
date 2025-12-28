@@ -44,6 +44,8 @@ import EditBlog from "./pages/blogs/edit/EditBlog";
 import Tours from "./pages/tours/Tours";
 import AddTour from "./pages/tours/AddTour";
 import EditTour from "./pages/tours/EditTour";
+import AddTourInfo from "./pages/tours/AddTourInfo";
+import EditTourInfo from "./pages/tours/EditTourInfo";
 
 const router = createBrowserRouter([
   {
@@ -360,6 +362,22 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditTour />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/tours/information/add",
+    element: (
+      <RouteProtection>
+        <AddTourInfo />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/tours/information/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditTourInfo />
       </RouteProtection>
     ),
   },

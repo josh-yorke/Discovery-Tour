@@ -2,7 +2,7 @@ import api from "../../axios/axios";
 
 export const deletePayment = async (id: string) => {
   try {
-    const res = await api.delete(`/visa-dependents/${id}?type=payment`);
+    const res = await api.delete(`/shared-fields/${id}?type=payment`);
 
     return res.data.message;
   } catch (error: any) {

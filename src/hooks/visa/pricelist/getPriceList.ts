@@ -10,3 +10,13 @@ export const getPricelist = async (id?: string) => {
     throw new Error(message);
   }
 };
+export const getTourPricelist = async (id?: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?tourId=${id}&type=price`);
+    console.log(res);
+    return res.data.data;
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};

@@ -29,7 +29,7 @@ const EditTour = () => {
       setImages(image);
       setLocationImages(locationImage);
     };
-
+    console.log(data?.typeV2);
     getImages();
   }, [data]);
 
@@ -45,14 +45,19 @@ const EditTour = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <Header style="py-6" title="Edit Tour" url="/tours" id={data._id} />
+          <Header
+            style="px-6 lg:px-0 py-6"
+            title="Edit Tour"
+            url="/tours"
+            id={data._id}
+          />
           <Edit
             id={data._id}
             mainDescription={data.mainDescription}
             images={images}
             mainLocationImages={locationImages}
             country={data.country}
-            type={data.type._id}
+            type={data?.typeV2._id}
             tags={data.tags}
             category={data.category}
             mainLocationName={data.mainLocationName}

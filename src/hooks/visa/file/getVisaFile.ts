@@ -2,7 +2,7 @@ import api from "../../axios/axios";
 
 export const getVisaFile = async (id?: string) => {
   try {
-    const res = await api.get(`/visa-dependents/${id}?type=file`);
+    const res = await api.get(`shared-fields/${id}?type=file`);
     console.log(res);
     return res.data.data;
   } catch (error: any) {

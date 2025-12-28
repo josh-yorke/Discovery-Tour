@@ -13,7 +13,7 @@ export const getVisa = async (id?: string) => {
 
 export const getVisaDocuments = async (id: string) => {
   try {
-    const res = await api.get(`/visa-dependents/?type=document&visaId=${id}`);
+    const res = await api.get(`/shared-fields/?type=document&visaId=${id}`);
     console.log(res.data.data);
     return {
       documents: res.data.data,
@@ -26,7 +26,7 @@ export const getVisaDocuments = async (id: string) => {
 
 export const getVisaFile = async (id: string) => {
   try {
-    const res = await api.get(`/visa-dependents/${id}?type=file`);
+    const res = await api.get(`/shared-fields/${id}?type=file`);
     console.log(res.data.data);
     return {
       file: res.data.data,
@@ -39,7 +39,7 @@ export const getVisaFile = async (id: string) => {
 
 export const getVisaProcesses = async (id: string) => {
   try {
-    const res = await api.get(`/visa-dependents/?type=process&visaId=${id}`);
+    const res = await api.get(`/shared-fields/?type=process&visaId=${id}`);
     console.log(res.data.data);
     return {
       processes: res.data.data,
@@ -52,7 +52,7 @@ export const getVisaProcesses = async (id: string) => {
 
 export const getVisaPricelists = async (id: string) => {
   try {
-    const res = await api.get(`/visa-dependents/?type=price&visaId=${id}`);
+    const res = await api.get(`/shared-fields/?type=price&visaId=${id}`);
     console.log(res.data.data);
     return {
       pricelists: res.data.data,
@@ -65,7 +65,7 @@ export const getVisaPricelists = async (id: string) => {
 
 export const getVisaTerms = async (id: string) => {
   try {
-    const res = await api.get(`/visa-dependents/?type=terms&visaId=${id}`);
+    const res = await api.get(`/shared-fields/?type=terms&visaId=${id}`);
     console.log(res.data.data);
     return {
       terms: res.data.data,
@@ -78,7 +78,7 @@ export const getVisaTerms = async (id: string) => {
 
 export const getVisaPayments = async (id: string) => {
   try {
-    const res = await api.get(`/visa-dependents/?type=payment&visaId=${id}`);
+    const res = await api.get(`/shared-fields/?type=payment&visaId=${id}`);
     console.log(res.data.data);
     return {
       payments: res.data.data,

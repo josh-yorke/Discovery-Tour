@@ -37,6 +37,7 @@ import { deleteProcess } from "../../../../hooks/visa/process/deleteProcess";
 import { deleteTerm } from "../../../../hooks/visa/terms/deleteTerm";
 import { deleteDocument } from "../../../../hooks/visa/document/deleteDocument";
 import { deletePayment } from "../../../../hooks/visa/payment/deletePayment";
+import Modal from "../../../modal/Modal";
 
 // Types
 export type FormType =
@@ -72,6 +73,12 @@ interface FormSubmission {
   data: any;
   fileId: string;
   existingData: any;
+}
+
+interface ErrorState {
+  message: string;
+  type: "error" | "success";
+  action?: "addOrUpdate" | "delete";
 }
 
 // Constants
@@ -292,9 +299,10 @@ const useEditData = (id: string | undefined) => {
         });
 
         setFileData(organizedFileData);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching edit data:", error);
-        alert("Error loading existing data. Please try again.");
+        // We'll handle this error in the component level
+        throw error;
       } finally {
         setIsLoadingData(false);
       }
@@ -452,6 +460,7 @@ const Edit = () => {
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(
     null
   );
+  const [message, setMessage] = useState<ErrorState | null>(null);
 
   const {
     editData,
@@ -489,6 +498,10 @@ const Edit = () => {
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
 
+  const showMessage = useCallback((message: ErrorState | null) => {
+    setMessage(message);
+  }, []);
+
   // File handling
   const handleFile = useCallback(
     async (
@@ -521,13 +534,34 @@ const Edit = () => {
       });
 
       if (existingFileId) {
-        await fileMutation.mutateAsync({ id: existingFileId, data: formData });
-        return existingFileId;
+        try {
+          await fileMutation.mutateAsync({
+            id: existingFileId,
+            data: formData,
+          });
+          return existingFileId;
+        } catch (error: any) {
+          showMessage({
+            message: error.message || "Error updating file",
+            type: "error",
+            action: "addOrUpdate",
+          });
+          throw error;
+        }
       } else {
-        return await fileAddMutation.mutateAsync(formData);
+        try {
+          return await fileAddMutation.mutateAsync(formData);
+        } catch (error: any) {
+          showMessage({
+            message: error.message || "Error uploading file",
+            type: "error",
+            action: "addOrUpdate",
+          });
+          throw error;
+        }
       }
     },
-    [fileMutation, fileAddMutation]
+    [fileMutation, fileAddMutation, showMessage]
   );
 
   // Function to handle pricelist deletion
@@ -565,15 +599,29 @@ const Edit = () => {
 
         setPricelistFileIds((prev) => prev.filter((_, i) => i !== index));
 
-        alert("Pricelist deleted successfully!");
-      } catch (error) {
+        showMessage({
+          message: "Pricelist deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
         console.error("Error deleting pricelist:", error);
-        alert("Error deleting pricelist. Please try again.");
+        showMessage({
+          message: error.message || "Error deleting pricelist",
+          type: "error",
+          action: "delete",
+        });
       } finally {
         setDeletingPricelistId(null);
       }
     },
-    [deletePricelistMutation, setEditData, setFileData, setPricelistFileIds]
+    [
+      deletePricelistMutation,
+      setEditData,
+      setFileData,
+      setPricelistFileIds,
+      showMessage,
+    ]
   );
 
   // Function to handle process deletion
@@ -611,15 +659,29 @@ const Edit = () => {
 
         setProcessFileIds((prev) => prev.filter((_, i) => i !== index));
 
-        alert("Process step deleted successfully!");
-      } catch (error) {
+        showMessage({
+          message: "Process step deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
         console.error("Error deleting process:", error);
-        alert("Error deleting process step. Please try again.");
+        showMessage({
+          message: error.message || "Error deleting process step",
+          type: "error",
+          action: "delete",
+        });
       } finally {
         setDeletingProcessId(null);
       }
     },
-    [deleteProcessMutation, setEditData, setFileData, setProcessFileIds]
+    [
+      deleteProcessMutation,
+      setEditData,
+      setFileData,
+      setProcessFileIds,
+      showMessage,
+    ]
   );
 
   // Function to handle term deletion
@@ -657,15 +719,23 @@ const Edit = () => {
 
         setTermFileIds((prev) => prev.filter((_, i) => i !== index));
 
-        alert("Term deleted successfully!");
-      } catch (error) {
+        showMessage({
+          message: "Term deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
         console.error("Error deleting term:", error);
-        alert("Error deleting term. Please try again.");
+        showMessage({
+          message: error.message || "Error deleting term",
+          type: "error",
+          action: "delete",
+        });
       } finally {
         setDeletingTermId(null);
       }
     },
-    [deleteTermMutation, setEditData, setFileData, setTermFileIds]
+    [deleteTermMutation, setEditData, setFileData, setTermFileIds, showMessage]
   );
 
   // Function to handle document deletion
@@ -703,15 +773,29 @@ const Edit = () => {
 
         setDocumentFileIds((prev) => prev.filter((_, i) => i !== index));
 
-        alert("Document deleted successfully!");
-      } catch (error) {
+        showMessage({
+          message: "Document deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
         console.error("Error deleting document:", error);
-        alert("Error deleting document. Please try again.");
+        showMessage({
+          message: error.message || "Error deleting document",
+          type: "error",
+          action: "delete",
+        });
       } finally {
         setDeletingDocumentId(null);
       }
     },
-    [deleteDocumentMutation, setEditData, setFileData, setDocumentFileIds]
+    [
+      deleteDocumentMutation,
+      setEditData,
+      setFileData,
+      setDocumentFileIds,
+      showMessage,
+    ]
   );
 
   // Function to handle payment deletion
@@ -742,15 +826,23 @@ const Edit = () => {
           payment: prev.payment?.filter((_, i) => i !== index) || [],
         }));
 
-        alert("Payment method deleted successfully!");
-      } catch (error) {
+        showMessage({
+          message: "Payment method deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
         console.error("Error deleting payment:", error);
-        alert("Error deleting payment method. Please try again.");
+        showMessage({
+          message: error.message || "Error deleting payment method",
+          type: "error",
+          action: "delete",
+        });
       } finally {
         setDeletingPaymentId(null);
       }
     },
-    [deletePaymentMutation, setEditData]
+    [deletePaymentMutation, setEditData, showMessage]
   );
 
   // UPDATED: Fixed handleDeleteFile function
@@ -923,10 +1015,18 @@ const Edit = () => {
         };
 
         updateState[fileType]();
-        alert("File deleted successfully!");
-      } catch (error) {
+        showMessage({
+          message: "File deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
         console.error("Error deleting file:", error);
-        alert("Error deleting file. Please try again.");
+        showMessage({
+          message: error.message || "Error deleting file",
+          type: "error",
+          action: "delete",
+        });
       } finally {
         setDeletingFileId(null);
       }
@@ -939,6 +1039,7 @@ const Edit = () => {
       setProcessFileIds,
       setTermFileIds,
       setDocumentFileIds,
+      showMessage,
     ]
   );
 
@@ -972,7 +1073,11 @@ const Edit = () => {
   // FIXED: Form submission with proper validation to prevent saving files without form data
   const handleFinalSubmit = useCallback(async () => {
     if (!id) {
-      alert("No visa ID found. Please select a visa first.");
+      showMessage({
+        message: "No visa ID found. Please select a visa first.",
+        type: "error",
+        action: "addOrUpdate",
+      });
       return;
     }
 
@@ -1028,7 +1133,11 @@ const Edit = () => {
       );
 
       if (allFormsEmpty) {
-        alert("Please fill at least one form before submitting.");
+        showMessage({
+          message: "Please fill at least one form before submitting.",
+          type: "error",
+          action: "addOrUpdate",
+        });
         setIsSubmitting(false);
         return;
       }
@@ -1316,11 +1425,21 @@ const Edit = () => {
 
       await Promise.all(mutationPromises);
       invalidateQueries();
-      alert("Visa information updated successfully!");
-      navigate("/visas/visa");
-    } catch (error) {
+
+      showMessage({
+        message: "Visa information updated successfully!",
+        type: "success",
+        action: "addOrUpdate",
+      });
+    } catch (error: any) {
       console.error("Update error:", error);
-      alert("There was an error updating the forms. Please try again.");
+      showMessage({
+        message:
+          error.message ||
+          "There was an error updating the forms. Please try again.",
+        type: "error",
+        action: "addOrUpdate",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -1334,11 +1453,11 @@ const Edit = () => {
     handleFile,
     getMutationFunction,
     invalidateQueries,
-    navigate,
     setPricelistFileIds,
     setProcessFileIds,
     setTermFileIds,
     setDocumentFileIds,
+    showMessage,
   ]);
 
   const isLoading = isLoadingData || isSubmitting;
@@ -1395,7 +1514,24 @@ const Edit = () => {
   };
 
   return (
-    <div className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+    <div className="w-full min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100">
+      {message && (
+        <Modal
+          message={message.message}
+          success={message.type === "success"}
+          action={() => {
+            showMessage(null);
+            // Only navigate for successful add/update operations, not for delete operations
+            if (
+              message.type === "success" &&
+              message.action === "addOrUpdate"
+            ) {
+              navigate("/visas/visa");
+            }
+          }}
+        />
+      )}
+
       <FormTabs formType={formType} setFormType={setFormType} />
 
       {FORM_TYPES.map((type) => (

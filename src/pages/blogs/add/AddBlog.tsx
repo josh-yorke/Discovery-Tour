@@ -6,7 +6,7 @@ const AddBlog = () => {
   return (
     <div className="w-full flex flex-col items-center justify-center bg-gray-100">
       <Navbar />
-      <Header style="p-6" title="Add Blog" url="/blogs" id="" />
+      <Header style="px-6 lg:px-0 py-6" title="Add Blog" url="/blogs" id="" />
       <Add />
     </div>
   );
