@@ -17,7 +17,6 @@ const tourDataSchema = z.object({
   mainLocationName: z.string(),
   mainLocationDescription: z.string(),
   dateAdded: z.string(),
-  __v: z.number(),
   countryV2: z.object({
     _id: z.string(),
     country: z.string(),

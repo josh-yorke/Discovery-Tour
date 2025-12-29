@@ -46,6 +46,7 @@ import AddTour from "./pages/tours/AddTour";
 import EditTour from "./pages/tours/EditTour";
 import AddTourInfo from "./pages/tours/AddTourInfo";
 import EditTourInfo from "./pages/tours/EditTourInfo";
+import ViewTour from "./pages/tours/ViewTour";
 
 const router = createBrowserRouter([
   {
@@ -378,6 +379,14 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditTourInfo />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/tours/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewTour />
       </RouteProtection>
     ),
   },
