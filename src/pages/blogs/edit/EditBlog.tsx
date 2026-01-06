@@ -4,10 +4,10 @@ import Header from "../../../components/users/Header";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchImageFiles } from "../../../utils/fetchImageFiles";
-import PageError from "../../../components/error/PageError";
-import PageLoader from "../../../components/loader/PageLoader";
 import { getBlog } from "../../../hooks/blogs/getBlog";
 import EditInputs from "../../../components/blogs/edit/Edit";
+import SectionError from "../../../components/error/SectionError";
+import SectionLoader from "../../../components/loader/SectionLoader";
 
 const EditBlog = () => {
   const { id } = useParams();
@@ -36,9 +36,9 @@ const EditBlog = () => {
 
       {isLoading || isError ? (
         isError ? (
-          <PageError title="Reload" action={refetch} error={error.message} />
+          <SectionError action={refetch} error={error.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">

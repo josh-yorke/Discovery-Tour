@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getOneNews } from "../../../hooks/news/getOneNews";
 import { fetchImageFiles } from "../../../utils/fetchImageFiles";
-import PageError from "../../../components/error/PageError";
-import PageLoader from "../../../components/loader/PageLoader";
 import Edit from "../../../components/news/edit/Edit";
+import SectionError from "../../../components/error/SectionError";
+import SectionLoader from "../../../components/loader/SectionLoader";
 
 const EditNews = () => {
   const { id } = useParams();
@@ -36,9 +36,9 @@ const EditNews = () => {
 
       {isLoading || isError ? (
         isError ? (
-          <PageError title="Reload" action={refetch} error={error.message} />
+          <SectionError action={refetch} error={error.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">

@@ -208,9 +208,9 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                         {formatCurrency(pricelist.fee)}
                       </p>
                     </div>
-                    <p className="text-xs sm:text-sm font-normal text-gray-600 mt-2 whitespace-pre-line">
+                    <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
                       {pricelist.description}
-                    </p>
+                    </pre>
                   </div>
                 </div>
 

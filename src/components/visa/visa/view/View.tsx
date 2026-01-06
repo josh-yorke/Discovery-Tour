@@ -78,9 +78,9 @@ const View = ({
           <div className="w-full border-b border-black/6" />
 
           <div className="w-full">
-            <p className="text-sm font-normal text-gray-800">
+            <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
               {mainDescription}
-            </p>
+            </pre>
           </div>
         </div>
 
@@ -99,9 +99,9 @@ const View = ({
           <div className="w-full border-b border-black/6" />
 
           <div className="w-full">
-            <p className="text-sm font-normal text-gray-800">
+            <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
               {eligibleApplicants}
-            </p>
+            </pre>
           </div>
         </div>
 

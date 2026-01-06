@@ -4,10 +4,10 @@ import { useParams } from "react-router";
 import { getPromotion } from "../../../hooks/promotions/getPromotion";
 import { fetchImageFiles } from "../../../utils/fetchImageFiles";
 import Navbar from "../../../components/nav/Navbar";
-import PageError from "../../../components/error/PageError";
-import PageLoader from "../../../components/loader/PageLoader";
 import Header from "../../../components/users/Header";
 import Edit from "../../../components/promotions/edit/Edit";
+import SectionError from "../../../components/error/SectionError";
+import SectionLoader from "../../../components/loader/SectionLoader";
 
 const EditPromotion = () => {
   const { id } = useParams();
@@ -36,9 +36,9 @@ const EditPromotion = () => {
 
       {isLoading || isError ? (
         isError ? (
-          <PageError title="Reload" action={refetch} error={error.message} />
+          <SectionError action={refetch} error={error.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">

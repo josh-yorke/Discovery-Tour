@@ -66,7 +66,9 @@ const Information = ({
           <p className="text-base font-semibold text-[#1d2087]">
             Visa Description
           </p>
-          <p className="text-sm font-normal">{visaData.mainDescription}</p>
+          <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
+            {visaData.mainDescription}
+          </pre>
         </div>
 
         <div className="w-full border-b border-black/6" />
@@ -75,7 +77,9 @@ const Information = ({
           <p className="text-base font-semibold text-[#1d2087]">
             Eligible Applicants
           </p>
-          <p className="text-sm font-normal">{visaData.eligibleApplicants}</p>
+          <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
+            {visaData.eligibleApplicants}
+          </pre>
         </div>
       </div>
     </>

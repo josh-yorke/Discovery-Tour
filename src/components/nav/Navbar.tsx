@@ -12,6 +12,8 @@ import {
   RiRedPacketLine,
   RiShip2Fill,
   RiShip2Line,
+  RiTrainFill,
+  RiTrainLine,
   RiUser4Fill,
   RiUser4Line,
   RiWalletFill,
@@ -68,6 +70,23 @@ const Navbar = () => {
                 )
               }
               title="Tours"
+            />
+
+            <LinkButton
+              to="/rail-passes"
+              style={`${
+                pathname.startsWith("/rail-passes")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/rail-passes") ? (
+                  <RiTrainFill size={16} />
+                ) : (
+                  <RiTrainLine size={16} />
+                )
+              }
+              title="Rail Pass"
             />
 
             <LinkButton
@@ -221,6 +240,23 @@ const Navbar = () => {
                   )
                 }
                 title="Tours"
+              />
+
+              <LinkButton
+                to="/rail-passes"
+                style={`${
+                  pathname.startsWith("/rail-passes")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/rail-passes") ? (
+                    <RiTrainFill size={16} />
+                  ) : (
+                    <RiTrainLine size={16} />
+                  )
+                }
+                title="Rail Pass"
               />
 
               <LinkButton
