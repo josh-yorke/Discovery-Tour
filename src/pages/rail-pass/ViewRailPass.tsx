@@ -1,34 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
-import Navbar from "../../components/nav/Navbar";
-import SectionError from "../../components/error/SectionError";
-import SectionLoader from "../../components/loader/SectionLoader";
 import ImageCard from "../../components/cards/ImageCard";
-import { getTour } from "../../hooks/tours/getTour";
-import View from "../../components/tours/View";
-import { deleteTour } from "../../hooks/tours/deleteTour";
+import SectionLoader from "../../components/loader/SectionLoader";
+import SectionError from "../../components/error/SectionError";
+import Navbar from "../../components/nav/Navbar";
+import View from "../../components/rail-pass/view/View";
+import { deleteRailPass, getRailPass } from "../../hooks/rail-pass/railPass";
 import { useState } from "react";
 import Modal from "../../components/modal/Modal";
 
-const ViewTour = () => {
+const ViewRailPass = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["tours", id],
-    queryFn: () => getTour(id),
+    queryKey: ["railPass", id],
+    queryFn: () => getRailPass(id),
     staleTime: 5 * 60 * 1000,
   });
 
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [modal, showModal] = useState(false);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteTour(id),
+    mutationFn: (id: string) => deleteRailPass(id),
     onSuccess: () => {
       showModal(true);
       queryClient.invalidateQueries({
-        queryKey: ["tours"],
+        queryKey: ["railPass"],
         exact: false,
       });
     },
@@ -38,7 +37,7 @@ const ViewTour = () => {
   });
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this tour?")) {
+    if (confirm("Are you sure you want to delete this pass?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -58,19 +57,14 @@ const ViewTour = () => {
             <ImageCard url={data.images} style="h-[50vh] md:h-[70vh]" />
             <div className="w-full lg:w-7xl flex flex-col p-6 pb-24 gap-6">
               <View
+                onDelete={() => handleDelete(data._id)}
                 _id={data._id}
                 country={data.country}
                 typeV2={data.typeV2}
                 category={data.category}
-                tags={data.tags}
-                mainDescription={data.mainDescription}
+                title={data.title}
+                description={data.description}
                 images={data.images}
-                mainLocationImages={data.mainLocationImages}
-                mainLocationName={data.mainLocationName}
-                mainLocationDescription={data.mainLocationDescription}
-                dateAdded={data.dateAdded}
-                countryV2={data.countryV2}
-                onDelete={() => handleDelete(data._id)}
               />
             </div>
           </div>
@@ -94,4 +88,4 @@ const ViewTour = () => {
   );
 };
 
-export default ViewTour;
+export default ViewRailPass;

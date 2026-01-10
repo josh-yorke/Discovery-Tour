@@ -9,6 +9,10 @@ import TourTerms from "./sections/TourTerms";
 import TourDocuments from "./sections/TourDocuments";
 import type { tourData } from "../../types/tours/tourDataTypes";
 
+interface Props extends tourData {
+  onDelete: (_id: string) => void;
+}
+
 const View = ({
   _id,
   country,
@@ -22,11 +26,13 @@ const View = ({
   typeV2,
   countryV2,
   images,
-}: tourData) => {
+  onDelete,
+}: Props) => {
   return (
     <>
       <div className="w-full flex flex-col gap-6">
         <TourLocation
+          onDelete={onDelete}
           _id={_id}
           country={country}
           typeV2={typeV2}

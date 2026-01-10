@@ -1,10 +1,15 @@
-import { RiInformationFill } from "react-icons/ri";
+import {
+  RiDeleteBin4Fill,
+  RiInformationFill,
+  RiPencilFill,
+} from "react-icons/ri";
 import type { visaData } from "../../../../types/visa/visaDataTypes";
 import Documents from "../../../../pages/visa/view/sections/Documents";
 import Processes from "../../../../pages/visa/view/sections/Processes";
 import Pricelists from "../../../../pages/visa/view/sections/Pricelists";
 import Terms from "../../../../pages/visa/view/sections/Terms";
 import Payments from "../../../../pages/visa/view/sections/Payments";
+import IconButton from "../../../button/IconButton";
 
 interface ViewProps extends visaData {
   savedAt: string;
@@ -17,10 +22,27 @@ const View = ({
   eligibleApplicants,
   type,
   country,
+  onDelete,
 }: ViewProps) => {
   return (
     <>
       <div className="w-full flex flex-col gap-12 ">
+        <div className="w-full flex flex-row gap-2">
+          <IconButton
+            style="px-3 py-2 rounded-full bg-gray-200"
+            action={() => {
+              window.open(`/visas/visa/edit/${_id}`, "_blank");
+            }}
+            title="Edit"
+            icon={<RiPencilFill size={16} />}
+          />
+          <IconButton
+            style="px-3 py-2 rounded-full bg-gray-200"
+            action={() => onDelete(_id)}
+            title="Delete"
+            icon={<RiDeleteBin4Fill size={16} />}
+          />
+        </div>
         <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
           <div className="w-full flex items-center gap-3">
             <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">

@@ -1,6 +1,7 @@
-interface OptionProps {
+interface OptionProps
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "style"> {
   options: string[];
-  style: string;
+  style: string; // This is for CSS classes, not inline styles
   title: string;
   disabled: boolean;
 }
@@ -10,6 +11,7 @@ const InputOption = ({
   options,
   title,
   style,
+  value,
   ...props
 }: OptionProps) => {
   return (
@@ -17,10 +19,12 @@ const InputOption = ({
       <p className="text-sm font-semibold">{title}</p>
       <div className={`px-4 py-2.5 rounded-full ${style}`}>
         <select
-          className=" text-xs font-normal outline-none capitalize w-full"
-          {...props}
+          className="text-xs font-normal outline-none capitalize w-full"
           disabled={disabled}
+          value={value}
+          {...props}
         >
+          <option value="">Select {title.toLowerCase()}</option>
           {options.map((option: string, id) => (
             <option value={option} key={id}>
               {option}

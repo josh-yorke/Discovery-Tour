@@ -4,25 +4,23 @@ import {
   RiInformationFill,
   RiPencilFill,
 } from "react-icons/ri";
-import type { tourData } from "../../../types/tours/tourDataTypes";
 import { useState } from "react";
-import TitleText from "../../cards/TitleText";
-import Tags from "../../tags/Tags";
-import ImageCard from "../../cards/ImageCard";
-import IconButton from "../../button/IconButton";
+import TitleText from "../../../cards/TitleText";
+import Tags from "../../../tags/Tags";
+import type { RailPassData } from "../../../../types/rail-pass/railPassDataTypes";
+import IconButton from "../../../button/IconButton";
 
-interface Props extends tourData {
+interface Props extends RailPassData {
   onDelete: (_id: string) => void;
 }
 
-const TourLocation = ({
+const PassInformation = ({
   _id,
-  tags,
-  mainDescription,
-  mainLocationImages,
-  mainLocationName,
-  mainLocationDescription,
+  country,
   typeV2,
+  title,
+  category,
+  description,
   onDelete,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -32,20 +30,18 @@ const TourLocation = ({
   };
 
   return (
-    <>
+    <div className="w-full flex flex-col gap-6">
       <div className="w-full flex flex-col gap-6">
         <div className="w-full flex flex-col items-start justify-center gap-2">
-          <TitleText style="text-[#1d2087]" title={mainDescription} />
+          <TitleText style="text-[#1d2087]" title={title} />
           <div className="w-full flex flex-wrap gap-2">
-            {tags.map((tag: string) => (
-              <Tags key={tag} title={tag} />
-            ))}
+            <Tags key={country} title={country} />
           </div>
           <div className="w-full flex flex-row gap-2">
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/tours/edit/${_id}`, "_blank");
+                window.open(`/rail-passes/edit/${_id}`, "_blank");
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}
@@ -58,27 +54,29 @@ const TourLocation = ({
             />
           </div>
         </div>
+
         <div className="w-full border-2 border-dashed p-4 rounded-3xl border-[#1d2087]">
           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col items-center gap-1">
               <span className="text-xs font-medium text-gray-600">
-                Location
+                Category
               </span>
               <span className="font-bold text-sm text-[#1d2087] uppercase">
-                {mainLocationName}
+                {category}
               </span>
             </div>
 
             <div className="flex flex-col items-center gap-1">
               <span className="text-xs font-medium text-gray-600">
-                Tour Type
+                Pass Type
               </span>
               <span className="font-bold text-sm text-[#1d2087] uppercase">
-                {typeV2.tourType}
+                {typeV2.railPassType}
               </span>
             </div>
           </div>
         </div>
+
         <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
           <div className="w-full flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -87,10 +85,10 @@ const TourLocation = ({
               </div>
               <div className="flex flex-col">
                 <p className="text-base md:text-lg font-semibold text-black uppercase">
-                  About {mainLocationName}
+                  About
                 </p>
                 <p className="text-xs font-normal text-gray-600">
-                  Learn more about this destination
+                  Learn more about this rail pass
                 </p>
               </div>
             </div>
@@ -108,16 +106,15 @@ const TourLocation = ({
               <div className="w-full border-b border-black/6" />
               <div className="w-full pt-2">
                 <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
-                  {mainLocationDescription}
+                  {description}
                 </p>
               </div>
             </>
           )}
         </div>
-        <ImageCard style="" url={mainLocationImages} />
       </div>
-    </>
+    </div>
   );
 };
 
-export default TourLocation;
+export default PassInformation;

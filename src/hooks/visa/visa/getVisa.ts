@@ -63,6 +63,32 @@ export const getVisaPricelists = async (id: string) => {
   }
 };
 
+export const getPassPricelists = async (id: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?type=price&railPassId=${id}`);
+    console.log(res.data.data);
+    return {
+      pricelists: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
+export const getTransportPricelists = async (id: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?type=price&transportId=${id}`);
+    console.log(res.data.data);
+    return {
+      pricelists: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
 export const getVisaTerms = async (id: string) => {
   try {
     const res = await api.get(`/shared-fields/?type=terms&visaId=${id}`);

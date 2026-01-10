@@ -21,3 +21,29 @@ export const getTourPayment = async (id?: string) => {
     throw new Error(message);
   }
 };
+
+export const getPassPayment = async (id?: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?railPassId=${id}&type=payment`);
+    console.log(res);
+    return {
+      payments: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
+export const getTransportPayment = async (id?: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?transportId=${id}&type=payment`);
+    console.log(res);
+    return {
+      payments: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logout } from "../auth/useLogout";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -10,15 +11,41 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // * skip interceptor for refresh request itself
+    if (originalRequest._isRefreshRequest) {
+      return Promise.reject(error);
+    }
+
+    const noRefreshToken =
+      error.response?.data?.message === "No referesh token!";
+
+    if (
+      (error.response?.status === 401 || noRefreshToken) &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       try {
-        await api.post("/users/refresh");
+        // * mark this request so it doesn't go through interceptor again
+        const res = await api.post("/users/refresh", null, {
+          _isRefreshRequest: true,
+        });
 
+        if (res.data.message === "No refresh token!") {
+          alert("Session expired. Please login again");
+          await logout();
+          window.location.href = "/";
+          return Promise.reject(new Error("No refresh token"));
+        }
+
+        // * retry the original request
         return api(originalRequest);
       } catch (refreshError) {
         console.log("Refresh failed", refreshError);
+        alert("Session expired. Please login again");
+        await logout();
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
       }
     }
 

@@ -49,6 +49,10 @@ import EditTourInfo from "./pages/tours/EditTourInfo";
 import ViewTour from "./pages/tours/ViewTour";
 import RailPass from "./pages/rail-pass/RailPass";
 import AddRailPass from "./pages/rail-pass/AddRailPass";
+import EditRailPass from "./pages/rail-pass/EditRailPass";
+import AddRailPassInfo from "./pages/rail-pass/AddRailPassInfo";
+import EditRailPassInfo from "./pages/rail-pass/EditRailPassInfo";
+import ViewRailPass from "./pages/rail-pass/ViewRailPass";
 
 const router = createBrowserRouter([
   {
@@ -405,6 +409,38 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <AddRailPass />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/rail-passes/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditRailPass />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/rail-passes/information/add",
+    element: (
+      <RouteProtection>
+        <AddRailPassInfo />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/rail-passes/information/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditRailPassInfo />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/rail-passes/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewRailPass />
       </RouteProtection>
     ),
   },

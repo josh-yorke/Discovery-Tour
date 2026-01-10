@@ -3,27 +3,31 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+
+import {
+  addTourSchema,
+  type addTourData,
+} from "../../types/tours/addTourTypes";
 import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
+import { getTourTypesId } from "../../hooks/tours/getTours";
+import { updateTour } from "../../hooks/tours/updateTour";
+
 import InputOption from "../input/InputOption";
 import TextArea from "../input/TextArea";
 import ImageInput from "../input/ImageInput";
 import ActionButton from "../button/ActionButton";
 import Modal from "../modal/Modal";
 import Button from "../button/Button";
-import {
-  addTourSchema,
-  type addTourData,
-} from "../../types/tours/addTourTypes";
-import { getTourTypesId } from "../../hooks/tours/getTours";
 import Input from "../input/Input";
 import LocationImageInput from "../input/LocationImageInput";
 import TagsInput from "../input/TagsInput";
 import InputOptionId from "../input/InputOptionId";
-import { updateTour } from "../../hooks/tours/updateTour";
 
 interface EditInputsProps extends addTourData {
   id: string;
 }
+
+type RedirectTarget = "visa" | "information";
 
 const Edit = ({
   id,
@@ -38,14 +42,9 @@ const Edit = ({
   mainLocationDescription,
 }: EditInputsProps) => {
   const queryClient = useQueryClient();
-  const [message, showMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
-
-  // Log the type prop to see what you're receiving
-  console.log("Edit component - type prop:", type);
-  console.log("Edit component - type prop type:", typeof type);
-  console.log("Edit component - type prop JSON:", JSON.stringify(type));
+  const [redirectTo, setRedirectTo] = useState<RedirectTarget>("visa");
 
   const methods = useForm<addTourData>({
     resolver: zodResolver(addTourSchema),
@@ -62,18 +61,18 @@ const Edit = ({
     },
   });
 
-  const { data: countriesData } = useQuery({
+  const { watch } = methods;
+
+  const countriesQuery = useQuery({
     queryKey: ["visaCountries"],
     queryFn: getVisaCountries,
-    select: (data) => {
-      if (!data?.countries) return [];
-      return data.countries.filter(
+    select: (data) =>
+      data?.countries?.filter(
         (country): country is string => typeof country === "string"
-      );
-    },
+      ) || [],
   });
 
-  const { data: tourTypesData } = useQuery({
+  const tourTypesQuery = useQuery({
     queryKey: ["tourTypes"],
     queryFn: getTourTypesId,
   });
@@ -82,11 +81,10 @@ const Edit = ({
     register,
     setValue,
     handleSubmit,
-    reset,
     formState: { errors },
   } = methods;
 
-  const mutation = useMutation<
+  const updateMutation = useMutation<
     { id: string; message: string },
     Error,
     FormData
@@ -94,28 +92,23 @@ const Edit = ({
     mutationFn: (formData) => updateTour(id, formData),
     onSuccess: (data) => {
       localStorage.setItem("tourId", data.id);
-      showMessage(data.message);
+      setMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ["tours"], exact: false });
 
-      if (redirectTo === "information") {
-        navigate(`/tours/information/edit/${id}`);
-      } else {
-        navigate(`/tours`);
-      }
+      const redirectPath =
+        redirectTo === "information"
+          ? `/tours/information/edit/${id}`
+          : `/tours`;
 
-      reset();
+      navigate(redirectPath);
     },
     onError: (error) => {
-      showMessage(error.message);
+      setMessage(error.message);
     },
   });
 
-  const onSubmit = (data: addTourData) => {
-    console.log("onSubmit - form data type field:", data.type);
-    console.log("onSubmit - form data type field type:", typeof data.type);
-
+  const createFormData = (data: addTourData) => {
     const formData = new FormData();
-
     formData.append("country", data.country);
     formData.append("type", data.type);
     formData.append("mainDescription", data.mainDescription);
@@ -135,24 +128,29 @@ const Edit = ({
       formData.append("mainLocationImages", file);
     });
 
-    mutation.mutate(formData);
+    return formData;
   };
 
-  const handleProceedToInformation = (data: addTourData) => {
-    setRedirectTo("information");
-    onSubmit(data);
+  const handleSubmitAction = (data: addTourData, target: RedirectTarget) => {
+    setRedirectTo(target);
+    const formData = createFormData(data);
+    updateMutation.mutate(formData);
   };
 
-  const countries = useMemo(() => countriesData || [], [countriesData]);
-  const types = useMemo(() => tourTypesData || [], [tourTypesData]);
+  const countries = useMemo(
+    () => countriesQuery.data || [],
+    [countriesQuery.data]
+  );
+  const types = useMemo(() => tourTypesQuery.data || [], [tourTypesQuery.data]);
+
+  const currentCountry = watch("country");
+  const currentCategory = watch("category");
 
   return (
     <>
       <FormProvider {...methods}>
         <form
-          onSubmit={handleSubmit(onSubmit, (err) => {
-            console.log("Form submission errors:", err);
-          })}
+          onSubmit={handleSubmit((data) => handleSubmitAction(data, "visa"))}
           className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-start">
@@ -161,6 +159,7 @@ const Edit = ({
               style="bg-white w-full"
               title="Country"
               options={countries}
+              value={currentCountry || ""}
               {...register("country")}
             />
 
@@ -177,6 +176,7 @@ const Edit = ({
               style="bg-white w-full"
               title="Category"
               options={["international", "domestic"]}
+              value={currentCategory || ""}
               {...register("category")}
             />
 
@@ -239,14 +239,16 @@ const Edit = ({
 
             <div className="w-full flex flex-row gap-4">
               <Button
-                isLoading={mutation.isPending}
+                isLoading={updateMutation.isPending}
                 title="Update Tour"
                 style="bg-white hover:bg-[#f7f9ff] text-[#1d2087] text-sm lg:text-base duration-300 mt-4"
               />
 
               <ActionButton
-                action={handleSubmit(handleProceedToInformation)}
-                isLoading={mutation.isPending}
+                action={handleSubmit((data) =>
+                  handleSubmitAction(data, "information")
+                )}
+                isLoading={updateMutation.isPending}
                 title="Proceed to Tour Information"
                 style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm lg:text-base duration-300 mt-4"
               />
@@ -254,20 +256,12 @@ const Edit = ({
           </div>
         </form>
       </FormProvider>
+
       {message && (
         <Modal
           message={message}
-          success={mutation.isSuccess}
-          action={() => {
-            showMessage(null);
-            if (mutation.isSuccess) {
-              if (redirectTo === "information") {
-                navigate(`/tours/information/edit/${id}`);
-              } else {
-                navigate("/tours");
-              }
-            }
-          }}
+          success={updateMutation.isSuccess}
+          action={() => setMessage(null)}
         />
       )}
     </>

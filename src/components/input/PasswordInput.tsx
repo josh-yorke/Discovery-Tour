@@ -23,7 +23,7 @@ const PasswordInput = ({
       <div className="w-full relative flex items-center justify-center">
         <input
           type={type ? "password" : "text"}
-          className={`w-full px-6 py-3 outline-none rounded-lg font-normal ${style}`}
+          className={`w-full px-6 py-3 outline-none rounded-full font-normal ${style}`}
           placeholder={placeholder}
           {...props}
         />

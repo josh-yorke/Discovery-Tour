@@ -26,7 +26,7 @@ export interface AwardsResponse {
 export const getAwards = async (): Promise<AwardsResponse> => {
   try {
     const res = await api.get(
-      `/company/awards?id=68f82f7317ac671ea8917396&groupByYear=true`
+      `/company/awards?id=69615f8fba32498f77077c23&groupByYear=true`
     );
 
     const groupedData = res.data.data;

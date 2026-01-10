@@ -12,6 +12,7 @@ export const addRailPassSchema = z.object({
   description: z.string().min(2, "description is required"),
   category: z.string().min(2, "category is required"),
   title: z.string().min(2, "title is required"),
+  type: z.string().min(2, "pass type is required"),
 });
 
 export type addRailPassData = z.infer<typeof addRailPassSchema>;

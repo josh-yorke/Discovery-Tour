@@ -41,11 +41,11 @@ const Login = () => {
 
   return (
     <>
-      <div className="relative w-full h-[100svh] flex flex-col-reverse lg:flex-row items-center justify-center text-sm">
+      <div className="relative w-full h-svh flex flex-col-reverse lg:flex-row items-center justify-center text-sm">
         <Hero />
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="absolute w-[360px] rounded-lg flex flex-col items-center justify-center px-8 py-12 gap-4 bg-white"
+          className="absolute w-90 rounded-3xl flex flex-col items-center justify-center px-8 py-12 gap-4 bg-white"
         >
           <Header />
           <Input

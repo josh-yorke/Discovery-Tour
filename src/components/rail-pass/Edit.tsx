@@ -1,112 +1,143 @@
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
-import InputOption from "../input/InputOption";
-import TextArea from "../input/TextArea";
-import ImageInput from "../input/ImageInput";
-import ActionButton from "../button/ActionButton";
-import Modal from "../modal/Modal";
-import Button from "../button/Button";
-import Input from "../input/Input";
+import { useMemo, useState } from "react";
+import { useWatch } from "react-hook-form";
+
 import {
   addRailPassSchema,
   type addRailPassData,
 } from "../../types/rail-pass/addRailPassTypes";
-import { addRailPass } from "../../hooks/rail-pass/railPass";
+import { updateRailPass } from "../../hooks/rail-pass/railPass";
+import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
 import { getPassCategory } from "../../hooks/category/category";
 import { getPassTypesByCategory } from "../../hooks/category/type";
 
-const Add = () => {
+import Button from "../button/Button";
+import ImageInput from "../input/ImageInput";
+import TextArea from "../input/TextArea";
+import InputOption from "../input/InputOption";
+import Input from "../input/Input";
+import Modal from "../modal/Modal";
+import ActionButton from "../button/ActionButton";
+
+interface EditInputsProps extends addRailPassData {
+  id: string;
+}
+
+type RedirectTarget = "rail-pass" | "information";
+
+const Edit = ({
+  id,
+  country,
+  type,
+  description,
+  title,
+  category,
+  images,
+}: EditInputsProps) => {
+  const [message, setMessage] = useState<string | null>(null);
+  const [redirectTo, setRedirectTo] = useState<RedirectTarget>("rail-pass");
   const queryClient = useQueryClient();
-  const [message, showMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-  const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
+
   const methods = useForm<addRailPassData>({
     resolver: zodResolver(addRailPassSchema),
+    defaultValues: {
+      country,
+      type,
+      description,
+      title,
+      category,
+      images,
+    },
   });
+
+  const { watch } = methods;
 
   const selectedCategory = useWatch({
     control: methods.control,
     name: "category",
   });
 
-  const { data: countriesData } = useQuery({
+  const countriesQuery = useQuery({
     queryKey: ["visaCountries"],
     queryFn: getVisaCountries,
-    select: (data) => {
-      if (!data?.countries) return [];
-      return data.countries.filter(
+    select: (data) =>
+      data?.countries?.filter(
         (country): country is string => typeof country === "string"
-      );
-    },
+      ) || [],
   });
 
-  const { data: passCategoryData } = useQuery({
+  const categoriesQuery = useQuery({
     queryKey: ["passCategory"],
     queryFn: getPassCategory,
-    select: (data) => {
-      if (!data?.categories) return [];
-      return data.categories.filter(
+    select: (data) =>
+      data?.categories?.filter(
         (category): category is string => typeof category === "string"
-      );
-    },
+      ) || [],
   });
 
-  const { data: passTypeData, isLoading: isLoadingPassTypes } = useQuery({
+  const passTypesQuery = useQuery({
     queryKey: ["passType", selectedCategory],
     queryFn: () => {
       if (!selectedCategory) return { types: [] };
       return getPassTypesByCategory(selectedCategory);
     },
     enabled: !!selectedCategory,
-    select: (data) => {
-      if (!data?.types) return [];
-      return data.types.filter(
-        (type): type is string => typeof type === "string"
-      );
-    },
+    select: (data) =>
+      data?.types?.filter((type): type is string => typeof type === "string") ||
+      [],
   });
+
+  const countries = useMemo(
+    () => countriesQuery.data || [],
+    [countriesQuery.data]
+  );
+  const categories = useMemo(
+    () => categoriesQuery.data || [],
+    [categoriesQuery.data]
+  );
+  const passTypes = useMemo(
+    () => passTypesQuery.data || [],
+    [passTypesQuery.data]
+  );
 
   const {
     register,
     setValue,
     handleSubmit,
-    reset,
     formState: { errors },
   } = methods;
 
-  const mutation = useMutation<
-    { id: string; message: string },
+  const updateMutation = useMutation<
+    string,
     Error,
-    FormData
+    { id: string; data: FormData }
   >({
-    mutationFn: addRailPass,
+    mutationFn: ({ id, data }) => updateRailPass(id, data),
     onSuccess: (data) => {
-      localStorage.setItem("railPassId", data.id);
-      showMessage(data.message);
+      setMessage(data);
       queryClient.invalidateQueries({ queryKey: ["railPass"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["railPass", id] });
 
-      if (redirectTo === "information") {
-        navigate(`/rail-passes/information/add`);
-      } else {
-        navigate(`/rail-passes`);
-      }
+      const redirectPath =
+        redirectTo === "information"
+          ? `/rail-passes/information/edit/${id}`
+          : `/rail-passes`;
 
-      reset();
+      navigate(redirectPath);
     },
     onError: (error) => {
-      showMessage(error.message);
+      setMessage(error.message);
     },
   });
 
-  const onSubmit = (data: addRailPassData) => {
+  const createFormData = (data: addRailPassData) => {
     const formData = new FormData();
-
     formData.append("country", data.country);
-    formData.append("type", data.type || "JR-SOUTH");
+    formData.append("type", data.type);
     formData.append("description", data.description);
     formData.append("title", data.title);
     formData.append("category", data.category);
@@ -115,23 +146,29 @@ const Add = () => {
       formData.append("images", file);
     });
 
-    mutation.mutate(formData);
+    return formData;
   };
 
-  const handleProceedToInformation = (data: addRailPassData) => {
-    setRedirectTo("information");
-    onSubmit(data);
+  const handleSubmitAction = (
+    data: addRailPassData,
+    target: RedirectTarget
+  ) => {
+    setRedirectTo(target);
+    const formData = createFormData(data);
+    updateMutation.mutate({ id, data: formData });
   };
 
-  const countries = useMemo(() => countriesData || [], [countriesData]);
-  const category = useMemo(() => passCategoryData || [], [passCategoryData]);
-  const passTypes = useMemo(() => passTypeData || [], [passTypeData]);
+  const currentCountry = watch("country");
+  const currentCategory = watch("category");
+  const currentType = watch("type");
 
   return (
     <>
       <FormProvider {...methods}>
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit((data) =>
+            handleSubmitAction(data, "rail-pass")
+          )}
           className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-start">
@@ -140,6 +177,7 @@ const Add = () => {
               style="bg-white w-full"
               title="Country"
               options={countries}
+              value={currentCountry || ""}
               {...register("country")}
             />
 
@@ -147,7 +185,8 @@ const Add = () => {
               disabled={false}
               style="bg-white w-full"
               title="Category"
-              options={category}
+              options={categories}
+              value={currentCategory || ""}
               {...register("category")}
             />
 
@@ -156,10 +195,11 @@ const Add = () => {
               style="bg-white w-full"
               title="Pass Type"
               options={passTypes}
+              value={currentType || ""}
               {...register("type")}
             />
 
-            {isLoadingPassTypes && selectedCategory && (
+            {passTypesQuery.isLoading && selectedCategory && (
               <p className="text-gray-500 text-sm">Loading pass types...</p>
             )}
 
@@ -182,6 +222,7 @@ const Add = () => {
             />
 
             <ImageInput
+              initialFiles={images}
               title="Images"
               disabled={false}
               register={register}
@@ -195,35 +236,33 @@ const Add = () => {
 
             <div className="w-full flex flex-row gap-4">
               <Button
-                isLoading={mutation.isPending}
-                title="Save Rail Pass"
+                isLoading={updateMutation.isPending}
+                title="Update Rail Pass"
                 style="bg-white hover:bg-[#f7f9ff] text-[#1d2087] text-sm lg:text-base duration-300 mt-4"
               />
 
               <ActionButton
-                action={handleSubmit(handleProceedToInformation)}
-                isLoading={mutation.isPending}
-                title="Add Pass Information"
+                action={handleSubmit((data) =>
+                  handleSubmitAction(data, "information")
+                )}
+                isLoading={updateMutation.isPending}
+                title="Proceed to Pass Information"
                 style="bg-[#1d2087] hover:bg-[#3b3eac] text-white text-sm lg:text-base duration-300 mt-4"
               />
             </div>
           </div>
         </form>
       </FormProvider>
+
       {message && (
         <Modal
           message={message}
-          success={mutation.isSuccess}
-          action={() => {
-            showMessage(null);
-            if (mutation.isSuccess) {
-              navigate("/tours/information/add");
-            }
-          }}
+          success={updateMutation.isSuccess}
+          action={() => setMessage(null)}
         />
       )}
     </>
   );
 };
 
-export default Add;
+export default Edit;

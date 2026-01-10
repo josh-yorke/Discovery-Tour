@@ -11,23 +11,25 @@ export const getPassTypes = async () => {
   }
 };
 
-// export const getPassTypesByCategory = async (category: string) => {
-//   try {
-//     const res = await api.get(
-//       `/categories-available/types?category=${category}&type=railpass`
-//     );
+export const getPassTypesByCategory = async (category: string) => {
+  try {
+    const res = await api.get(
+      `/categories-available/types?category=${category}&type=pass-type`
+    );
 
-//     const types = [
-//       ...new Set(res.data.data.map((item: any) => item.railPassCategory)),
-//     ];
-//     return {
-//       categories,
-//     };
-//   } catch (error: any) {
-//     const message = error.response.data.message || error;
-//     throw new Error(message);
-//   }
-// };
+    console.log(res.data);
+
+    const types = [
+      ...new Set(res.data.data.map((item: any) => item.type.railPassType)),
+    ];
+    return {
+      types,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
 
 export const addPassType = async (railPassType: string) => {
   try {
