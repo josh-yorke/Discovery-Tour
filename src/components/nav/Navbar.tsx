@@ -72,21 +72,22 @@ const Navbar = () => {
               title="Tours"
             />
 
-            <LinkButton
-              to="/rail-passes"
+            <HoverLink
+              options={["rail-passes", "vehicles"]}
+              to="/transport"
               style={`${
-                pathname.startsWith("/rail-passes")
+                pathname.startsWith("/transport")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
-                pathname.startsWith("/rail-passes") ? (
+                pathname.startsWith("/transport") ? (
                   <RiTrainFill size={16} />
                 ) : (
                   <RiTrainLine size={16} />
                 )
               }
-              title="Rail Pass"
+              title="Transport"
             />
 
             <LinkButton
@@ -242,21 +243,22 @@ const Navbar = () => {
                 title="Tours"
               />
 
-              <LinkButton
-                to="/rail-passes"
+              <DropdownLink
+                options={["rail-passes", "vehicles"]}
+                to="/transport"
                 style={`${
-                  pathname.startsWith("/rail-passes")
+                  pathname.startsWith("/transport")
                     ? "font-semibold text-[#1d2087]"
                     : "font-normal"
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
-                  pathname.startsWith("/rail-passes") ? (
+                  pathname.startsWith("/transport") ? (
                     <RiTrainFill size={16} />
                   ) : (
                     <RiTrainLine size={16} />
                   )
                 }
-                title="Rail Pass"
+                title="Transport"
               />
 
               <LinkButton

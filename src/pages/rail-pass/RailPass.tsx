@@ -16,6 +16,7 @@ import {
 import { getRailPasses } from "../../hooks/rail-passes/getRailPasses";
 import RailPassSearch from "../../components/search/searchform/RailPassSearch";
 import RailPassParent from "../../components/rail-pass/RailPassParent";
+import { getPassCategory } from "../../hooks/category/category";
 
 const Tours = () => {
   const { register, handleSubmit, setValue, getValues } = useForm<
@@ -34,6 +35,7 @@ const Tours = () => {
     page: 1,
     search: "",
     country: "",
+    category: "",
     type: "",
   });
 
@@ -44,6 +46,17 @@ const Tours = () => {
       if (!data?.countries) return [];
       return data.countries.filter(
         (country): country is string => typeof country === "string"
+      );
+    },
+  });
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["passCategories"],
+    queryFn: getPassCategory,
+    select: (data) => {
+      if (!data?.categories) return [];
+      return data.categories.filter(
+        (category): category is string => typeof category === "string"
       );
     },
   });
@@ -73,12 +86,15 @@ const Tours = () => {
   };
 
   const countries = useMemo(() => countriesData || [], [countriesData]);
+  const categories = useMemo(() => categoriesData || [], [categoriesData]);
 
   return (
     <>
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <RailPassSearch
+          categories={categories}
+          category={register("category")}
           country={register("country")}
           search={register("search")}
           action={handleSubmit(onSubmit)}

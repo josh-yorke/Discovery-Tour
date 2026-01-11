@@ -53,6 +53,9 @@ import EditRailPass from "./pages/rail-pass/EditRailPass";
 import AddRailPassInfo from "./pages/rail-pass/AddRailPassInfo";
 import EditRailPassInfo from "./pages/rail-pass/EditRailPassInfo";
 import ViewRailPass from "./pages/rail-pass/ViewRailPass";
+import Vehicles from "./pages/vehicles/Vehicles";
+import AddVehicle from "./pages/vehicles/AddVehicle";
+import EditVehicle from "./pages/vehicles/EditVehicle";
 
 const router = createBrowserRouter([
   {
@@ -397,7 +400,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/rail-passes",
+    path: "/transport/rail-passes",
     element: (
       <RouteProtection>
         <RailPass />
@@ -405,7 +408,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/rail-passes/add",
+    path: "/transport/rail-passes/add",
     element: (
       <RouteProtection>
         <AddRailPass />
@@ -413,7 +416,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/rail-passes/edit/:id",
+    path: "/transport/rail-passes/edit/:id",
     element: (
       <RouteProtection>
         <EditRailPass />
@@ -421,7 +424,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/rail-passes/information/add",
+    path: "/transport/rail-passes/information/add",
     element: (
       <RouteProtection>
         <AddRailPassInfo />
@@ -429,7 +432,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/rail-passes/information/edit/:id",
+    path: "/transport/rail-passes/information/edit/:id",
     element: (
       <RouteProtection>
         <EditRailPassInfo />
@@ -437,10 +440,34 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/rail-passes/view/:id",
+    path: "/transport/rail-passes/view/:id",
     element: (
       <RouteProtection>
         <ViewRailPass />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/vehicles",
+    element: (
+      <RouteProtection>
+        <Vehicles />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/vehicles/add",
+    element: (
+      <RouteProtection>
+        <AddVehicle />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/vehicles/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditVehicle />
       </RouteProtection>
     ),
   },

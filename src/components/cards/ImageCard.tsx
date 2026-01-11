@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
-import { RiArrowLeftSLine, RiArrowRightSLine } from "react-icons/ri";
+import {
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
+  RiCloseLine,
+  RiFullscreenLine,
+} from "react-icons/ri";
 
 const api = import.meta.env.VITE_API_URL;
 
@@ -79,10 +84,18 @@ const useContainerSize = (): ContainerSize => {
 const useKeyboardNavigation = (
   urlLength: number,
   goToPrevious: () => void,
-  goToNext: () => void
+  goToNext: () => void,
+  isFullscreen: boolean = false,
+  onCloseFullscreen?: () => void
 ): void => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
+      // Handle escape key for fullscreen mode
+      if (isFullscreen && event.key === "Escape" && onCloseFullscreen) {
+        onCloseFullscreen();
+        return;
+      }
+
       if (urlLength <= 1) return;
 
       switch (event.key) {
@@ -99,15 +112,27 @@ const useKeyboardNavigation = (
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [urlLength, goToPrevious, goToNext]);
+  }, [urlLength, goToPrevious, goToNext, isFullscreen, onCloseFullscreen]);
 };
 
 const useImageUrls = (
   containerWidth: number,
-  currentImage: number
+  currentImage: number,
+  isFullscreen: boolean = false
 ): ImageUrls => {
   const getOptimalImageSize = useCallback((): ImageSize => {
     let targetWidth = containerWidth;
+
+    // For fullscreen mode, use screen dimensions
+    if (isFullscreen) {
+      targetWidth = Math.min(window.innerWidth, window.screen.width);
+      const targetHeight = Math.min(window.innerHeight, window.screen.height);
+
+      return {
+        width: Math.round(targetWidth * DPR),
+        height: Math.round(targetHeight * DPR),
+      };
+    }
 
     if (containerWidth <= BREAKPOINTS.mobile.maxWidth) {
       targetWidth = Math.min(
@@ -132,13 +157,13 @@ const useImageUrls = (
       width: Math.round(targetWidth / 25) * 25,
       height: Math.round(targetHeight / 25) * 25,
     };
-  }, [containerWidth]);
+  }, [containerWidth, isFullscreen]);
 
   const getOptimizedImageUrl = useCallback(
     (imagePath: string, index: number = 0): string => {
       const encodedPath = encodeURIComponent(imagePath);
       const { width, height } = getOptimalImageSize();
-      const quality = index === currentImage ? "80" : "65";
+      const quality = index === currentImage ? "85" : "70";
 
       const params = new URLSearchParams({
         w: width.toString(),
@@ -158,13 +183,89 @@ const useImageUrls = (
     const encodedPath = encodeURIComponent(imagePath);
     const params = new URLSearchParams({
       format: "jpeg",
-      q: "75",
+      q: "80",
     });
     return `${api}/images/${encodedPath}?${params.toString()}`;
   }, []);
 
   return { getOptimizedImageUrl, getFallbackUrl };
 };
+
+// Image component
+interface ImageComponentProps {
+  imagePath: string;
+  index: number;
+  isCurrent: boolean;
+  getOptimizedImageUrl: (imagePath: string, index?: number) => string;
+  getFallbackUrl: (imagePath: string) => string;
+  openFullscreen: (index: number) => void;
+}
+
+const ImageComponent = memo<ImageComponentProps>(
+  ({
+    imagePath,
+    index,
+    isCurrent,
+    getOptimizedImageUrl,
+    getFallbackUrl,
+    openFullscreen,
+  }) => {
+    const [hasError, setHasError] = useState<boolean>(false);
+    const [currentSrc, setCurrentSrc] = useState<string>(() =>
+      getOptimizedImageUrl(imagePath, index)
+    );
+
+    useEffect(() => {
+      setCurrentSrc(getOptimizedImageUrl(imagePath, index));
+      setHasError(false);
+    }, [imagePath, getOptimizedImageUrl, index]);
+
+    const handleError = (): void => {
+      if (!hasError) {
+        // Try fallback URL
+        setCurrentSrc(getFallbackUrl(imagePath));
+        setHasError(true);
+      }
+    };
+
+    const handleClick = () => {
+      if (isCurrent) {
+        openFullscreen(index);
+      }
+    };
+
+    if (hasError && currentSrc === getFallbackUrl(imagePath)) {
+      return (
+        <div className="w-full h-full shrink-0 flex items-center justify-center bg-gray-200">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-gray-600 mb-2">404</div>
+            <div className="text-gray-500 text-sm">Image not found</div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="w-full h-full shrink-0 flex items-center justify-center cursor-pointer"
+        onClick={handleClick}
+      >
+        <img
+          src={currentSrc}
+          alt={`Image ${index + 1}`}
+          className="w-full h-full object-cover"
+          loading={isCurrent ? "eager" : "lazy"}
+          decoding="async"
+          onError={handleError}
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
+        />
+      </div>
+    );
+  }
+);
+
+ImageComponent.displayName = "ImageComponent";
 
 // Navigation component
 const NavigationControls = memo<NavigationControlsProps>(
@@ -175,7 +276,7 @@ const NavigationControls = memo<NavigationControlsProps>(
       <>
         <button
           onClick={goToPrevious}
-          className="absolute top-1/2 left-2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+          className="absolute top-1/2 left-2 -translate-y-1/2 z-floating p-2 rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 opacity-0 group-hover:opacity-100 backdrop-blur-sm"
           aria-label="Previous image"
         >
           <RiArrowLeftSLine size={24} className="text-white drop-shadow-lg" />
@@ -183,7 +284,7 @@ const NavigationControls = memo<NavigationControlsProps>(
 
         <button
           onClick={goToNext}
-          className="absolute top-1/2 right-2 -translate-y-1/2 z-10 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+          className="absolute top-1/2 right-2 -translate-y-1/2 z-floating p-2 rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 opacity-0 group-hover:opacity-100 backdrop-blur-sm"
           aria-label="Next image"
         >
           <RiArrowRightSLine size={24} className="text-white drop-shadow-lg" />
@@ -203,10 +304,6 @@ const NavigationControls = memo<NavigationControlsProps>(
             />
           ))}
         </div>
-
-        <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded-md bg-black/30 backdrop-blur-sm text-white text-xs">
-          {currentImage + 1} / {urlLength}
-        </div>
       </>
     );
   }
@@ -214,72 +311,15 @@ const NavigationControls = memo<NavigationControlsProps>(
 
 NavigationControls.displayName = "NavigationControls";
 
-// Image component
-interface ImageComponentProps {
-  imagePath: string;
-  index: number;
-  isCurrent: boolean;
-  getOptimizedImageUrl: (imagePath: string, index?: number) => string;
-  getFallbackUrl: (imagePath: string) => string;
-}
-
-const ImageComponent = memo<ImageComponentProps>(
-  ({ imagePath, index, isCurrent, getOptimizedImageUrl, getFallbackUrl }) => {
-    const [hasError, setHasError] = useState<boolean>(false);
-    const [currentSrc, setCurrentSrc] = useState<string>(() =>
-      getOptimizedImageUrl(imagePath, index)
-    );
-
-    useEffect(() => {
-      setCurrentSrc(getOptimizedImageUrl(imagePath, index));
-      setHasError(false);
-    }, [imagePath, getOptimizedImageUrl, index]);
-
-    const handleError = (): void => {
-      if (!hasError) {
-        // Try fallback URL
-        setCurrentSrc(getFallbackUrl(imagePath));
-        setHasError(true);
-      }
-    };
-
-    if (hasError && currentSrc === getFallbackUrl(imagePath)) {
-      return (
-        <div className="w-full h-full shrink-0 flex items-center justify-center bg-gray-200">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600 mb-2">404</div>
-            <div className="text-gray-500 text-sm">Image not found</div>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full h-full shrink-0 flex items-center justify-center">
-        <img
-          src={currentSrc}
-          alt={`Image ${index + 1}`}
-          className="w-full h-full object-cover"
-          loading={isCurrent ? "eager" : "lazy"}
-          decoding="async"
-          onError={handleError}
-          draggable={false}
-          onContextMenu={(e) => e.preventDefault()}
-        />
-      </div>
-    );
-  }
-);
-
-ImageComponent.displayName = "ImageComponent";
-
 // Main component
 const ImageCard = memo<ImageCardProps>(({ url, style }) => {
   const [currentImage, setCurrentImage] = useState<number>(0);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const { containerWidth, containerRef } = useContainerSize();
   const { getOptimizedImageUrl, getFallbackUrl } = useImageUrls(
     containerWidth,
-    currentImage
+    currentImage,
+    isFullscreen
   );
 
   const goToPrevious = useCallback(
@@ -294,7 +334,50 @@ const ImageCard = memo<ImageCardProps>(({ url, style }) => {
 
   const goToImage = useCallback((index: number) => setCurrentImage(index), []);
 
-  useKeyboardNavigation(url.length, goToPrevious, goToNext);
+  const openFullscreen = useCallback((index: number) => {
+    setCurrentImage(index);
+    setIsFullscreen(true);
+    document.body.style.overflow = "hidden";
+  }, []);
+
+  const closeFullscreen = useCallback(() => {
+    setIsFullscreen(false);
+    document.body.style.overflow = "";
+  }, []);
+
+  const nextFullscreenImage = useCallback(() => {
+    setCurrentImage((prev) => (prev + 1) % url.length);
+  }, [url.length]);
+
+  const prevFullscreenImage = useCallback(() => {
+    setCurrentImage((prev) => (prev - 1 + url.length) % url.length);
+  }, [url.length]);
+
+  useKeyboardNavigation(
+    url.length,
+    goToPrevious,
+    goToNext,
+    isFullscreen,
+    closeFullscreen
+  );
+
+  // Fullscreen image URL generator (higher quality for fullscreen)
+  const getFullscreenImageUrl = useCallback((imagePath: string): string => {
+    const encodedPath = encodeURIComponent(imagePath);
+    const width = Math.min(window.innerWidth * DPR, 3840);
+    const height = Math.min(window.innerHeight * DPR, 2160);
+
+    const params = new URLSearchParams({
+      w: width.toString(),
+      h: height.toString(),
+      q: "90",
+      fit: "contain",
+      format: "webp",
+      dpr: DPR.toString(),
+    });
+
+    return `${api}/images/${encodedPath}?${params.toString()}`;
+  }, []);
 
   // Empty state
   if (!url || url.length === 0) {
@@ -311,35 +394,108 @@ const ImageCard = memo<ImageCardProps>(({ url, style }) => {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={`w-full relative overflow-hidden ${style} bg-gray-100 group`}
-      style={{ aspectRatio: "3/2" }}
-    >
+    <>
       <div
-        className="w-full h-full flex transition-transform duration-300 ease-in-out"
-        style={{ transform: `translateX(-${currentImage * 100}%)` }}
+        ref={containerRef}
+        className={`w-full relative overflow-hidden ${style} bg-gray-100 group`}
+        style={{ aspectRatio: "3/2" }}
       >
-        {url.map((imagePath, index) => (
-          <ImageComponent
-            key={`${imagePath}-${index}`}
-            imagePath={imagePath}
-            index={index}
-            isCurrent={index === currentImage}
-            getOptimizedImageUrl={getOptimizedImageUrl}
-            getFallbackUrl={getFallbackUrl}
-          />
-        ))}
+        <div
+          className="w-full h-full flex transition-transform duration-300 ease-in-out"
+          style={{ transform: `translateX(-${currentImage * 100}%)` }}
+        >
+          {url.map((imagePath, index) => (
+            <ImageComponent
+              key={`${imagePath}-${index}`}
+              imagePath={imagePath}
+              index={index}
+              isCurrent={index === currentImage}
+              getOptimizedImageUrl={getOptimizedImageUrl}
+              getFallbackUrl={getFallbackUrl}
+              openFullscreen={openFullscreen}
+            />
+          ))}
+        </div>
+
+        <NavigationControls
+          urlLength={url.length}
+          currentImage={currentImage}
+          goToPrevious={goToPrevious}
+          goToNext={goToNext}
+          goToImage={goToImage}
+        />
+
+        {/* Fullscreen button */}
+        <button
+          onClick={() => openFullscreen(currentImage)}
+          className="absolute top-3 right-3 z-floating p-2 rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
+          aria-label="Open fullscreen"
+        >
+          <RiFullscreenLine size={16} className="text-white drop-shadow-lg" />
+        </button>
       </div>
 
-      <NavigationControls
-        urlLength={url.length}
-        currentImage={currentImage}
-        goToPrevious={goToPrevious}
-        goToNext={goToNext}
-        goToImage={goToImage}
-      />
-    </div>
+      {/* Fullscreen overlay */}
+      {isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+          <button
+            onClick={closeFullscreen}
+            className="absolute top-4 right-4 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white z-20 transition-all duration-200"
+            aria-label="Close fullscreen"
+          >
+            <RiCloseLine size={24} />
+          </button>
+
+          {url.length > 1 && (
+            <>
+              <button
+                onClick={prevFullscreenImage}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white z-20 transition-all duration-200"
+                aria-label="Previous image"
+              >
+                <RiArrowLeftSLine size={28} />
+              </button>
+              <button
+                onClick={nextFullscreenImage}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/50 hover:bg-black/70 rounded-full text-white z-20 transition-all duration-200"
+                aria-label="Next image"
+              >
+                <RiArrowRightSLine size={28} />
+              </button>
+            </>
+          )}
+
+          <div className="relative w-full h-full flex items-center justify-center p-4">
+            <img
+              src={getFullscreenImageUrl(url[currentImage])}
+              alt={`Fullscreen view ${currentImage + 1}`}
+              className="max-w-full max-h-full object-contain"
+              onError={(e) => {
+                const fallbackUrl = getFallbackUrl(url[currentImage]);
+                if (e.currentTarget.src !== fallbackUrl) {
+                  e.currentTarget.src = fallbackUrl;
+                }
+              }}
+            />
+          </div>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3 z-20">
+            {url.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentImage(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/50 ${
+                  currentImage === index
+                    ? "bg-white scale-125"
+                    : "bg-white/50 hover:bg-white/70"
+                }`}
+                aria-label={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 });
 

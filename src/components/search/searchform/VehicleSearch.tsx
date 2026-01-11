@@ -3,25 +3,13 @@ import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
 import SearchInput from "../SearchInput";
-import Options from "../Options";
 
 interface FormProps {
   search: UseFormRegisterReturn;
-  country: UseFormRegisterReturn;
-  category: UseFormRegisterReturn;
   action: () => void;
-  countries: string[];
-  categories: string[];
 }
 
-const RailPassSearch = ({
-  action,
-  search,
-  country,
-  category,
-  countries,
-  categories,
-}: FormProps) => {
+const VehicleSearch = ({ action, search }: FormProps) => {
   const navigate = useNavigate();
 
   return (
@@ -30,12 +18,10 @@ const RailPassSearch = ({
       onSubmit={action}
     >
       <div className="">
-        <p className="text-md font-semibold text-[#1d2087]">
-          Manage Rail Passes
-        </p>
+        <p className="text-md font-semibold text-[#1d2087]">Manage Vehicles</p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput placeholder="search rail pass" {...search} />
+        <SearchInput placeholder="search vehicles" {...search} />
         <button
           type="submit"
           className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
@@ -45,17 +31,13 @@ const RailPassSearch = ({
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options options={countries} {...country} title="Country" />
-        <Options options={categories} {...category} title="Category" />
-
-        {/* {types.length > 0 && (
-          <Options options={types} {...tourType} title="Tour Type" />
-        )} */}
+        {/* <Options options={countries} {...country} title="Country" />
+        <Options options={categories} {...category} title="Category" /> */}
 
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"
-          action={() => navigate("/rail-passes/add")}
+          action={() => navigate("/vehicles/add")}
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>
@@ -63,4 +45,4 @@ const RailPassSearch = ({
   );
 };
 
-export default RailPassSearch;
+export default VehicleSearch;
