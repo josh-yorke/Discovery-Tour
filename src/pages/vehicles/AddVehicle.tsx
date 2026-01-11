@@ -9,7 +9,7 @@ const AddVehicle = () => {
       <Header
         style="px-6 lg:px-0 py-6"
         title="Add Vehicle"
-        url="/vehicles"
+        url="/transport/vehicles"
         id=""
       />
       <Add />

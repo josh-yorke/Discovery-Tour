@@ -8,6 +8,7 @@ const newsDataSchema = z.object({
   images: z.array(z.string()),
   status: z.string(),
   savedAt: z.string(),
+  slug: z.string(),
 });
 
 export type newsData = z.infer<typeof newsDataSchema>;

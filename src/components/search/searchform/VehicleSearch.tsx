@@ -37,7 +37,7 @@ const VehicleSearch = ({ action, search }: FormProps) => {
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"
-          action={() => navigate("/vehicles/add")}
+          action={() => navigate("/transport/vehicles/add")}
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>

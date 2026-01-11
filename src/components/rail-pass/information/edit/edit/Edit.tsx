@@ -1488,7 +1488,7 @@ const Edit = () => {
               message.type === "success" &&
               message.action === "addOrUpdate"
             ) {
-              navigate("/rail-passes");
+              navigate("/transport/rail-passes");
             }
           }}
         />

@@ -124,8 +124,8 @@ const Edit = ({
 
       const redirectPath =
         redirectTo === "information"
-          ? `/rail-passes/information/edit/${id}`
-          : `/rail-passes`;
+          ? `/transport/rail-passes/information/edit/${id}`
+          : `/transport/rail-passes`;
 
       navigate(redirectPath);
     },

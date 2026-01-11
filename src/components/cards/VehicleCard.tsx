@@ -40,7 +40,7 @@ const VehicleCard = ({
       <div className="relative w-full aspect-3/2 rounded-2xl overflow-hidden">
         <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
           <IconButton
-            action={() => navigate(`/vehicles/edit/${_id}`)}
+            action={() => navigate(`/transport/vehicles/edit/${_id}`)}
             title=""
             icon={<RiPencilFill size={16} />}
             style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
