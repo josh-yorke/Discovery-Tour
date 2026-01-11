@@ -408,7 +408,7 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
 
       alert("Rail pass information added successfully!");
-      navigate("/rail-passes");
+      navigate("/transport/rail-passes");
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");

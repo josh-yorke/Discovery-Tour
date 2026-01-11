@@ -55,7 +55,7 @@ const RailPassSearch = ({
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"
-          action={() => navigate("/rail-passes/add")}
+          action={() => navigate("/transport/rail-passes/add")}
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>

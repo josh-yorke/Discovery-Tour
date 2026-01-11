@@ -9,7 +9,7 @@ const AddRailPass = () => {
       <Header
         style="px-6 lg:px-0 py-6"
         title="Add Rail Pass"
-        url="/rail-passes"
+        url="/transport/rail-passes"
         id=""
       />
       <Add />

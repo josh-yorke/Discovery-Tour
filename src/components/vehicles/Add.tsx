@@ -31,7 +31,7 @@ const Add = () => {
     mutationFn: addVehicle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"], exact: false });
-      navigate("/vehicles");
+      navigate("/transport/vehicles");
       reset();
     },
   });
@@ -181,7 +181,7 @@ const Add = () => {
             />
             <Button
               isLoading={mutation.isPending}
-              title="Add promotion"
+              title="Add vehicle"
               style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
             />
           </div>

@@ -60,7 +60,7 @@ const getFileIcon = (filename: string): string => {
 
 const getFileUrl = (filename: string): string => {
   const baseURL = api.defaults.baseURL || window.location.origin;
-  return `${baseURL.replace(/\/$/, "")}/api/files/${filename}`;
+  return `${baseURL.replace(/\/$/, "")}/files/${filename}`;
 };
 
 const TourDocuments = ({ tourId }: TourDocumentsProps) => {

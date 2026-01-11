@@ -103,7 +103,7 @@ const RailPassCard = ({
         <div className="w-full flex flex-col items-center justify-center gap-1">
           <LinkText
             title={title}
-            url={`transport/rail-passes/view/${_id}`}
+            url={`/transport/rail-passes/view/${_id}`}
             style="font-bold text-[#1d2087] hover:text-[#393ca3] text-center truncate w-full"
           />
           <p className="text-xs font-normal text-black/60">

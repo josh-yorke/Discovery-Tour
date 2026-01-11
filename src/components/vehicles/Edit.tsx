@@ -65,7 +65,7 @@ const Edit = ({
     mutationFn: (formData: FormData) => updateVehicle(vehicleId, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"], exact: false });
-      navigate("/vehicles");
+      navigate("/transport/vehicles");
     },
   });
 

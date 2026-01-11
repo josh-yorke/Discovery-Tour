@@ -41,7 +41,7 @@ const PassInformation = ({
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/rail-passes/edit/${_id}`, "_blank");
+                window.open(`/transport/rail-passes/edit/${_id}`, "_blank");
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}

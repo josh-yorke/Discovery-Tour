@@ -90,9 +90,9 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["railPass"], exact: false });
 
       if (redirectTo === "information") {
-        navigate(`/rail-passes/information/add`);
+        navigate(`/transport/rail-passes/information/add`);
       } else {
-        navigate(`/rail-passes`);
+        navigate(`/transport/rail-passes`);
       }
 
       reset();
@@ -216,9 +216,6 @@ const Add = () => {
           success={mutation.isSuccess}
           action={() => {
             showMessage(null);
-            if (mutation.isSuccess) {
-              navigate("/tours/information/add");
-            }
           }}
         />
       )}
