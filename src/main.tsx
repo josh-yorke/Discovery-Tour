@@ -56,6 +56,12 @@ import ViewRailPass from "./pages/rail-pass/ViewRailPass";
 import Vehicles from "./pages/vehicles/Vehicles";
 import AddVehicle from "./pages/vehicles/AddVehicle";
 import EditVehicle from "./pages/vehicles/EditVehicle";
+import Transportation from "./pages/transportation/Transportation";
+import AddTransport from "./pages/transportation/AddTransport";
+import EditTransportation from "./pages/transportation/EditTransportation";
+import AddTransportationInfo from "./pages/transportation/AddTransportationInfo";
+import EditTransportInfo from "./pages/transportation/EditTransportInfo";
+import ViewTransportation from "./pages/transportation/ViewTransportation";
 
 const router = createBrowserRouter([
   {
@@ -468,6 +474,54 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditVehicle />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/transportation",
+    element: (
+      <RouteProtection>
+        <Transportation />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/transportation/add",
+    element: (
+      <RouteProtection>
+        <AddTransport />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/transportation/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditTransportation />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/transportation/information/add",
+    element: (
+      <RouteProtection>
+        <AddTransportationInfo />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/transportation/information/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditTransportInfo />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/transportation/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewTransportation />
       </RouteProtection>
     ),
   },

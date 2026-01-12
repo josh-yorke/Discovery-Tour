@@ -1,9 +1,9 @@
 import { useParams } from "react-router";
 import Navbar from "../../components/nav/Navbar";
 import Header from "../../components/users/Header";
-import Edit from "../../components/rail-pass/information/edit/edit/Edit";
+import Edit from "../../components/transportation/information/edit/Edit";
 
-const EditRailPassInfo = () => {
+const EditTransportInfo = () => {
   const { id } = useParams();
 
   return (
@@ -11,8 +11,8 @@ const EditRailPassInfo = () => {
       <Navbar />
       <Header
         style="py-6"
-        title="Edit Pass Information"
-        url="/transport/rail-passes"
+        title="Edit Transport Information"
+        url="/transport/transportation"
         id={id ? id : ""}
       />
       <Edit />
@@ -20,4 +20,4 @@ const EditRailPassInfo = () => {
   );
 };
 
-export default EditRailPassInfo;
+export default EditTransportInfo;

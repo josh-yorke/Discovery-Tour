@@ -64,6 +64,10 @@ const Vehicles = () => {
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <VehicleSearch
+          availability={["true", "false"]}
+          statuses={["active", "maintenance", "unavailable"]}
+          status={register("status")}
+          isAvailable={register("isAvailable")}
           search={register("search")}
           action={handleSubmit(onSubmit)}
         />

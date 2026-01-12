@@ -159,6 +159,8 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
       [remove, editData, onDeleteProcess]
     );
 
+    console.log(editData);
+
     const handleFileSelect = useCallback(
       (files: FileList | null, index: number) => {
         if (!files || files.length === 0) return;

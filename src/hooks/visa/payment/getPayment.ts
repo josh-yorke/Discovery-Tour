@@ -39,9 +39,7 @@ export const getTransportPayment = async (id?: string) => {
   try {
     const res = await api.get(`/shared-fields/?transportId=${id}&type=payment`);
     console.log(res);
-    return {
-      payments: res.data.data,
-    };
+    return res.data.data;
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);

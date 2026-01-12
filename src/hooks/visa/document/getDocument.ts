@@ -41,9 +41,7 @@ export const getTransportDocument = async (id?: string) => {
       `/shared-fields/?transportId=${id}&type=document`
     );
     console.log(res);
-    return {
-      documents: res.data.data,
-    };
+    return res.data.data;
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);

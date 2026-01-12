@@ -11,6 +11,22 @@ export const getPassTypes = async () => {
   }
 };
 
+export const getTransportTypes = async () => {
+  try {
+    const res = await api.get(`/categories-available?type=transport-type`);
+    console.log(res.data.data);
+    const types = [
+      ...new Set(res.data.data.map((item: any) => item.transportType)),
+    ];
+    return {
+      types,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
 export const getPassTypesByCategory = async (category: string) => {
   try {
     const res = await api.get(

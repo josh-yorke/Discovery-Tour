@@ -6,21 +6,21 @@ import SearchInput from "../SearchInput";
 import Options from "../Options";
 
 interface FormProps {
-  status: UseFormRegisterReturn;
-  isAvailable: UseFormRegisterReturn;
   search: UseFormRegisterReturn;
+  country: UseFormRegisterReturn;
+  type: UseFormRegisterReturn;
   action: () => void;
-  statuses: string[];
-  availability: string[];
+  countries: string[];
+  types: string[];
 }
 
-const VehicleSearch = ({
+const TransportationSearch = ({
   action,
   search,
-  isAvailable,
-  status,
-  statuses,
-  availability,
+  country,
+  types,
+  countries,
+  type,
 }: FormProps) => {
   const navigate = useNavigate();
 
@@ -30,10 +30,12 @@ const VehicleSearch = ({
       onSubmit={action}
     >
       <div className="">
-        <p className="text-md font-semibold text-[#1d2087]">Manage Vehicles</p>
+        <p className="text-md font-semibold text-[#1d2087]">
+          Manage Transportations
+        </p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput placeholder="search vehicles" {...search} />
+        <SearchInput placeholder="search transportations" {...search} />
         <button
           type="submit"
           className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
@@ -43,13 +45,13 @@ const VehicleSearch = ({
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options options={availability} {...isAvailable} title="isAvailable?" />
-        <Options options={statuses} {...status} title="Status" />
+        <Options options={countries} {...country} title="Country" />
+        <Options options={types} {...type} title="Type" />
 
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"
-          action={() => navigate("/transport/vehicles/add")}
+          action={() => navigate("/transport/transportation/add")}
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>
@@ -57,4 +59,4 @@ const VehicleSearch = ({
   );
 };
 
-export default VehicleSearch;
+export default TransportationSearch;

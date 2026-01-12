@@ -1,10 +1,25 @@
 import type { vehicleSearchData } from "../../types/vehicles/vehicleSearchTypes";
 import api from "../axios/axios";
 
+export const getAllVehicles = async (search: string) => {
+  try {
+    const res = await api.get(
+      `/vehicles?search=${search}&isAvailable=true&status=active`
+    );
+    console.log(res);
+    return {
+      vehicles: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
 export const getVehicles = async (data: vehicleSearchData) => {
   try {
     const res = await api.get(
-      `vehicles?page=${data.page}&limit=9&search=${data.search}&isAvailable=${data.isAvailable}`
+      `/vehicles?page=${data.page}&limit=9&search=${data.search}&isAvailable=${data.isAvailable}&status=${data.status}`
     );
     console.log(res);
     return {

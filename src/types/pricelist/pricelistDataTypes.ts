@@ -20,5 +20,22 @@ export const editPricelistSchema = z.object({
   filesAssociated: z.string().optional(),
 });
 
+export const editTransportPricelistSchema = z.object({
+  _id: z.string(),
+  plan: z.string(),
+  fee: z.number(),
+  description: z.string(),
+  visa: z.string(),
+  vehicle: z.object({
+    _id: z.string(),
+  }),
+  fileTitle: z.string().optional(),
+  file: z.string().optional(),
+  filesAssociated: z.string().optional(),
+});
+
 export type pricelistData = z.infer<typeof pricelistDataSchema>;
 export type editPricelistData = z.infer<typeof editPricelistSchema>;
+export type editTransportPricelistData = z.infer<
+  typeof editTransportPricelistSchema
+>;

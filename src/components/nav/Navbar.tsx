@@ -73,7 +73,7 @@ const Navbar = () => {
             />
 
             <HoverLink
-              options={["rail-passes", "vehicles"]}
+              options={["rail-passes", "vehicles", "transportation"]}
               to="/transport"
               style={`${
                 pathname.startsWith("/transport")
@@ -244,7 +244,7 @@ const Navbar = () => {
               />
 
               <DropdownLink
-                options={["rail-passes", "vehicles"]}
+                options={["rail-passes", "vehicles", "transport"]}
                 to="/transport"
                 style={`${
                   pathname.startsWith("/transport")
