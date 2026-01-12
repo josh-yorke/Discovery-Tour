@@ -40,7 +40,7 @@ const ViewTransportation = () => {
   });
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this pass?")) {
+    if (confirm("Are you sure you want to delete this transportation?")) {
       deleteMutation.mutate(id);
     }
   };
