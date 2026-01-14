@@ -230,7 +230,6 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
           <SearchableVehicleDropdown
             disabled={false}
             title="Select Vehicle"
-            style="bg-white"
             value={watchPricelists?.[index]?.vehicle || ""}
             onChange={(vehicleId: string) => {
               setValue(`pricelists.${index}.vehicle`, vehicleId);

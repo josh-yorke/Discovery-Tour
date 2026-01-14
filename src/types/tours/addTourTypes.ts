@@ -3,6 +3,7 @@ import z from "zod";
 export const addTourSchema = z.object({
   country: z.string().min(2, "tour country is required"),
   type: z.string().min(2, "tour type is required"),
+  title: z.string().min(2, "title is required"),
   images: z
     .any()
     .refine(

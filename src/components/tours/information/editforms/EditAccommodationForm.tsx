@@ -18,6 +18,7 @@ import IconButton from "../../../button/IconButton";
 import Input from "../../../input/Input";
 import TextArea from "../../../input/TextArea";
 import { fetchImageFiles } from "../../../../utils/fetchImageFiles";
+import StarInput from "../../../input/StarInput";
 
 export interface AccommodationFormHandle {
   getFormData: () => Promise<{
@@ -417,7 +418,7 @@ const EditAccommodationForm = forwardRef<
               type="text"
               {...register(`accommodations.${index}.accommodationName`)}
             />
-            <Input
+            <StarInput
               style="bg-white"
               disabled={false}
               error={
@@ -425,7 +426,7 @@ const EditAccommodationForm = forwardRef<
               }
               title="Star Rating *"
               placeholder="Enter star rating (e.g., 5-star, 4-star, Budget)"
-              type="text"
+              type="number"
               {...register(`accommodations.${index}.accommodationStar`)}
             />
           </div>

@@ -17,7 +17,7 @@ const Header = ({ url, title, id, style }: HeaderProps) => {
         <RiArrowLeftLine size={16} />
       </NavLink>
       <div className="flex flex-row gap-2 items-center justify-center">
-        <p className="text-sm font-semibold truncate whitespace-nowrap max-w-[120px]">
+        <p className="text-sm font-semibold truncate whitespace-nowrap max-w-30">
           {title}
         </p>
         <RiArrowRightSLine size={20} />

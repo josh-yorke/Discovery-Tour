@@ -27,11 +27,13 @@ const View = ({
   countryV2,
   images,
   onDelete,
+  title,
 }: Props) => {
   return (
     <>
       <div className="w-full flex flex-col gap-6">
         <TourLocation
+          title={title}
           onDelete={onDelete}
           _id={_id}
           country={country}

@@ -52,6 +52,7 @@ const EditTour = () => {
             id={data._id}
           />
           <Edit
+            title={data.title}
             id={data._id}
             mainDescription={data.mainDescription}
             images={images}

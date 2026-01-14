@@ -40,6 +40,7 @@ const ToursParent = ({ tours, isLoading }: ParentProps) => {
         <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tours.map((tour: tourData) => (
             <TourCard
+              title={tour.title}
               onDelete={() => handleDelete(tour._id)}
               key={tour._id}
               id={tour._id}

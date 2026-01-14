@@ -58,6 +58,7 @@ const ViewTour = () => {
             <ImageCard url={data.images} style="h-[50vh] md:h-[70vh]" />
             <div className="w-full lg:w-7xl flex flex-col p-6 pb-24 gap-6">
               <View
+                title={data.title}
                 _id={data._id}
                 country={data.country}
                 typeV2={data.typeV2}

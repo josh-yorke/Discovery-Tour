@@ -85,6 +85,7 @@ const Add = () => {
 
     formData.append("country", data.country);
     formData.append("type", data.type);
+    formData.append("title", data.title);
     formData.append("mainDescription", data.mainDescription);
     formData.append("category", data.category);
     formData.append("mainLocationName", data.mainLocationName);
@@ -160,6 +161,16 @@ const Add = () => {
             <TagsInput
               error={errors.tags?.[0]?.message || ""}
               disabled={false}
+            />
+
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={errors.title?.message || ""}
+              title="Title"
+              placeholder="title"
+              type="text"
+              {...register("title")}
             />
 
             <TextArea

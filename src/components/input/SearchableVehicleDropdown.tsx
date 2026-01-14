@@ -18,9 +18,8 @@ interface Vehicle {
 }
 
 interface SearchableDropdownProps {
-  style: string;
-  title: string;
   disabled: boolean;
+  title: string;
   value: string;
   onChange: (value: string) => void;
   name?: string;
@@ -30,10 +29,8 @@ interface SearchableDropdownProps {
 const SearchableVehicleDropdown = ({
   disabled,
   title,
-  style,
   value,
   onChange,
-  name,
   placeholder = `Search ${title.toLowerCase()}...`,
 }: SearchableDropdownProps) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,32 +38,22 @@ const SearchableVehicleDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<number | null>(null);
-  const hasInitializedRef = useRef(false);
 
-  // Get display name for a vehicle
   const getDisplayName = (vehicle: Vehicle): string => {
     return `${vehicle.vehicleName} (${vehicle.brand} ${vehicle.model} - ${vehicle.year})`;
   };
 
-  // Initialize with current value when component mounts
   useEffect(() => {
     const initializeVehicle = async () => {
-      // Check if value exists and is a string
-      if (
-        value &&
-        typeof value === "string" &&
-        value.trim() !== "" &&
-        !hasInitializedRef.current
-      ) {
+      if (value && typeof value === "string" && value.trim() !== "") {
         setIsLoading(true);
         try {
-          // Fetch all vehicles to find the matching one
           const { vehicles: allVehicles } = await getAllVehicles("");
           const vehicle = allVehicles.find((v: any) => v._id === value);
           if (vehicle) {
             setSearchTerm(getDisplayName(vehicle));
-            hasInitializedRef.current = true;
           }
         } catch (error) {
           console.error("Error initializing vehicle:", error);
@@ -97,21 +84,23 @@ const SearchableVehicleDropdown = ({
     setSearchTerm(newSearchTerm);
     setIsOpen(true);
 
-    // Clear previous debounce timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new debounce timer
     debounceTimerRef.current = window.setTimeout(() => {
       fetchVehicles(newSearchTerm);
     }, 300);
 
-    // If input is cleared, clear selection
-    if (!newSearchTerm.trim()) {
+    // Only clear the selection if we're actually clearing an existing selection
+    // (when search is empty and we previously had a value selected)
+    if (!newSearchTerm.trim() && value) {
       onChange("");
-      hasInitializedRef.current = false;
-      setVehicles([]); // Clear vehicles list
+    }
+
+    // Always clear vehicles list when search is empty
+    if (!newSearchTerm.trim()) {
+      setVehicles([]);
     }
   };
 
@@ -119,18 +108,16 @@ const SearchableVehicleDropdown = ({
     setSearchTerm(getDisplayName(vehicle));
     onChange(vehicle._id);
     setIsOpen(false);
-    hasInitializedRef.current = true;
+    inputRef.current?.focus();
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
-    // Only fetch if we don't have vehicles already or search term is empty
     if (!searchTerm && vehicles.length === 0) {
       fetchVehicles("");
     }
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -145,7 +132,6 @@ const SearchableVehicleDropdown = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Clear debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
@@ -160,40 +146,31 @@ const SearchableVehicleDropdown = ({
       ref={dropdownRef}
     >
       <p className="text-sm font-semibold">{title}</p>
-      <div className={`px-4 py-2.5 rounded-full ${style} relative w-full`}>
+      <div className="w-full px-4 py-2.5 rounded-full relative bg-white">
         <input
+          ref={inputRef}
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
           onFocus={handleInputFocus}
           disabled={disabled || isLoading}
           placeholder={isLoading ? "Loading..." : placeholder}
-          className="text-xs font-normal outline-none capitalize w-full bg-transparent disabled:opacity-50"
-        />
-
-        {/* Hidden select for form compatibility */}
-        <select
-          className="hidden"
-          disabled={disabled}
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          name={name}
+          className="w-full text-xs font-normal outline-none capitalize bg-transparent disabled:opacity-50"
         />
 
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b border-black/6"></div>
           </div>
         )}
 
-        {/* Dropdown options */}
         {isOpen && vehicles.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 w-full mt-1 bg-white rounded-3xl shadow-lg z-50 max-h-60 overflow-y-auto">
             {vehicles.map((vehicle) => (
               <div
                 key={vehicle._id}
                 onClick={() => handleVehicleSelect(vehicle)}
-                className={`px-4 py-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 ${
+                className={`px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-black/6 last:border-b-0 ${
                   vehicle._id === value ? "bg-blue-50" : ""
                 }`}
               >
@@ -209,9 +186,8 @@ const SearchableVehicleDropdown = ({
           </div>
         )}
 
-        {/* No results message */}
         {isOpen && !isLoading && vehicles.length === 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-50 p-4">
+          <div className="absolute top-full left-0 right-0 w-full mt-1 bg-white rounded-3xl shadow-lg z-50 p-4">
             <div className="text-xs text-gray-500 text-center">
               {searchTerm
                 ? `No vehicles found matching "${searchTerm}"`

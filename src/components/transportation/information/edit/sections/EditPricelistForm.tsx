@@ -391,7 +391,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             <SearchableVehicleDropdown
               disabled={false}
               title="Select Vehicle *"
-              style="bg-white"
               value={watchPricelists?.[index]?.vehicle || ""}
               onChange={(vehicleId: string) => {
                 setValue(`pricelists.${index}.vehicle`, vehicleId);

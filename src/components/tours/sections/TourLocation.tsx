@@ -19,6 +19,7 @@ const TourLocation = ({
   _id,
   tags,
   mainDescription,
+  title,
   mainLocationImages,
   mainLocationName,
   mainLocationDescription,
@@ -26,16 +27,21 @@ const TourLocation = ({
   onDelete,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isTourExpanded, setIsTourExpanded] = useState(true);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  const toggleTourExpand = () => {
+    setIsTourExpanded(!isTourExpanded);
   };
 
   return (
     <>
       <div className="w-full flex flex-col gap-6">
         <div className="w-full flex flex-col items-start justify-center gap-2">
-          <TitleText style="text-[#1d2087]" title={mainDescription} />
+          <TitleText style="text-[#1d2087]" title={title} />
           <div className="w-full flex flex-wrap gap-2">
             {tags.map((tag: string) => (
               <Tags key={tag} title={tag} />
@@ -79,6 +85,45 @@ const TourLocation = ({
             </div>
           </div>
         </div>
+
+        {/* About this Tour section */}
+        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+          <div className="w-full flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+                <RiInformationFill size={20} className="text-white" />
+              </div>
+              <div className="flex flex-col">
+                <p className="text-base md:text-lg font-semibold text-black uppercase">
+                  About this Tour
+                </p>
+                <p className="text-xs font-normal text-gray-600">
+                  Overview and main description
+                </p>
+              </div>
+            </div>
+            <RiArrowUpSLine
+              size={24}
+              className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
+                isTourExpanded ? "rotate-180" : ""
+              }`}
+              onClick={toggleTourExpand}
+            />
+          </div>
+
+          {isTourExpanded && (
+            <>
+              <div className="w-full border-b border-black/6" />
+              <div className="w-full pt-2">
+                <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
+                  {mainDescription}
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* About Location section */}
         <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
           <div className="w-full flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -114,6 +159,7 @@ const TourLocation = ({
             </>
           )}
         </div>
+
         <ImageCard style="" url={mainLocationImages} />
       </div>
     </>

@@ -2,6 +2,7 @@ import z from "zod";
 
 const tourDataSchema = z.object({
   _id: z.string(),
+  title: z.string(),
   country: z.string(),
   typeV2: z.object({
     _id: z.string(),

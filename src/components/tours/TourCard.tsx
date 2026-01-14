@@ -11,6 +11,7 @@ import MutedTag from "../button/MutedTag";
 
 interface CardProps {
   id: string;
+  title: string;
   country: string;
   category: string;
   mainLocationName: string;
@@ -32,6 +33,7 @@ const TourCard = ({
   mainLocationName,
   type,
   tags,
+  title,
 }: CardProps) => {
   const navigate = useNavigate();
 
@@ -62,7 +64,7 @@ const TourCard = ({
       <div className="w-full flex flex-col items-start justify-center p-2 gap-4 flex-1">
         <div className="w-fill flex flex-col items-start justify-center gap-1 flex-1">
           <LinkText
-            title={country}
+            title={title}
             url={`/tours/view/${id}`}
             style="font-bold text-[#1d2087] hover:text-[#393ca3]"
           />
