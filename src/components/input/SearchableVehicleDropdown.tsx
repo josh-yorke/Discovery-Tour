@@ -49,20 +49,6 @@ const SearchableVehicleDropdown = ({
     return `${vehicle.vehicleName} (${vehicle.brand} ${vehicle.model} - ${vehicle.year})`;
   };
 
-  // Find vehicle by ID and set it as search term
-  const findAndSetVehicle = useCallback(
-    (vehiclesList: Vehicle[], vehicleId: string | undefined) => {
-      if (!vehicleId) return;
-
-      const vehicle = vehiclesList.find((v) => v._id === vehicleId);
-      if (vehicle) {
-        setSearchTerm(getDisplayName(vehicle));
-        hasInitializedRef.current = true;
-      }
-    },
-    []
-  );
-
   // Initialize with current value when component mounts
   useEffect(() => {
     const initializeVehicle = async () => {
@@ -77,8 +63,11 @@ const SearchableVehicleDropdown = ({
         try {
           // Fetch all vehicles to find the matching one
           const { vehicles: allVehicles } = await getAllVehicles("");
-          findAndSetVehicle(allVehicles, value);
-          setVehicles(allVehicles); // Also set the vehicles for dropdown
+          const vehicle = allVehicles.find((v: any) => v._id === value);
+          if (vehicle) {
+            setSearchTerm(getDisplayName(vehicle));
+            hasInitializedRef.current = true;
+          }
         } catch (error) {
           console.error("Error initializing vehicle:", error);
         } finally {
@@ -88,50 +77,20 @@ const SearchableVehicleDropdown = ({
     };
 
     initializeVehicle();
+  }, [value]);
 
-    // Reset initialization flag when value changes
-    return () => {
-      hasInitializedRef.current = false;
-    };
-  }, [value, findAndSetVehicle]);
-
-  // Also update when value changes (for external changes)
-  useEffect(() => {
-    if (
-      value &&
-      typeof value === "string" &&
-      value.trim() !== "" &&
-      vehicles.length > 0
-    ) {
-      findAndSetVehicle(vehicles, value);
+  const fetchVehicles = useCallback(async (search: string) => {
+    try {
+      setIsLoading(true);
+      const { vehicles } = await getAllVehicles(search);
+      setVehicles(vehicles);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      setVehicles([]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [value, vehicles, findAndSetVehicle]);
-
-  const fetchVehicles = useCallback(
-    async (search: string) => {
-      try {
-        setIsLoading(true);
-        const { vehicles } = await getAllVehicles(search);
-        setVehicles(vehicles);
-
-        // If we have a value but haven't found it yet, try to find it
-        if (
-          value &&
-          typeof value === "string" &&
-          value.trim() !== "" &&
-          !hasInitializedRef.current
-        ) {
-          findAndSetVehicle(vehicles, value);
-        }
-      } catch (error) {
-        console.error("Error fetching vehicles:", error);
-        setVehicles([]);
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [value, findAndSetVehicle]
-  );
+  }, []);
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newSearchTerm = e.target.value;
@@ -152,6 +111,7 @@ const SearchableVehicleDropdown = ({
     if (!newSearchTerm.trim()) {
       onChange("");
       hasInitializedRef.current = false;
+      setVehicles([]); // Clear vehicles list
     }
   };
 
@@ -159,11 +119,13 @@ const SearchableVehicleDropdown = ({
     setSearchTerm(getDisplayName(vehicle));
     onChange(vehicle._id);
     setIsOpen(false);
+    hasInitializedRef.current = true;
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
-    if (!searchTerm && !value) {
+    // Only fetch if we don't have vehicles already or search term is empty
+    if (!searchTerm && vehicles.length === 0) {
       fetchVehicles("");
     }
   };
@@ -181,6 +143,15 @@ const SearchableVehicleDropdown = ({
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Clear debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, []);
 
   return (
