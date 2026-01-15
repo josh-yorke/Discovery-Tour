@@ -3,8 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useMemo, useState } from "react";
-import { useWatch } from "react-hook-form";
-
 import {
   addRailPassSchema,
   type addRailPassData,
@@ -12,7 +10,7 @@ import {
 import { updateRailPass } from "../../hooks/rail-pass/railPass";
 import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
 import { getPassCategory } from "../../hooks/category/category";
-import { getPassTypesByCategory } from "../../hooks/category/type";
+import { getAllPassTypes } from "../../hooks/category/type";
 
 import Button from "../button/Button";
 import ImageInput from "../input/ImageInput";
@@ -56,11 +54,6 @@ const Edit = ({
 
   const { watch } = methods;
 
-  const selectedCategory = useWatch({
-    control: methods.control,
-    name: "category",
-  });
-
   const countriesQuery = useQuery({
     queryKey: ["visaCountries"],
     queryFn: getVisaCountries,
@@ -79,16 +72,14 @@ const Edit = ({
       ) || [],
   });
 
+  // Fetch pass types independently without category dependency
   const passTypesQuery = useQuery({
-    queryKey: ["passType", selectedCategory],
-    queryFn: () => {
-      if (!selectedCategory) return { types: [] };
-      return getPassTypesByCategory(selectedCategory);
-    },
-    enabled: !!selectedCategory,
+    queryKey: ["passType"],
+    queryFn: getAllPassTypes,
     select: (data) =>
-      data?.types?.filter((type): type is string => typeof type === "string") ||
-      [],
+      data?.passTypes?.filter(
+        (type): type is string => typeof type === "string"
+      ) || [],
   });
 
   const countries = useMemo(
@@ -191,7 +182,7 @@ const Edit = ({
             />
 
             <InputOption
-              disabled={!selectedCategory || passTypes.length === 0}
+              disabled={passTypes.length === 0}
               style="bg-white w-full"
               title="Pass Type"
               options={passTypes}
@@ -199,7 +190,7 @@ const Edit = ({
               {...register("type")}
             />
 
-            {passTypesQuery.isLoading && selectedCategory && (
+            {passTypesQuery.isLoading && (
               <p className="text-gray-500 text-sm">Loading pass types...</p>
             )}
 

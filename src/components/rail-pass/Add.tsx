@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
 import InputOption from "../input/InputOption";
@@ -17,7 +17,7 @@ import {
 } from "../../types/rail-pass/addRailPassTypes";
 import { addRailPass } from "../../hooks/rail-pass/railPass";
 import { getPassCategory } from "../../hooks/category/category";
-import { getPassTypesByCategory } from "../../hooks/category/type";
+import { getAllPassTypes } from "../../hooks/category/type";
 
 const Add = () => {
   const queryClient = useQueryClient();
@@ -26,11 +26,6 @@ const Add = () => {
   const [redirectTo, setRedirectTo] = useState<"visa" | "information">("visa");
   const methods = useForm<addRailPassData>({
     resolver: zodResolver(addRailPassSchema),
-  });
-
-  const selectedCategory = useWatch({
-    control: methods.control,
-    name: "category",
   });
 
   const { data: countriesData } = useQuery({
@@ -56,15 +51,11 @@ const Add = () => {
   });
 
   const { data: passTypeData, isLoading: isLoadingPassTypes } = useQuery({
-    queryKey: ["passType", selectedCategory],
-    queryFn: () => {
-      if (!selectedCategory) return { types: [] };
-      return getPassTypesByCategory(selectedCategory);
-    },
-    enabled: !!selectedCategory,
+    queryKey: ["passType"],
+    queryFn: getAllPassTypes,
     select: (data) => {
-      if (!data?.types) return [];
-      return data.types.filter(
+      if (!data?.passTypes) return [];
+      return data.passTypes.filter(
         (type): type is string => typeof type === "string"
       );
     },
@@ -152,14 +143,14 @@ const Add = () => {
             />
 
             <InputOption
-              disabled={!selectedCategory || passTypes.length === 0}
+              disabled={passTypes.length === 0}
               style="bg-white w-full"
               title="Pass Type"
               options={passTypes}
               {...register("type")}
             />
 
-            {isLoadingPassTypes && selectedCategory && (
+            {isLoadingPassTypes && (
               <p className="text-gray-500 text-sm">Loading pass types...</p>
             )}
 
