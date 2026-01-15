@@ -63,3 +63,29 @@ export const getTransports = async (data: transportSearchData) => {
     throw new Error(message);
   }
 };
+
+export const getAllTransports = async (search: string) => {
+  try {
+    const res = await api.get(`/transports?search=${search}`);
+    console.log(res);
+    return {
+      transports: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
+export const getTransportPricelists = async (id: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?type=price&transportId=${id}`);
+    console.log(res.data.data);
+    return {
+      pricelists: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};

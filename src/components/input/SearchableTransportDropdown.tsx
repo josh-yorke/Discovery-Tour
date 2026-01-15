@@ -5,16 +5,23 @@ import {
   useState,
   type ChangeEvent,
 } from "react";
-import { getAllVehicles } from "../../hooks/vehicles/vehicles";
+import { getAllTransports } from "../../hooks/transportation/transportation";
 
-interface Vehicle {
+interface Transport {
   _id: string;
-  vehicleName: string;
-  brand: string;
-  model: string;
-  year: number;
-  vehicleType: string;
-  seatingCapacity: number;
+  title: string;
+  description: string;
+  country: string;
+  type: string;
+  images: string[];
+  countryV2: {
+    _id: string;
+    country: string;
+  };
+  typeV2: {
+    _id: string;
+    transportType: string;
+  };
 }
 
 interface SearchableDropdownProps {
@@ -26,7 +33,7 @@ interface SearchableDropdownProps {
   placeholder?: string;
 }
 
-const SearchableVehicleDropdown = ({
+const SearchableTransportDropdown = ({
   disabled,
   title,
   value,
@@ -34,7 +41,7 @@ const SearchableVehicleDropdown = ({
   placeholder = `Search ${title.toLowerCase()}...`,
 }: SearchableDropdownProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [transports, setTransports] = useState<Transport[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -42,39 +49,41 @@ const SearchableVehicleDropdown = ({
   const debounceTimerRef = useRef<number | null>(null);
   const isInitialMount = useRef(true);
 
-  const getDisplayName = (vehicle: Vehicle): string => {
-    return `${vehicle.vehicleName} (${vehicle.brand} ${vehicle.model} - ${vehicle.year})`;
+  const getDisplayName = (transport: Transport): string => {
+    return `${transport.title} (${transport.country} - ${transport.type})`;
   };
 
   useEffect(() => {
-    const initializeVehicle = async () => {
+    const initializeTransport = async () => {
       if (value && value.trim() !== "") {
         try {
-          const { vehicles: allVehicles } = await getAllVehicles("");
-          const vehicle = allVehicles.find((v: Vehicle) => v._id === value);
-          if (vehicle) {
-            setSearchTerm(getDisplayName(vehicle));
+          const { transports: allTransports } = await getAllTransports("");
+          const transport = allTransports.find(
+            (t: Transport) => t._id === value
+          );
+          if (transport) {
+            setSearchTerm(getDisplayName(transport));
           }
         } catch (error) {
-          console.error("Error initializing vehicle:", error);
+          console.error("Error initializing transport:", error);
         }
       }
     };
 
-    initializeVehicle();
+    initializeTransport();
   }, [value]);
 
-  const fetchVehicles = useCallback(async (search: string) => {
+  const fetchTransports = useCallback(async (search: string) => {
     try {
       if (!isInitialMount.current) {
         setIsLoading(true);
       }
 
-      const { vehicles } = await getAllVehicles(search);
-      setVehicles(vehicles);
+      const { transports } = await getAllTransports(search);
+      setTransports(transports);
     } catch (error) {
-      console.error("Error fetching vehicles:", error);
-      setVehicles([]);
+      console.error("Error fetching transports:", error);
+      setTransports([]);
     } finally {
       setIsLoading(false);
       isInitialMount.current = false;
@@ -91,7 +100,7 @@ const SearchableVehicleDropdown = ({
     }
 
     debounceTimerRef.current = window.setTimeout(() => {
-      fetchVehicles(newSearchTerm);
+      fetchTransports(newSearchTerm);
     }, 300);
 
     if (!newSearchTerm.trim() && value) {
@@ -99,24 +108,24 @@ const SearchableVehicleDropdown = ({
     }
   };
 
-  const handleVehicleSelect = (vehicle: Vehicle) => {
-    setSearchTerm(getDisplayName(vehicle));
-    onChange(vehicle._id);
+  const handleTransportSelect = (transport: Transport) => {
+    setSearchTerm(getDisplayName(transport));
+    onChange(transport._id);
     setIsOpen(false);
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
-    if (!searchTerm && vehicles.length === 0) {
-      fetchVehicles("");
+    if (!searchTerm && transports.length === 0) {
+      fetchTransports("");
     }
   };
 
   const handleClear = () => {
     setSearchTerm("");
     onChange("");
-    setIsOpen(true);
-    fetchVehicles("");
+    setIsOpen(true); // Keep it open to show all results
+    fetchTransports(""); // Fetch all transports when clearing
     requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
@@ -189,34 +198,38 @@ const SearchableVehicleDropdown = ({
           </div>
         )}
 
-        {isOpen && vehicles.length > 0 && (
+        {isOpen && transports.length > 0 && (
           <div className="absolute top-full left-0 right-0 w-full mt-1 bg-white rounded-3xl shadow-lg z-50 max-h-60 overflow-y-auto">
-            {vehicles.map((vehicle) => (
+            {transports.map((transport) => (
               <div
-                key={vehicle._id}
-                onClick={() => handleVehicleSelect(vehicle)}
+                key={transport._id}
+                onClick={() => handleTransportSelect(transport)}
                 className={`px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-black/6 last:border-b-0 ${
-                  vehicle._id === value ? "bg-blue-50" : ""
+                  transport._id === value ? "bg-blue-50" : ""
                 }`}
               >
                 <div className="text-xs font-medium capitalize">
-                  {vehicle.vehicleName}
+                  {transport.title}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {vehicle.brand} {vehicle.model} • {vehicle.year} •{" "}
-                  {vehicle.vehicleType} • {vehicle.seatingCapacity} seats
+                  {transport.country} • {transport.type}
                 </div>
+                {transport.description && (
+                  <div className="text-xs text-gray-400 mt-1 line-clamp-2">
+                    {transport.description}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
 
-        {isOpen && !isLoading && vehicles.length === 0 && (
+        {isOpen && !isLoading && transports.length === 0 && (
           <div className="absolute top-full left-0 right-0 w-full mt-1 bg-white rounded-3xl shadow-lg z-50 p-4">
             <div className="text-xs text-gray-500 text-center">
               {searchTerm
-                ? `No vehicles found matching "${searchTerm}"`
-                : "No vehicles available"}
+                ? `No transports found matching "${searchTerm}"`
+                : "No transports available"}
             </div>
           </div>
         )}
@@ -225,4 +238,4 @@ const SearchableVehicleDropdown = ({
   );
 };
 
-export default SearchableVehicleDropdown;
+export default SearchableTransportDropdown;

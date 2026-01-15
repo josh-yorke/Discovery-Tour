@@ -73,7 +73,7 @@ const Navbar = () => {
             />
 
             <HoverLink
-              options={["rail-passes", "vehicles", "transportation"]}
+              options={["rail-passes", "vehicles", "transportation", "rental"]}
               to="/transport"
               style={`${
                 pathname.startsWith("/transport")
