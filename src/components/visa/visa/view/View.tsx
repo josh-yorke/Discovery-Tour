@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from "react";
 import {
   RiDeleteBin4Fill,
   RiInformationFill,
@@ -16,6 +17,98 @@ interface ViewProps extends visaData {
   onDelete: (_id: string) => void;
 }
 
+const flagCache = new Map<string, string>();
+
+const countryCodeMap: Record<string, string> = {
+  "united states": "us",
+  usa: "us",
+  america: "us",
+  canada: "ca",
+  mexico: "mx",
+  brazil: "br",
+  argentina: "ar",
+  chile: "cl",
+  peru: "pe",
+  colombia: "co",
+  "united kingdom": "gb",
+  uk: "gb",
+  "great britain": "gb",
+  france: "fr",
+  germany: "de",
+  italy: "it",
+  spain: "es",
+  portugal: "pt",
+  netherlands: "nl",
+  holland: "nl",
+  belgium: "be",
+  switzerland: "ch",
+  austria: "at",
+  sweden: "se",
+  norway: "no",
+  denmark: "dk",
+  finland: "fi",
+  russia: "ru",
+  ukraine: "ua",
+  poland: "pl",
+  "czech republic": "cz",
+  czech: "cz",
+  hungary: "hu",
+  greece: "gr",
+  turkey: "tr",
+  china: "cn",
+  japan: "jp",
+  "south korea": "kr",
+  korea: "kr",
+  india: "in",
+  singapore: "sg",
+  malaysia: "my",
+  thailand: "th",
+  vietnam: "vn",
+  indonesia: "id",
+  philippines: "ph",
+  "saudi arabia": "sa",
+  uae: "ae",
+  "united arab emirates": "ae",
+  qatar: "qa",
+  australia: "au",
+  "new zealand": "nz",
+  "south africa": "za",
+  egypt: "eg",
+  nigeria: "ng",
+  kenya: "ke",
+  ethiopia: "et",
+  morocco: "ma",
+};
+
+const getCountryCode = (countryName: string): string => {
+  const normalized = countryName.toLowerCase().trim();
+
+  if (countryCodeMap[normalized]) {
+    return countryCodeMap[normalized];
+  }
+
+  for (const [key, code] of Object.entries(countryCodeMap)) {
+    if (normalized.includes(key) || key.includes(normalized)) {
+      return code;
+    }
+  }
+
+  return normalized.slice(0, 2);
+};
+
+const getFlagUrl = (countryName: string): string => {
+  const countryCode = getCountryCode(countryName).toLowerCase();
+
+  if (flagCache.has(countryCode)) {
+    return flagCache.get(countryCode)!;
+  }
+
+  const flagUrl = `https://flagcdn.com/w320/${countryCode}.png`;
+  flagCache.set(countryCode, flagUrl);
+
+  return flagUrl;
+};
+
 const View = ({
   _id,
   mainDescription,
@@ -24,6 +117,47 @@ const View = ({
   country,
   onDelete,
 }: ViewProps) => {
+  const [flagUrl, setFlagUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(false);
+
+  const loadFlag = useCallback(() => {
+    if (!country) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setHasError(false);
+
+    const url = getFlagUrl(country);
+    setFlagUrl(url);
+
+    const img = new Image();
+    img.onload = () => {
+      setIsLoading(false);
+      flagCache.set(getCountryCode(country).toLowerCase(), url);
+    };
+    img.onerror = () => {
+      setHasError(true);
+      setIsLoading(false);
+    };
+    img.src = url;
+  }, [country]);
+
+  useEffect(() => {
+    loadFlag();
+  }, [loadFlag]);
+
+  const countryInitials = country
+    ? country
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : "??";
+
   return (
     <>
       <div className="w-full flex flex-col gap-12 ">
@@ -58,6 +192,33 @@ const View = ({
           <div className="w-full border-b border-black/6" />
 
           <div className="w-full flex items-center justify-center gap-6">
+            <div className="relative">
+              {isLoading && (
+                <div className="w-30 h-20 bg-gray-200 rounded animate-pulse border border-black/6" />
+              )}
+
+              <img
+                src={flagUrl}
+                alt={`${country} flag`}
+                width={120}
+                className={`border border-black/6 ${
+                  isLoading ? "opacity-0 absolute" : "opacity-100"
+                }`}
+                onLoad={() => setIsLoading(false)}
+                onError={() => {
+                  setHasError(true);
+                  setIsLoading(false);
+                }}
+              />
+
+              {hasError && !isLoading && (
+                <div className="flex items-center justify-center w-full h-full bg-gray-100 border border-gray-300 rounded">
+                  <span className="text-gray-700 font-bold text-lg">
+                    {countryInitials}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex flex-col items-start">
               <p className="text-xl font-semibold text-black uppercase">
                 {country}
