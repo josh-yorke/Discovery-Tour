@@ -145,7 +145,7 @@ const getBackendType = (type: FormType): string => {
     pricelist: "price",
     process: "process",
     payment: "payment",
-    term: "term",
+    term: "terms",
     document: "document",
   };
   return typeMap[type];

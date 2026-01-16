@@ -162,9 +162,9 @@ const TourDocuments = ({ tourId }: TourDocumentsProps) => {
                         <p className="text-base font-semibold text-[#1d2087]">
                           {document.title}
                         </p>
-                        <p className="text-xs sm:text-sm font-normal text-gray-600">
+                        <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
                           {document.description}
-                        </p>
+                        </pre>
                       </div>
 
                       {document.filesAssociated.length > 0 && (

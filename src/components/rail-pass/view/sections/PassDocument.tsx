@@ -167,7 +167,7 @@ const PassDocument = ({ passId }: PassDocumentsProps) => {
                         <p className="text-base font-semibold text-[#1d2087]">
                           {document.title}
                         </p>
-                        <p className="text-xs sm:text-sm font-normal text-gray-600">
+                        <p className="text-xs sm:text-sm font-normal text-gray-600 mt-2 whitespace-pre-line">
                           {document.description}
                         </p>
                       </div>

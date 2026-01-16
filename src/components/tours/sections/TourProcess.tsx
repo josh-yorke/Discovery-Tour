@@ -36,10 +36,6 @@ interface ProcessData {
   __v: number;
 }
 
-interface ProcessesResponse {
-  processes: ProcessData[];
-}
-
 interface TourProcessesProps {
   tourId: string;
 }
@@ -107,25 +103,26 @@ const TourProcesses = ({ tourId }: TourProcessesProps) => {
   };
 
   const {
-    data: processesData,
+    data: processes,
     isLoading: isLoadingProcesses,
     isError: isErrorProcesses,
     error: processesError,
     refetch: refetchProcesses,
-  } = useQuery<ProcessesResponse>({
+  } = useQuery<ProcessData[]>({
     queryKey: ["tour-processes", tourId],
     queryFn: () => getTourProcess(tourId),
     enabled: !!tourId,
   });
 
-  const processes = processesData?.processes || [];
-  const allFileIds = processes.flatMap((process) => process.filesAssociated);
+  const allFileIds = processes
+    ? processes.flatMap((process) => process.filesAssociated)
+    : [];
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
       queryKey: ["tour-process-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId && processes.length > 0,
+      enabled: !!fileId && (processes?.length || 0) > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
@@ -138,7 +135,7 @@ const TourProcesses = ({ tourId }: TourProcessesProps) => {
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
   const isLoading =
-    isLoadingProcesses || (processes.length > 0 && isLoadingFiles);
+    isLoadingProcesses || ((processes?.length || 0) > 0 && isLoadingFiles);
 
   if (isLoading) return <SectionLoader />;
   if (isErrorProcesses)
@@ -176,7 +173,7 @@ const TourProcesses = ({ tourId }: TourProcessesProps) => {
           <>
             <div className="w-full border-b border-black/6" />
 
-            {processes.length === 0 ? (
+            {!processes || processes.length === 0 ? (
               <div className="w-full text-center py-6 sm:py-8">
                 <p className="text-gray-500 text-sm sm:text-base">
                   No process information available for this tour.

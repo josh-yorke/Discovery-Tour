@@ -267,9 +267,9 @@ const TourItinerary = ({ tourId }: TourItineraryProps) => {
                                       />
                                     )}
                                   </div>
-                                  <p className="text-sm text-gray-700 pt-0.5">
+                                  <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
                                     {activity.information}
-                                  </p>
+                                  </pre>
                                 </div>
                               ))}
                             </div>
