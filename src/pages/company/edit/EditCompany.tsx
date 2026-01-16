@@ -30,7 +30,7 @@ const EditCompany = () => {
   return (
     <>
       <Navbar />
-      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh]">
+      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-svh">
         {isError ? (
           <PageError action={refetch} title="Reload" error={error?.message} />
         ) : isLoading ? (

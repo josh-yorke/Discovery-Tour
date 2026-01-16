@@ -23,10 +23,18 @@ export interface AwardsResponse {
   years: number[]; // Array of unique years for pagination
 }
 
-export const getAwards = async (): Promise<AwardsResponse> => {
+export const getAwards = async (
+  companyId?: string
+): Promise<AwardsResponse> => {
   try {
+    // If no companyId is provided, try to get it first
+    if (!companyId) {
+      // You could optionally fetch the company ID here if needed
+      throw new Error("Company ID is required");
+    }
+
     const res = await api.get(
-      `/company/awards?id=69615f8fba32498f77077c23&groupByYear=true`
+      `/company/awards?id=${companyId}&groupByYear=true`
     );
 
     const groupedData = res.data.data;
