@@ -12,18 +12,18 @@ import IconButton from "../../button/IconButton";
 interface Branch {
   _id?: string;
   branchName: string;
-  contact: {
-    email: string;
-    phone: string;
-    address: string;
-    mapLink: string;
+  contact?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    mapLink?: string;
   };
-  socials: {
-    facebook: string;
-    instagram: string;
-    twitter: string;
-    linkedin: string;
-    youtube: string;
+  socials?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+    youtube?: string;
   };
 }
 
@@ -40,7 +40,7 @@ const ViewBranches = ({ branches }: companyBranches) => {
     if (!companyData) return;
 
     const updatedBranches = (companyData.branches || []).filter(
-      (b: Branch) => b._id !== id
+      (b: Branch) => b._id !== id,
     );
 
     const formData = new FormData();
@@ -64,57 +64,89 @@ const ViewBranches = ({ branches }: companyBranches) => {
 
   if (isLoading) return <PageLoader />;
 
+  // Add validation for branches
+  if (!branches || !Array.isArray(branches)) {
+    return (
+      <div className="w-full flex items-center justify-center p-8">
+        <p className="text-gray-500">No branches available</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="w-full flex flex-col gap-2 items-center justify-center">
         <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {branches.map((branch) => (
-            <div
-              key={branch._id}
-              className="w-full flex flex-col items-center justify-center rounded-3xl bg-cover bg-center overflow-hidden"
-              style={{
-                backgroundImage: "url(/Japan.jpg)",
-              }}
-            >
-              <div className="w-full flex flex-col items-center justify-center gap-4 p-6 bg-linear-to-tr from-white to-white/20">
-                <p className="text-md font-bold text-center uppercase text-[#1d2087]">
-                  {branch.branchName}
-                </p>
-                <div className="flex flex-row gap-2">
-                  <IconButton
-                    icon={<RiPencilLine size={16} color="white" />}
-                    title="Edit"
-                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
-                    action={() =>
-                      navigate(`/company/branches/edit/${branch._id}`)
-                    }
-                  />
+          {branches.map((branch) => {
+            // Add null checks for branch properties
+            const contact = branch.contact || {};
+            const socials = branch.socials || {};
+            const hasContactInfo =
+              contact.email || contact.phone || contact.address;
 
-                  <IconButton
-                    icon={<RiDeleteBin4Fill size={16} color="white" />}
-                    title="Delete"
-                    style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
-                    action={() => handleDeleteBranch(branch._id)}
-                  />
+            return (
+              <div
+                key={branch._id || branch.branchName}
+                className="w-full flex flex-col items-center justify-center rounded-3xl bg-cover bg-center overflow-hidden"
+                style={{
+                  backgroundImage: "url(/Japan.jpg)",
+                }}
+              >
+                <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 bg-linear-to-tr from-white to-white/20">
+                  <p className="text-md font-bold text-center uppercase text-[#1d2087]">
+                    {branch.branchName}
+                  </p>
+                  <div className="flex flex-row gap-2">
+                    <IconButton
+                      icon={<RiPencilLine size={16} color="white" />}
+                      title="Edit"
+                      style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
+                      action={() =>
+                        navigate(`/company/branches/edit/${branch._id}`)
+                      }
+                    />
+
+                    <IconButton
+                      icon={<RiDeleteBin4Fill size={16} color="white" />}
+                      title="Delete"
+                      style="flex flex-row gap-2 bg-[#1d2087] hover:bg-[#3b3eac] px-4 py-2 rounded-xl text-white"
+                      action={() =>
+                        branch._id && handleDeleteBranch(branch._id)
+                      }
+                    />
+                  </div>
+
+                  {hasContactInfo ? (
+                    <div className="w-full flex flex-col gap-1">
+                      {contact.email && (
+                        <p className="text-sm font-normal text-center">
+                          Email: {contact.email}
+                        </p>
+                      )}
+                      {contact.phone && (
+                        <p className="text-sm font-normal text-center">
+                          Phone: {contact.phone}
+                        </p>
+                      )}
+                      {contact.address && (
+                        <p className="text-sm font-normal text-center">
+                          Address: {contact.address}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-full flex flex-col items-center justify-center p-2">
+                      <p className="text-sm text-gray-500 italic text-center">
+                        No contact information available
+                      </p>
+                    </div>
+                  )}
+
+                  <SocialButton socials={socials} mapLink={contact.mapLink} />
                 </div>
-                <div className="w-full flex flex-col">
-                  <p className="text-sm font-normal text-center">
-                    Email: {branch.contact.email}
-                  </p>
-                  <p className="text-sm font-normal text-center">
-                    Branch: {branch.contact.phone}
-                  </p>
-                  <p className="text-sm font-normal text-center">
-                    Address: {branch.contact.address}
-                  </p>
-                </div>
-                <SocialButton
-                  socials={branch.socials}
-                  mapLink={branch.contact.mapLink}
-                />
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       {mutation.isError && (
