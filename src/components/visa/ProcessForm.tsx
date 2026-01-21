@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import {
@@ -23,12 +22,26 @@ export interface ProcessFormHandle {
   } | null>;
 }
 
-const processWithFileSchema = addProcessSchema
+const hasProcessContent = (process: {
+  processTitle?: string;
+  process?: string;
+  fileTitle?: string;
+  file?: FileList;
+}): boolean => {
+  return (
+    (process.processTitle?.trim() ?? "").length > 0 ||
+    (process.process?.trim() ?? "").length > 0 ||
+    (process.fileTitle?.trim() ?? "").length > 0 ||
+    (process.file?.length ?? 0) > 0
+  );
+};
+
+const mergedSchema = addProcessSchema
   .merge(
     addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
       file: addVisaFileSchema.shape.file.optional(),
       fileTitle: z.string().optional(),
-    })
+    }),
   )
   .refine(
     (data) => {
@@ -40,21 +53,13 @@ const processWithFileSchema = addProcessSchema
     {
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
-    }
+    },
   );
 
-type ProcessWithFileData = addProcessData & {
-  fileTitle?: string;
-  file?: FileList;
-};
+type MergedSchemaType = z.infer<typeof mergedSchema>;
+type FormData = { processes: MergedSchemaType[] };
 
-const formSchema = z.object({
-  processes: z.array(processWithFileSchema),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_PROCESS: ProcessWithFileData = {
+const DEFAULT_PROCESS: MergedSchemaType = {
   processTitle: "",
   process: "",
   fileTitle: "",
@@ -68,14 +73,12 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
     formState: { errors },
     setValue,
     watch,
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      processes: [DEFAULT_PROCESS],
-    },
     mode: "onChange",
+    defaultValues: { processes: [DEFAULT_PROCESS] },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -85,21 +88,69 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
 
   const watchProcesses = watch("processes");
 
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const processData: addProcessData[] = [];
+    const processFileData: addVisaFileData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.processes.forEach((process, index) => {
+      const hasContent = hasProcessContent(process);
+
+      if (hasContent) {
+        const result = mergedSchema.safeParse(process);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`processes.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          processData.push({
+            processTitle: process.processTitle,
+            process: process.process,
+          });
+
+          processFileData.push({
+            fileTitle: process.fileTitle || "",
+            file: process.file,
+          });
+        }
+      }
+    });
+
+    return { isValid, processData, processFileData };
+  }, [getValues, setError, clearErrors]);
+
   const addProcess = useCallback(() => {
     append(DEFAULT_PROCESS);
   }, [append]);
 
-  // UPDATED: Allow deletion even when there's only one process, no auto-add
   const removeProcess = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`processes.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
   const handleFileSelect = useCallback(
     (files: FileList | null, index: number) => {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {
+        setValue(`processes.${index}.file`, undefined);
+        setValue(`processes.${index}.fileTitle`, "");
+        clearErrors(`processes.${index}.fileTitle` as any);
+        clearErrors(`processes.${index}.file` as any);
+        return;
+      }
 
       setValue(`processes.${index}.file`, files);
 
@@ -108,42 +159,31 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
         const fileName = files[0].name.split(".").slice(0, -1).join(".");
         setValue(`processes.${index}.fileTitle`, fileName);
       }
+
+      clearErrors(`processes.${index}.fileTitle` as any);
+      clearErrors(`processes.${index}.file` as any);
     },
-    [setValue, watchProcesses]
+    [setValue, watchProcesses, clearErrors],
   );
 
   const handleClearFile = useCallback(
     (index: number) => {
       setValue(`processes.${index}.file`, undefined);
-      setValue(`processes.${index}.fileTitle`, ""); // Clear file title when clearing file
+      setValue(`processes.${index}.fileTitle`, "");
+      clearErrors(`processes.${index}.fileTitle` as any);
+      clearErrors(`processes.${index}.file` as any);
     },
-    [setValue]
+    [setValue, clearErrors],
   );
 
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, processData, processFileData } =
+        validateAndGetFormData();
 
-      const formData = getValues();
-      const processData: addProcessData[] = [];
-      const processFileData: addVisaFileData[] = [];
-
-      const processesArray = Array.isArray(formData.processes)
-        ? formData.processes
-        : [formData.processes];
-
-      processesArray.forEach((process) => {
-        processData.push({
-          processTitle: process.processTitle,
-          process: process.process,
-        });
-
-        processFileData.push({
-          fileTitle: process.fileTitle || "",
-          file: process.file,
-        });
-      });
+      if (!isValid || processData.length === 0) {
+        return null;
+      }
 
       return { processData, processFileData };
     },
@@ -153,17 +193,20 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
     const currentProcess = watchProcesses?.[index];
     const hasNewFile = !!currentProcess?.file;
     const fileName = currentProcess?.file?.[0]?.name || "";
+    const hasContent = hasProcessContent(currentProcess);
+    const fileTitleError = errors.processes?.[index]?.fileTitle?.message;
+    const fileError = errors.processes?.[index]?.file?.message;
 
     return (
       <div className="space-y-4">
         <Input
           style="bg-white"
           disabled={false}
-          error={errors.processes?.[index]?.fileTitle?.message || ""}
+          error={hasContent && fileTitleError ? String(fileTitleError) : ""}
           title="Process File Title"
           placeholder="Enter process file title"
           type="text"
-          {...register(`processes.${index}.fileTitle`)}
+          {...register(`processes.${index}.fileTitle` as const)}
         />
 
         <FileInput
@@ -171,22 +214,29 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
           disabled={false}
           setValue={(fieldName, value) => {
             if (fieldName === "file") {
-              setValue(`processes.${index}.file`, value as FileList);
+              handleFileSelect(value as FileList, index);
             }
           }}
           onChange={(files) => handleFileSelect(files, index)}
-          error={
-            typeof errors.processes?.[index]?.file?.message === "string"
-              ? errors.processes[index]?.file?.message
-              : ""
-          }
+          error={hasContent && fileError ? String(fileError) : ""}
         />
 
         {hasNewFile && fileName && (
-          <NewFileDisplay
-            fileName={fileName}
-            onClear={() => handleClearFile(index)}
-          />
+          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-700 font-medium">
+              New file selected: {fileName}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              This will be uploaded as a new file.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleClearFile(index)}
+              className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+            >
+              Clear selection
+            </button>
+          </div>
         )}
 
         <div className="text-xs text-gray-500">
@@ -199,12 +249,16 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
   };
 
   const renderProcessForm = (field: { id: string }, index: number) => {
+    const currentProcess = watchProcesses?.[index];
+    const hasContent = hasProcessContent(currentProcess);
+    const processTitleError = errors.processes?.[index]?.processTitle?.message;
+    const processError = errors.processes?.[index]?.process?.message;
+
     return (
       <div
         key={field.id}
         className="w-full flex flex-col items-end justify-center"
       >
-        {/* UPDATED: Always show delete button when there's at least one process */}
         {fields.length >= 1 && (
           <IconButton
             action={() => removeProcess(index)}
@@ -218,18 +272,20 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.processes?.[index]?.processTitle?.message || ""}
+            error={
+              hasContent && processTitleError ? String(processTitleError) : ""
+            }
             title="Process Title"
             placeholder="Enter process step title (e.g., Step 1: Application, Step 2: Review)"
             type="text"
-            {...register(`processes.${index}.processTitle`)}
+            {...register(`processes.${index}.processTitle` as const)}
           />
           <TextArea
             disabled={false}
-            error={errors.processes?.[index]?.process?.message || ""}
+            error={hasContent && processError ? String(processError) : ""}
             title="Process Description"
             placeholder="Enter detailed step-by-step process description"
-            {...register(`processes.${index}.process`)}
+            {...register(`processes.${index}.process` as const)}
           />
 
           {renderFileSection(index)}
@@ -254,32 +310,5 @@ const ProcessForm = forwardRef<ProcessFormHandle>((_props, ref) => {
   );
 });
 
-interface NewFileDisplayProps {
-  fileName: string;
-  onClear: () => void;
-}
-
-const NewFileDisplay: React.FC<NewFileDisplayProps> = ({
-  fileName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
-);
-
 ProcessForm.displayName = "ProcessForm";
-
 export default ProcessForm;

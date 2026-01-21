@@ -528,30 +528,30 @@ const router = createBrowserRouter([
       </RouteProtection>
     ),
   },
-  {
-    path: "/transport/rental",
-    element: (
-      <RouteProtection>
-        <Rental />
-      </RouteProtection>
-    ),
-  },
-  {
-    path: "/transport/rental/add",
-    element: (
-      <RouteProtection>
-        <AddRental />
-      </RouteProtection>
-    ),
-  },
-  {
-    path: "/transport/rental/edit/:id",
-    element: (
-      <RouteProtection>
-        <EditRental />
-      </RouteProtection>
-    ),
-  },
+  // {
+  //   path: "/transport/rental",
+  //   element: (
+  //     <RouteProtection>
+  //       <Rental />
+  //     </RouteProtection>
+  //   ),
+  // },
+  // {
+  //   path: "/transport/rental/add",
+  //   element: (
+  //     <RouteProtection>
+  //       <AddRental />
+  //     </RouteProtection>
+  //   ),
+  // },
+  // {
+  //   path: "/transport/rental/edit/:id",
+  //   element: (
+  //     <RouteProtection>
+  //       <EditRental />
+  //     </RouteProtection>
+  //   ),
+  // },
 ]);
 
 const queryClient = new QueryClient();
@@ -559,5 +559,5 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <RouterProvider router={router} />
-  </QueryClientProvider>
+  </QueryClientProvider>,
 );

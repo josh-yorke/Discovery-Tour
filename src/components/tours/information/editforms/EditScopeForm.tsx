@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
@@ -25,47 +24,52 @@ interface ScopeFormProps {
   isDeletingScope?: boolean;
 }
 
-// Form schema matching your accommodation form structure
-const scopeFormSchema = z.object({
+// Helper functions similar to pricelist form
+const hasScopeContent = (scope: {
+  scopeCategory?: string;
+  scopeType?: string;
+  scopeTitle?: string;
+  scopeDescription?: string;
+}): boolean => {
+  return (
+    (scope.scopeCategory?.trim() ?? "").length > 0 ||
+    (scope.scopeType?.trim() ?? "").length > 0 ||
+    (scope.scopeTitle?.trim() ?? "").length > 0 ||
+    (scope.scopeDescription?.trim() ?? "").length > 0
+  );
+};
+
+const hasCompleteScope = (scope: {
+  scopeCategory?: string;
+  scopeType?: string;
+  scopeTitle?: string;
+  scopeDescription?: string;
+}): boolean => {
+  return (
+    (scope.scopeCategory?.trim() ?? "").length > 0 &&
+    (scope.scopeType?.trim() ?? "").length > 0 &&
+    (scope.scopeTitle?.trim() ?? "").length > 0 &&
+    (scope.scopeDescription?.trim() ?? "").length > 0
+  );
+};
+
+const scopeSchema = z.object({
   scopeCategory: z.string().min(1, "Scope category is required"),
   scopeType: z.string().min(1, "Scope type is required"),
   scopeTitle: z.string().min(1, "Scope title is required"),
   scopeDescription: z.string().min(1, "Scope description is required"),
 });
 
-type ScopeWithFormData = {
+type ScopeSchemaType = {
   scopeCategory: string;
   scopeType: string;
   scopeTitle: string;
   scopeDescription: string;
 };
 
-// ULTRA STRICT form schema
-const formSchema = z.object({
-  scopes: z
-    .array(scopeFormSchema)
-    .min(1, "At least one scope is required")
-    .refine(
-      (scopes) => {
-        // Check that every scope has the required fields
-        return scopes.every(
-          (scope) =>
-            scope.scopeCategory.trim() !== "" &&
-            scope.scopeType.trim() !== "" &&
-            scope.scopeTitle.trim() !== "" &&
-            scope.scopeDescription.trim() !== ""
-        );
-      },
-      {
-        message:
-          "All scopes must have Category, Type, Title, and Description filled out",
-      }
-    ),
-});
+type FormData = { scopes: ScopeSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_SCOPE: ScopeWithFormData = {
+const DEFAULT_SCOPE: ScopeSchemaType = {
   scopeCategory: "",
   scopeType: "",
   scopeTitle: "",
@@ -73,8 +77,8 @@ const DEFAULT_SCOPE: ScopeWithFormData = {
 };
 
 const mapEditDataToDefaultValues = (
-  editData: editScopeData[]
-): ScopeWithFormData[] => {
+  editData: editScopeData[],
+): ScopeSchemaType[] => {
   if (editData.length === 0) return [DEFAULT_SCOPE];
 
   return editData.map((data) => ({
@@ -91,20 +95,122 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
       register,
       control,
       formState: { errors },
-      trigger,
+      watch,
       getValues,
+      clearErrors,
+      setError,
     } = useForm<FormData>({
-      resolver: zodResolver(formSchema),
+      mode: "onChange",
       defaultValues: {
         scopes: mapEditDataToDefaultValues(editData),
       },
-      mode: "onChange",
     });
 
     const { fields, append, remove } = useFieldArray({
       control,
       name: "scopes",
     });
+
+    const watchScopes = watch("scopes");
+
+    const validateAndGetFormData = useCallback(() => {
+      const values = getValues();
+      const scopeData: addScopeData[] = [];
+      let isValid = true;
+      let hasAnyCompleteData = false;
+
+      clearErrors();
+
+      values.scopes.forEach((scope, index) => {
+        const hasContent = hasScopeContent(scope);
+        const hasCompleteData = hasCompleteScope(scope);
+
+        // If there's any content at all, validate it
+        if (hasContent) {
+          const result = scopeSchema.safeParse(scope);
+
+          if (!result.success) {
+            isValid = false;
+            result.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(`scopes.${index}.${path}` as any, {
+                  type: "manual",
+                  message: issue.message,
+                });
+              }
+            });
+          }
+
+          // Only add to data array if it's complete
+          if (hasCompleteData) {
+            hasAnyCompleteData = true;
+            scopeData.push({
+              scopeCategory: scope.scopeCategory,
+              scopeType: scope.scopeType,
+              scopeTitle: scope.scopeTitle,
+              scopeDescription: scope.scopeDescription,
+            });
+          } else if (hasContent && !hasCompleteData) {
+            // If there's content but it's incomplete, show validation errors
+            isValid = false;
+            if (!scope.scopeCategory?.trim()) {
+              setError(`scopes.${index}.scopeCategory` as any, {
+                type: "manual",
+                message: "Scope category is required",
+              });
+            }
+            if (!scope.scopeType?.trim()) {
+              setError(`scopes.${index}.scopeType` as any, {
+                type: "manual",
+                message: "Scope type is required",
+              });
+            }
+            if (!scope.scopeTitle?.trim()) {
+              setError(`scopes.${index}.scopeTitle` as any, {
+                type: "manual",
+                message: "Scope title is required",
+              });
+            }
+            if (!scope.scopeDescription?.trim()) {
+              setError(`scopes.${index}.scopeDescription` as any, {
+                type: "manual",
+                message: "Scope description is required",
+              });
+            }
+          }
+        }
+      });
+
+      // Additional check: if there's at least one scope with content but none are complete
+      const anyScopeHasContent = values.scopes.some((scope) =>
+        hasScopeContent(scope),
+      );
+      if (anyScopeHasContent && !hasAnyCompleteData) {
+        isValid = false;
+        // Find the first incomplete scope and highlight its error
+        const firstIncompleteIndex = values.scopes.findIndex(
+          (scope) => hasScopeContent(scope) && !hasCompleteScope(scope),
+        );
+        if (firstIncompleteIndex >= 0) {
+          const incompleteScope = values.scopes[firstIncompleteIndex];
+          if (!incompleteScope.scopeCategory?.trim()) {
+            setError(`scopes.${firstIncompleteIndex}.scopeCategory` as any, {
+              type: "manual",
+              message: "Scope category is required",
+            });
+          }
+          if (!incompleteScope.scopeType?.trim()) {
+            setError(`scopes.${firstIncompleteIndex}.scopeType` as any, {
+              type: "manual",
+              message: "Scope type is required",
+            });
+          }
+        }
+      }
+
+      return { isValid, scopeData, hasAnyCompleteData };
+    }, [getValues, setError, clearErrors]);
 
     const addScope = useCallback(() => {
       append(DEFAULT_SCOPE);
@@ -117,76 +223,38 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
           onDeleteScope(scopeItem._id, index);
         } else {
           remove(index);
+          clearErrors(`scopes.${index}` as any);
         }
       },
-      [remove, editData, onDeleteScope]
+      [remove, editData, onDeleteScope, clearErrors],
     );
 
-    // ULTRA STRICT getFormData
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
-        console.log("🔄 Validating scope form...");
+        const { isValid, scopeData } = validateAndGetFormData();
 
-        // First validate with Zod
-        const isValid = await trigger();
+        // Only return null if there are validation errors
         if (!isValid) {
-          console.log("❌ Zod validation failed");
           return null;
         }
 
-        const formData = getValues();
-        const scopeData: addScopeData[] = [];
-
-        const scopesArray = Array.isArray(formData.scopes)
-          ? formData.scopes
-          : [formData.scopes];
-
-        console.log("📋 Raw scopes data:", scopesArray);
-
-        // MANUAL VALIDATION - Check every scope has required data
-        for (let i = 0; i < scopesArray.length; i++) {
-          const scope = scopesArray[i];
-
-          const hasCategory =
-            scope.scopeCategory && scope.scopeCategory.trim() !== "";
-          const hasType = scope.scopeType && scope.scopeType.trim() !== "";
-          const hasTitle = scope.scopeTitle && scope.scopeTitle.trim() !== "";
-          const hasDescription =
-            scope.scopeDescription && scope.scopeDescription.trim() !== "";
-
-          console.log(`📝 Scope ${i}:`, {
-            hasCategory,
-            hasType,
-            hasTitle,
-            hasDescription,
-            category: scope.scopeCategory,
-            type: scope.scopeType,
-            title: scope.scopeTitle,
-          });
-
-          // Only include if ALL required fields are filled
-          if (hasCategory && hasType && hasTitle && hasDescription) {
-            scopeData.push({
-              scopeCategory: scope.scopeCategory,
-              scopeType: scope.scopeType,
-              scopeTitle: scope.scopeTitle,
-              scopeDescription: scope.scopeDescription,
-            });
-          } else {
-            console.log(`⚠️ Skipping scope ${i} - missing required fields`);
-          }
-        }
-
-        // Final check - must have at least one valid scope
+        // Return data even if arrays are empty (form is valid but has no complete data)
+        // But in this case, we should check if we have any data to submit
         if (scopeData.length === 0) {
-          console.log("❌ No valid scopes found");
-          alert(
-            "❌ Please fill out all required fields (Category, Type, Title, and Description) for at least one scope."
+          // If user has entered any content but it's incomplete, don't submit
+          const values = getValues();
+          const anyScopeHasContent = values.scopes.some((scope) =>
+            hasScopeContent(scope),
           );
-          return null;
+          if (anyScopeHasContent) {
+            // Show an alert or handle the case where there's partial data
+            console.log("Partial scope data exists but is incomplete");
+            return null;
+          }
+          // If no content at all, it's valid but empty
+          return { scopeData: [] };
         }
 
-        console.log("✅ Valid scopes:", scopeData.length);
         return { scopeData };
       },
       removeScopeField: (index: number) => {
@@ -195,12 +263,19 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
     }));
 
     const renderScopeForm = (field: { id: string }, index: number) => {
+      const currentScope = watchScopes?.[index];
+      const hasContent = hasScopeContent(currentScope);
+      // const categoryError = errors.scopes?.[index]?.scopeCategory?.message;
+      const typeError = errors.scopes?.[index]?.scopeType?.message;
+      const titleError = errors.scopes?.[index]?.scopeTitle?.message;
+      const descriptionError =
+        errors.scopes?.[index]?.scopeDescription?.message;
+
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* Delete button */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removeScope(index)}
@@ -217,35 +292,37 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
                 style="bg-white w-full"
                 title="Scope Category"
                 options={["inclusion", "exclusion"]}
-                {...register(`scopes.${index}.scopeCategory`)}
+                {...register(`scopes.${index}.scopeCategory` as const)}
               />
               <Input
                 style="bg-white"
                 disabled={false}
-                error={errors.scopes?.[index]?.scopeType?.message || ""}
+                error={hasContent && typeError ? String(typeError) : ""}
                 title="Scope Type *"
                 placeholder="Enter scope type (e.g., Standard, Premium, Optional)"
                 type="text"
-                {...register(`scopes.${index}.scopeType`)}
+                {...register(`scopes.${index}.scopeType` as const)}
               />
             </div>
 
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.scopes?.[index]?.scopeTitle?.message || ""}
+              error={hasContent && titleError ? String(titleError) : ""}
               title="Scope Title *"
               placeholder="Enter scope title (e.g., Transportation, Meals, Activities)"
               type="text"
-              {...register(`scopes.${index}.scopeTitle`)}
+              {...register(`scopes.${index}.scopeTitle` as const)}
             />
 
             <TextArea
               disabled={false}
-              error={errors.scopes?.[index]?.scopeDescription?.message || ""}
+              error={
+                hasContent && descriptionError ? String(descriptionError) : ""
+              }
               title="Scope Description *"
               placeholder="Enter detailed description of what this scope includes"
-              {...register(`scopes.${index}.scopeDescription`)}
+              {...register(`scopes.${index}.scopeDescription` as const)}
             />
 
             <div className="text-xs text-gray-500">
@@ -284,7 +361,7 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
         {fields.map(renderScopeForm)}
       </div>
     );
-  }
+  },
 );
 
 EditScopeForm.displayName = "EditScopeForm";

@@ -63,7 +63,7 @@ const Add = () => {
 
   const uploadFile = async (
     fileData: File[],
-    fileTitle: string
+    fileTitle: string,
   ): Promise<string> => {
     if (!fileData || fileData.length === 0) {
       return "";
@@ -171,8 +171,8 @@ const Add = () => {
             pricelistFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Pricelist ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Pricelist ${i + 1}`}`,
+              ),
             );
           } else {
             pricelistFileUploadPromises.push(Promise.resolve(""));
@@ -180,7 +180,7 @@ const Add = () => {
         }
 
         const pricelistFileUploadIds = await Promise.all(
-          pricelistFileUploadPromises
+          pricelistFileUploadPromises,
         );
         const safePricelistData = Array.isArray(pricelistData)
           ? pricelistData
@@ -194,19 +194,19 @@ const Add = () => {
           pricelistFormDataToSubmit.append("fee", pricelistItem.fee);
           pricelistFormDataToSubmit.append(
             "description",
-            pricelistItem.description
+            pricelistItem.description,
           );
           pricelistFormDataToSubmit.append("visa", visaId);
 
           if (pricelistFileUploadIds[i]) {
             pricelistFormDataToSubmit.append(
               "filesAssociated",
-              pricelistFileUploadIds[i]
+              pricelistFileUploadIds[i],
             );
           }
 
           allSubmissions.push(
-            pricelistMutation.mutateAsync(pricelistFormDataToSubmit)
+            pricelistMutation.mutateAsync(pricelistFormDataToSubmit),
           );
         }
       }
@@ -225,8 +225,8 @@ const Add = () => {
             processFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Process ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Process ${i + 1}`}`,
+              ),
             );
           } else {
             processFileUploadPromises.push(Promise.resolve(""));
@@ -234,7 +234,7 @@ const Add = () => {
         }
 
         const processFileUploadIds = await Promise.all(
-          processFileUploadPromises
+          processFileUploadPromises,
         );
         const safeProcessData = Array.isArray(processData)
           ? processData
@@ -246,7 +246,7 @@ const Add = () => {
           processFormDataToSubmit.append("type", "process");
           processFormDataToSubmit.append(
             "processTitle",
-            processItem.processTitle
+            processItem.processTitle,
           );
           processFormDataToSubmit.append("process", processItem.process);
           processFormDataToSubmit.append("visa", visaId);
@@ -254,12 +254,12 @@ const Add = () => {
           if (processFileUploadIds[i]) {
             processFormDataToSubmit.append(
               "filesAssociated",
-              processFileUploadIds[i]
+              processFileUploadIds[i],
             );
           }
 
           allSubmissions.push(
-            processMutation.mutateAsync(processFormDataToSubmit)
+            processMutation.mutateAsync(processFormDataToSubmit),
           );
         }
       }
@@ -277,24 +277,24 @@ const Add = () => {
           paymentFormDataToSubmit.append("type", "payment");
           paymentFormDataToSubmit.append(
             "paymentType",
-            paymentItem.paymentType
+            paymentItem.paymentType,
           );
           paymentFormDataToSubmit.append("currency", paymentItem.currency);
           paymentFormDataToSubmit.append(
             "accountName",
-            paymentItem.accountName
+            paymentItem.accountName,
           );
           paymentFormDataToSubmit.append("bankName", paymentItem.bankName);
           paymentFormDataToSubmit.append("accountNo", paymentItem.accountNo);
           paymentFormDataToSubmit.append(
             "bankAddress",
-            paymentItem.bankAddress
+            paymentItem.bankAddress,
           );
           paymentFormDataToSubmit.append("swiftCode", paymentItem.swiftCode);
           paymentFormDataToSubmit.append("visa", visaId);
 
           allSubmissions.push(
-            paymentMutation.mutateAsync(paymentFormDataToSubmit)
+            paymentMutation.mutateAsync(paymentFormDataToSubmit),
           );
         }
       }
@@ -313,8 +313,8 @@ const Add = () => {
             termFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Terms ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Terms ${i + 1}`}`,
+              ),
             );
           } else {
             termFileUploadPromises.push(Promise.resolve(""));
@@ -335,7 +335,7 @@ const Add = () => {
           if (termFileUploadIds[i]) {
             termFormDataToSubmit.append(
               "filesAssociated",
-              termFileUploadIds[i]
+              termFileUploadIds[i],
             );
           }
 
@@ -357,8 +357,8 @@ const Add = () => {
             documentFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Document ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Document ${i + 1}`}`,
+              ),
             );
           } else {
             documentFileUploadPromises.push(Promise.resolve(""));
@@ -366,7 +366,7 @@ const Add = () => {
         }
 
         const documentFileUploadIds = await Promise.all(
-          documentFileUploadPromises
+          documentFileUploadPromises,
         );
         const safeDocumentData = Array.isArray(documentData)
           ? documentData
@@ -379,19 +379,19 @@ const Add = () => {
           documentFormDataToSubmit.append("docTitle", documentItem.docTitle);
           documentFormDataToSubmit.append(
             "docDescription",
-            documentItem.docDescription
+            documentItem.docDescription,
           );
           documentFormDataToSubmit.append("visa", visaId);
 
           if (documentFileUploadIds[i]) {
             documentFormDataToSubmit.append(
               "filesAssociated",
-              documentFileUploadIds[i]
+              documentFileUploadIds[i],
             );
           }
 
           allSubmissions.push(
-            documentMutation.mutateAsync(documentFormDataToSubmit)
+            documentMutation.mutateAsync(documentFormDataToSubmit),
           );
         }
       }

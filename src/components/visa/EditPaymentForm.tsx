@@ -1,8 +1,6 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback, useEffect } from "react";
 import {
-  addPaymentSchema,
   type addPaymentData,
   type editPaymentData,
 } from "../../types/payments/addPaymentTypes";
@@ -25,14 +23,42 @@ interface PaymentFormProps {
   isDeletingPayment?: boolean;
 }
 
-// Create form schema with array of payments
-const formSchema = z.object({
-  payments: z.array(addPaymentSchema),
+const hasPaymentContent = (payment: addPaymentData): boolean => {
+  return (
+    (payment.paymentType?.trim() ?? "").length > 0 ||
+    (payment.currency?.trim() ?? "").length > 0 ||
+    (payment.accountName?.trim() ?? "").length > 0 ||
+    (payment.bankName?.trim() ?? "").length > 0 ||
+    (payment.accountNo?.trim() ?? "").length > 0 ||
+    (payment.bankAddress?.trim() ?? "").length > 0 ||
+    (payment.swiftCode?.trim() ?? "").length > 0
+  );
+};
+
+const hasCompletePayment = (payment: addPaymentData): boolean => {
+  return (
+    (payment.paymentType?.trim() ?? "").length > 0 &&
+    (payment.currency?.trim() ?? "").length > 0 &&
+    (payment.accountName?.trim() ?? "").length > 0 &&
+    (payment.bankName?.trim() ?? "").length > 0 &&
+    (payment.accountNo?.trim() ?? "").length > 0 &&
+    (payment.bankAddress?.trim() ?? "").length > 0 &&
+    (payment.swiftCode?.trim() ?? "").length > 0
+  );
+};
+
+const mergedSchema = z.object({
+  paymentType: z.string().min(1, "Payment type is required"),
+  currency: z.string().min(1, "Currency is required"),
+  accountName: z.string().min(1, "Account name is required"),
+  bankName: z.string().min(1, "Bank name is required"),
+  accountNo: z.string().min(1, "Account number is required"),
+  bankAddress: z.string().min(1, "Bank address is required"),
+  swiftCode: z.string().min(1, "SWIFT code is required"),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = { payments: addPaymentData[] };
 
-// Constants
 const DEFAULT_PAYMENT: addPaymentData = {
   paymentType: "",
   currency: "",
@@ -43,9 +69,8 @@ const DEFAULT_PAYMENT: addPaymentData = {
   swiftCode: "",
 };
 
-// Helper functions
 const mapEditDataToDefaultValues = (
-  editData: editPaymentData[]
+  editData: editPaymentData[],
 ): addPaymentData[] => {
   if (editData.length === 0) return [DEFAULT_PAYMENT];
 
@@ -60,7 +85,6 @@ const mapEditDataToDefaultValues = (
   }));
 };
 
-// FIX: Create a type that includes _id for existing payments
 interface PaymentWithId extends editPaymentData {
   _id: string;
 }
@@ -71,15 +95,15 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
       register,
       control,
       formState: { errors },
-      trigger,
       getValues,
+      clearErrors,
+      setError,
       reset,
     } = useForm<FormData>({
-      resolver: zodResolver(formSchema),
+      mode: "onChange",
       defaultValues: {
         payments: mapEditDataToDefaultValues(editData),
       },
-      mode: "onChange",
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -87,7 +111,6 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
       name: "payments",
     });
 
-    // Pre-fill form when editData changes
     useEffect(() => {
       if (editData.length > 0) {
         reset({
@@ -96,97 +119,143 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
       }
     }, [editData, reset]);
 
-    // Handlers
+    const validateAndGetFormData = useCallback(() => {
+      const values = getValues();
+      const paymentData: addPaymentData[] = [];
+      let isValid = true;
+      let hasAnyCompleteData = false;
+
+      clearErrors();
+
+      values.payments.forEach((payment, index) => {
+        const hasContent = hasPaymentContent(payment);
+        const hasCompleteData = hasCompletePayment(payment);
+
+        if (hasContent) {
+          const result = mergedSchema.safeParse(payment);
+
+          if (!result.success) {
+            isValid = false;
+            result.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(`payments.${index}.${path}` as any, {
+                  type: "manual",
+                  message: issue.message,
+                });
+              }
+            });
+          }
+
+          if (hasCompleteData) {
+            hasAnyCompleteData = true;
+            paymentData.push({
+              paymentType: payment.paymentType,
+              currency: payment.currency,
+              accountName: payment.accountName,
+              bankName: payment.bankName,
+              accountNo: payment.accountNo,
+              bankAddress: payment.bankAddress,
+              swiftCode: payment.swiftCode,
+            });
+          } else if (hasContent && !hasCompleteData) {
+            isValid = false;
+            if (!payment.paymentType?.trim()) {
+              setError(`payments.${index}.paymentType` as any, {
+                type: "manual",
+                message: "Payment type is required",
+              });
+            }
+            if (!payment.currency?.trim()) {
+              setError(`payments.${index}.currency` as any, {
+                type: "manual",
+                message: "Currency is required",
+              });
+            }
+            if (!payment.accountName?.trim()) {
+              setError(`payments.${index}.accountName` as any, {
+                type: "manual",
+                message: "Account name is required",
+              });
+            }
+            if (!payment.bankName?.trim()) {
+              setError(`payments.${index}.bankName` as any, {
+                type: "manual",
+                message: "Bank name is required",
+              });
+            }
+            if (!payment.accountNo?.trim()) {
+              setError(`payments.${index}.accountNo` as any, {
+                type: "manual",
+                message: "Account number is required",
+              });
+            }
+            if (!payment.bankAddress?.trim()) {
+              setError(`payments.${index}.bankAddress` as any, {
+                type: "manual",
+                message: "Bank address is required",
+              });
+            }
+            if (!payment.swiftCode?.trim()) {
+              setError(`payments.${index}.swiftCode` as any, {
+                type: "manual",
+                message: "SWIFT code is required",
+              });
+            }
+          }
+        }
+      });
+
+      return { isValid, paymentData, hasAnyCompleteData };
+    }, [getValues, setError, clearErrors]);
+
     const addPayment = useCallback(() => {
       append(DEFAULT_PAYMENT);
     }, [append]);
 
-    // UPDATED: Remove payment function - allow deletion even when there's only one payment, no auto-add
     const removePayment = useCallback(
       (index: number) => {
-        const paymentItem = editData[index];
-        // Use type assertion to safely access _id
-        const paymentWithId = paymentItem as PaymentWithId;
-
-        // If it's an existing payment (has _id), use API deletion
-        if (paymentWithId?._id && onDeletePayment) {
-          onDeletePayment(paymentWithId._id, index);
+        const paymentItem = editData[index] as PaymentWithId;
+        if (paymentItem?._id && onDeletePayment) {
+          onDeletePayment(paymentItem._id, index);
         } else {
-          // If it's a new payment (no _id), just remove from local state
           remove(index);
+          clearErrors(`payments.${index}` as any);
         }
       },
-      [remove, editData, onDeletePayment]
+      [remove, editData, onDeletePayment, clearErrors],
     );
 
-    // UPDATED: Expose form data and remove method to parent
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
-        const isValid = await trigger();
-        if (!isValid) return null;
+        const { isValid, paymentData } = validateAndGetFormData();
 
-        const formData = getValues();
-        const paymentData: addPaymentData[] = [];
-
-        console.log(
-          "🔍 EditPaymentForm - formData.payments:",
-          formData.payments
-        );
-        console.log(
-          "🔍 EditPaymentForm - isArray:",
-          Array.isArray(formData.payments)
-        );
-
-        // FIX: Ensure we're always working with an array
-        const paymentsArray = Array.isArray(formData.payments)
-          ? formData.payments
-          : [formData.payments];
-
-        paymentsArray.forEach((payment, index) => {
-          console.log(`🔍 Processing payment ${index}:`, payment);
-
-          paymentData.push({
-            paymentType: payment.paymentType,
-            currency: payment.currency,
-            accountName: payment.accountName,
-            bankName: payment.bankName,
-            accountNo: payment.accountNo,
-            bankAddress: payment.bankAddress,
-            swiftCode: payment.swiftCode,
-          });
-        });
-
-        console.log("🔍 EditPaymentForm - final paymentData:", paymentData);
+        if (!isValid) {
+          return null;
+        }
 
         return { paymentData };
       },
       removePaymentField: (index: number) => {
-        // UPDATED: Allow deletion even when there's only one payment
         remove(index);
       },
     }));
 
-    // UPDATED: Render function with always visible delete button
     const renderPaymentForm = (field: { id: string }, index: number) => {
-      // const paymentItem = editData[index];
-      // Use type assertion to safely access _id
-      // const paymentWithId = paymentItem as PaymentWithId;
-      // const isExistingPayment = !!paymentWithId?._id;
-      // const isThisPaymentDeleting = isExistingPayment && isDeletingPayment;
+      const payment = getValues().payments?.[index] || DEFAULT_PAYMENT;
+      const hasContent = hasPaymentContent(payment);
 
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* UPDATED: Always show delete button when there's at least one payment */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removePayment(index)}
-              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
-              // isLoading={isThisPaymentDeleting}
             />
           )}
 
@@ -194,63 +263,87 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.paymentType?.message || ""}
-              title="Payment Type"
+              error={
+                hasContent && errors.payments?.[index]?.paymentType?.message
+                  ? String(errors.payments[index]?.paymentType?.message)
+                  : ""
+              }
+              title="Payment Type *"
               placeholder="Enter payment type (e.g., Bank Transfer, Credit Card)"
               type="text"
-              {...register(`payments.${index}.paymentType`)}
+              {...register(`payments.${index}.paymentType` as const)}
             />
             <InputOption
               disabled={false}
               options={["PHP", "KRW", "JPY", "USD"]}
-              title="Currency"
-              {...register(`payments.${index}.currency`)}
+              title="Currency *"
+              {...register(`payments.${index}.currency` as const)}
               style="bg-white w-full"
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.accountName?.message || ""}
-              title="Account Name"
+              error={
+                hasContent && errors.payments?.[index]?.accountName?.message
+                  ? String(errors.payments[index]?.accountName?.message)
+                  : ""
+              }
+              title="Account Name *"
               placeholder="Enter account holder name"
               type="text"
-              {...register(`payments.${index}.accountName`)}
+              {...register(`payments.${index}.accountName` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.bankName?.message || ""}
-              title="Bank Name"
+              error={
+                hasContent && errors.payments?.[index]?.bankName?.message
+                  ? String(errors.payments[index]?.bankName?.message)
+                  : ""
+              }
+              title="Bank Name *"
               placeholder="Enter bank name"
               type="text"
-              {...register(`payments.${index}.bankName`)}
+              {...register(`payments.${index}.bankName` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.accountNo?.message || ""}
-              title="Account Number"
+              error={
+                hasContent && errors.payments?.[index]?.accountNo?.message
+                  ? String(errors.payments[index]?.accountNo?.message)
+                  : ""
+              }
+              title="Account Number *"
               placeholder="Enter account number"
               type="text"
-              {...register(`payments.${index}.accountNo`)}
+              {...register(`payments.${index}.accountNo` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.bankAddress?.message || ""}
-              title="Bank Address"
+              error={
+                hasContent && errors.payments?.[index]?.bankAddress?.message
+                  ? String(errors.payments[index]?.bankAddress?.message)
+                  : ""
+              }
+              title="Bank Address *"
               placeholder="Enter bank branch address"
               type="text"
-              {...register(`payments.${index}.bankAddress`)}
+              {...register(`payments.${index}.bankAddress` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.swiftCode?.message || ""}
-              title="SWIFT Code"
+              error={
+                hasContent && errors.payments?.[index]?.swiftCode?.message
+                  ? String(errors.payments[index]?.swiftCode?.message)
+                  : ""
+              }
+              title="SWIFT Code *"
               placeholder="Enter SWIFT/BIC code"
               type="text"
-              {...register(`payments.${index}.swiftCode`)}
+              {...register(`payments.${index}.swiftCode` as const)}
             />
           </div>
         </div>
@@ -271,7 +364,7 @@ const EditPaymentForm = forwardRef<PaymentFormHandle, PaymentFormProps>(
         {fields.map(renderPaymentForm)}
       </div>
     );
-  }
+  },
 );
 
 EditPaymentForm.displayName = "EditPaymentForm";

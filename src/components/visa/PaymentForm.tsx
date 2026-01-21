@@ -1,7 +1,5 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
-import { z } from "zod";
 import {
   addPaymentSchema,
   type addPaymentData,
@@ -17,11 +15,19 @@ export interface PaymentFormHandle {
   } | null>;
 }
 
-const formSchema = z.object({
-  payments: z.array(addPaymentSchema),
-});
+const hasPaymentContent = (payment: addPaymentData): boolean => {
+  return (
+    (payment.paymentType?.trim() ?? "").length > 0 ||
+    (payment.currency?.trim() ?? "").length > 0 ||
+    (payment.accountName?.trim() ?? "").length > 0 ||
+    (payment.bankName?.trim() ?? "").length > 0 ||
+    (payment.accountNo?.trim() ?? "").length > 0 ||
+    (payment.bankAddress?.trim() ?? "").length > 0 ||
+    (payment.swiftCode?.trim() ?? "").length > 0
+  );
+};
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = { payments: addPaymentData[] };
 
 const DEFAULT_PAYMENT: addPaymentData = {
   paymentType: "",
@@ -38,14 +44,12 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
     register,
     control,
     formState: { errors },
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      payments: [DEFAULT_PAYMENT],
-    },
     mode: "onChange",
+    defaultValues: { payments: [DEFAULT_PAYMENT] },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -53,53 +57,86 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
     name: "payments",
   });
 
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const paymentData: addPaymentData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.payments.forEach((payment, index) => {
+      const hasContent = hasPaymentContent(payment);
+
+      if (hasContent) {
+        const result = addPaymentSchema.safeParse(payment);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`payments.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          paymentData.push({
+            paymentType: payment.paymentType,
+            currency: payment.currency,
+            accountName: payment.accountName,
+            bankName: payment.bankName,
+            accountNo: payment.accountNo,
+            bankAddress: payment.bankAddress,
+            swiftCode: payment.swiftCode,
+          });
+        }
+      }
+    });
+
+    return { isValid, paymentData };
+  }, [getValues, setError, clearErrors]);
+
   const addPayment = useCallback(() => {
     append(DEFAULT_PAYMENT);
   }, [append]);
 
-  // UPDATED: Allow deletion even when there's only one payment, no auto-add
   const removePayment = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`payments.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, paymentData } = validateAndGetFormData();
 
-      const formData = getValues();
-      const paymentData: addPaymentData[] = [];
-
-      const paymentsArray = Array.isArray(formData.payments)
-        ? formData.payments
-        : [formData.payments];
-
-      paymentsArray.forEach((payment) => {
-        paymentData.push({
-          paymentType: payment.paymentType,
-          currency: payment.currency,
-          accountName: payment.accountName,
-          bankName: payment.bankName,
-          accountNo: payment.accountNo,
-          bankAddress: payment.bankAddress,
-          swiftCode: payment.swiftCode,
-        });
-      });
+      if (!isValid || paymentData.length === 0) {
+        return null;
+      }
 
       return { paymentData };
     },
   }));
 
   const renderPaymentForm = (field: { id: string }, index: number) => {
+    const payment = getValues().payments[index];
+    const hasContent = hasPaymentContent(payment);
+    const paymentTypeError = errors.payments?.[index]?.paymentType?.message;
+    const accountNameError = errors.payments?.[index]?.accountName?.message;
+    const bankNameError = errors.payments?.[index]?.bankName?.message;
+    const accountNoError = errors.payments?.[index]?.accountNo?.message;
+    const swiftCodeError = errors.payments?.[index]?.swiftCode?.message;
+    const bankAddressError = errors.payments?.[index]?.bankAddress?.message;
+
     return (
       <div
         key={field.id}
         className="w-full flex flex-col items-end justify-center"
       >
-        {/* UPDATED: Always show delete button when there's at least one payment */}
         {fields.length >= 1 && (
           <IconButton
             action={() => removePayment(index)}
@@ -114,17 +151,19 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.paymentType?.message || ""}
+              error={
+                hasContent && paymentTypeError ? String(paymentTypeError) : ""
+              }
               title="Payment Type"
               placeholder="Enter payment type (e.g., Bank Transfer, Credit Card)"
               type="text"
-              {...register(`payments.${index}.paymentType`)}
+              {...register(`payments.${index}.paymentType` as const)}
             />
             <InputOption
               disabled={false}
               options={["PHP", "KRW", "JPY", "USD"]}
               title="Currency"
-              {...register(`payments.${index}.currency`)}
+              {...register(`payments.${index}.currency` as const)}
               style="bg-white w-full"
             />
           </div>
@@ -133,20 +172,22 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.accountName?.message || ""}
+              error={
+                hasContent && accountNameError ? String(accountNameError) : ""
+              }
               title="Account Name"
               placeholder="Enter account holder name"
               type="text"
-              {...register(`payments.${index}.accountName`)}
+              {...register(`payments.${index}.accountName` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.bankName?.message || ""}
+              error={hasContent && bankNameError ? String(bankNameError) : ""}
               title="Bank Name"
               placeholder="Enter bank name"
               type="text"
-              {...register(`payments.${index}.bankName`)}
+              {...register(`payments.${index}.bankName` as const)}
             />
           </div>
 
@@ -154,31 +195,33 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.accountNo?.message || ""}
+              error={hasContent && accountNoError ? String(accountNoError) : ""}
               title="Account Number"
               placeholder="Enter account number"
               type="text"
-              {...register(`payments.${index}.accountNo`)}
+              {...register(`payments.${index}.accountNo` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.payments?.[index]?.swiftCode?.message || ""}
+              error={hasContent && swiftCodeError ? String(swiftCodeError) : ""}
               title="SWIFT Code"
               placeholder="Enter SWIFT/BIC code"
               type="text"
-              {...register(`payments.${index}.swiftCode`)}
+              {...register(`payments.${index}.swiftCode` as const)}
             />
           </div>
 
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.payments?.[index]?.bankAddress?.message || ""}
+            error={
+              hasContent && bankAddressError ? String(bankAddressError) : ""
+            }
             title="Bank Address"
             placeholder="Enter bank branch address"
             type="text"
-            {...register(`payments.${index}.bankAddress`)}
+            {...register(`payments.${index}.bankAddress` as const)}
           />
         </div>
       </div>
@@ -202,5 +245,4 @@ const PaymentForm = forwardRef<PaymentFormHandle>((_props, ref) => {
 });
 
 PaymentForm.displayName = "PaymentForm";
-
 export default PaymentForm;

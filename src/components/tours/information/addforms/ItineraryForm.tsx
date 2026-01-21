@@ -1,6 +1,4 @@
-// components/tours/add/addforms/ItineraryForm.tsx
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
@@ -29,7 +27,78 @@ export interface ItineraryFormHandle {
   } | null>;
 }
 
-// Create the schema with proper types
+const hasActivityContent = (activity: {
+  activityType?: string;
+  information?: string;
+}): boolean => {
+  return (
+    (activity.activityType?.trim() ?? "").length > 0 ||
+    (activity.information?.trim() ?? "").length > 0
+  );
+};
+
+const hasCompleteActivity = (activity: {
+  activityType?: string;
+  information?: string;
+}): boolean => {
+  return (
+    (activity.activityType?.trim() ?? "").length > 0 &&
+    (activity.information?.trim() ?? "").length > 0
+  );
+};
+
+const hasMealContent = (meal: {
+  mealType?: string;
+  mealCount?: string;
+  mealUnit?: string;
+  description?: string;
+}): boolean => {
+  return (
+    (meal.mealType?.trim() ?? "").length > 0 ||
+    (meal.mealCount?.trim() ?? "").length > 0 ||
+    (meal.mealUnit?.trim() ?? "").length > 0 ||
+    (meal.description?.trim() ?? "").length > 0
+  );
+};
+
+const hasCompleteMeal = (meal: {
+  mealType?: string;
+  mealCount?: string;
+  mealUnit?: string;
+  description?: string;
+}): boolean => {
+  return (
+    (meal.mealType?.trim() ?? "").length > 0 &&
+    (meal.mealCount?.trim() ?? "").length > 0 &&
+    (meal.mealUnit?.trim() ?? "").length > 0 &&
+    (meal.description?.trim() ?? "").length > 0
+  );
+};
+
+const hasItineraryContent = (itinerary: {
+  title?: string;
+  location?: string;
+  dayOrder?: string;
+  activities?: Array<{ activityType?: string; information?: string }>;
+  meals?: Array<{
+    mealType?: string;
+    mealCount?: string;
+    mealUnit?: string;
+    description?: string;
+  }>;
+}): boolean => {
+  const hasMainFields =
+    (itinerary.title?.trim() ?? "").length > 0 ||
+    (itinerary.location?.trim() ?? "").length > 0 ||
+    (itinerary.dayOrder?.trim() ?? "").length > 0;
+
+  const hasActivitiesContent =
+    itinerary.activities?.some(hasActivityContent) || false;
+  const hasMealsContent = itinerary.meals?.some(hasMealContent) || false;
+
+  return hasMainFields || hasActivitiesContent || hasMealsContent;
+};
+
 const activitySchema = z.object({
   activityType: z.string().min(1, "Activity type is required"),
   information: z.string().min(1, "Information is required"),
@@ -42,7 +111,7 @@ const mealSchema = z.object({
   description: z.string().min(1, "Description is required"),
 });
 
-const itineraryFormSchema = z.object({
+const itinerarySchema = z.object({
   title: z.string().min(1, "Title is required"),
   location: z.string().min(1, "Location is required"),
   dayOrder: z.string().min(1, "Day order is required"),
@@ -50,36 +119,17 @@ const itineraryFormSchema = z.object({
   meals: z.array(mealSchema),
 });
 
-type ItineraryFormData = z.infer<typeof itineraryFormSchema>;
+type ItinerarySchemaType = z.infer<typeof itinerarySchema>;
+type FormData = { itineraries: ItinerarySchemaType[] };
 
-const formSchema = z.object({
-  itineraries: z.array(itineraryFormSchema),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-// Constants with explicit types
-const DEFAULT_ACTIVITY: {
-  activityType: string;
-  information: string;
-} = {
-  activityType: "",
-  information: "",
-};
-
-const DEFAULT_MEAL: {
-  mealType: string;
-  mealCount: string;
-  mealUnit: string;
-  description: string;
-} = {
+const DEFAULT_ACTIVITY = { activityType: "", information: "" };
+const DEFAULT_MEAL = {
   mealType: "",
   mealCount: "",
   mealUnit: "",
   description: "",
 };
-
-const DEFAULT_ITINERARY: ItineraryFormData = {
+const DEFAULT_ITINERARY: ItinerarySchemaType = {
   title: "",
   location: "",
   dayOrder: "",
@@ -92,41 +142,186 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
     register,
     control,
     formState: { errors },
-    trigger,
-    getValues,
     setValue,
-    watch,
+    getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      itineraries: [DEFAULT_ITINERARY],
-    },
     mode: "onChange",
+    defaultValues: { itineraries: [DEFAULT_ITINERARY] },
   });
 
   const {
     fields: itineraryFields,
     append: appendItinerary,
     remove: removeItinerary,
-  } = useFieldArray({
-    control,
-    name: "itineraries",
-  });
+  } = useFieldArray({ control, name: "itineraries" });
 
-  const watchItineraries = watch("itineraries");
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const itineraryData: any[] = [];
+    let isValid = true;
 
-  // Handlers for activities
+    clearErrors();
+
+    values.itineraries.forEach((itinerary, itineraryIndex) => {
+      const hasContent = hasItineraryContent(itinerary);
+
+      if (!hasContent) return;
+
+      const hasMainFields =
+        (itinerary.title?.trim() ?? "").length > 0 ||
+        (itinerary.location?.trim() ?? "").length > 0 ||
+        (itinerary.dayOrder?.trim() ?? "").length > 0;
+
+      if (hasMainFields) {
+        const mainResult = itinerarySchema.safeParse(itinerary);
+        if (!mainResult.success) {
+          isValid = false;
+          mainResult.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`itineraries.${itineraryIndex}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        }
+      }
+
+      let hasAnyActivityContent = false;
+      let hasAnyCompleteActivity = false;
+
+      itinerary.activities?.forEach((activity, activityIndex) => {
+        const activityHasContent = hasActivityContent(activity);
+        const activityIsComplete = hasCompleteActivity(activity);
+        hasAnyActivityContent = hasAnyActivityContent || activityHasContent;
+        hasAnyCompleteActivity = hasAnyCompleteActivity || activityIsComplete;
+
+        if (activityHasContent) {
+          const activityResult = activitySchema.safeParse(activity);
+          if (!activityResult.success) {
+            isValid = false;
+            activityResult.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(
+                  `itineraries.${itineraryIndex}.activities.${activityIndex}.${path}` as any,
+                  { type: "manual", message: issue.message },
+                );
+              }
+            });
+          }
+        }
+      });
+
+      if (hasMainFields && !hasAnyCompleteActivity) {
+        isValid = false;
+        setError(`itineraries.${itineraryIndex}.activities` as any, {
+          type: "manual",
+          message: hasAnyActivityContent
+            ? "Complete all activity fields (type and information)"
+            : "At least one activity is required",
+        });
+      }
+
+      let hasAnyMealContent = false;
+      let hasAnyCompleteMeal = false;
+
+      itinerary.meals?.forEach((meal, mealIndex) => {
+        const mealHasContent = hasMealContent(meal);
+        const mealIsComplete = hasCompleteMeal(meal);
+        hasAnyMealContent = hasAnyMealContent || mealHasContent;
+        hasAnyCompleteMeal = hasAnyCompleteMeal || mealIsComplete;
+
+        if (mealHasContent) {
+          const mealResult = mealSchema.safeParse(meal);
+          if (!mealResult.success) {
+            isValid = false;
+            mealResult.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(
+                  `itineraries.${itineraryIndex}.meals.${mealIndex}.${path}` as any,
+                  { type: "manual", message: issue.message },
+                );
+              }
+            });
+          }
+        }
+      });
+
+      if (hasMainFields && !hasAnyCompleteMeal) {
+        isValid = false;
+        setError(`itineraries.${itineraryIndex}.meals` as any, {
+          type: "manual",
+          message: hasAnyMealContent
+            ? "Complete all meal fields (type, count, unit, and description)"
+            : "At least one meal is required",
+        });
+      }
+
+      const hasCompleteMainFields =
+        (itinerary.title?.trim() ?? "").length > 0 &&
+        (itinerary.location?.trim() ?? "").length > 0 &&
+        (itinerary.dayOrder?.trim() ?? "").length > 0;
+
+      const completeActivities =
+        itinerary.activities?.filter(hasCompleteActivity) || [];
+      const completeMeals = itinerary.meals?.filter(hasCompleteMeal) || [];
+
+      if (
+        hasCompleteMainFields &&
+        completeActivities.length > 0 &&
+        completeMeals.length > 0
+      ) {
+        itineraryData.push({
+          title: itinerary.title,
+          location: itinerary.location,
+          dayOrder: itinerary.dayOrder,
+          activities: completeActivities,
+          meals: completeMeals.map((meal) => ({
+            ...meal,
+            mealCount: String(meal.mealCount || ""),
+          })),
+        });
+      } else if (hasContent) {
+        isValid = false;
+        if (!itinerary.title?.trim()) {
+          setError(`itineraries.${itineraryIndex}.title` as any, {
+            type: "manual",
+            message: "Title is required",
+          });
+        }
+        if (!itinerary.location?.trim()) {
+          setError(`itineraries.${itineraryIndex}.location` as any, {
+            type: "manual",
+            message: "Location is required",
+          });
+        }
+        if (!itinerary.dayOrder?.trim()) {
+          setError(`itineraries.${itineraryIndex}.dayOrder` as any, {
+            type: "manual",
+            message: "Day order is required",
+          });
+        }
+      }
+    });
+
+    return { isValid, itineraryData };
+  }, [getValues, setError, clearErrors]);
+
   const addActivity = useCallback(
     (itineraryIndex: number) => {
       const currentItinerary = getValues(`itineraries.${itineraryIndex}`);
       const currentActivities = Array.isArray(currentItinerary?.activities)
         ? [...currentItinerary.activities]
         : [currentItinerary?.activities || DEFAULT_ACTIVITY];
-
       currentActivities.push({ ...DEFAULT_ACTIVITY });
       setValue(`itineraries.${itineraryIndex}.activities`, currentActivities);
     },
-    [getValues, setValue]
+    [getValues, setValue],
   );
 
   const removeActivity = useCallback(
@@ -135,27 +330,24 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
       const currentActivities = Array.isArray(currentItinerary?.activities)
         ? [...currentItinerary.activities]
         : [currentItinerary?.activities || DEFAULT_ACTIVITY];
-
       if (currentActivities.length > 1) {
         currentActivities.splice(activityIndex, 1);
         setValue(`itineraries.${itineraryIndex}.activities`, currentActivities);
       }
     },
-    [getValues, setValue]
+    [getValues, setValue],
   );
 
-  // Handlers for meals
   const addMeal = useCallback(
     (itineraryIndex: number) => {
       const currentItinerary = getValues(`itineraries.${itineraryIndex}`);
       const currentMeals = Array.isArray(currentItinerary?.meals)
         ? [...currentItinerary.meals]
         : [currentItinerary?.meals || DEFAULT_MEAL];
-
       currentMeals.push({ ...DEFAULT_MEAL });
       setValue(`itineraries.${itineraryIndex}.meals`, currentMeals);
     },
-    [getValues, setValue]
+    [getValues, setValue],
   );
 
   const removeMeal = useCallback(
@@ -164,109 +356,47 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
       const currentMeals = Array.isArray(currentItinerary?.meals)
         ? [...currentItinerary.meals]
         : [currentItinerary?.meals || DEFAULT_MEAL];
-
       if (currentMeals.length > 1) {
         currentMeals.splice(mealIndex, 1);
         setValue(`itineraries.${itineraryIndex}.meals`, currentMeals);
       }
     },
-    [getValues, setValue]
+    [getValues, setValue],
   );
 
-  // Expose methods to parent
+  const removeItineraryHandler = useCallback(
+    (index: number) => {
+      removeItinerary(index);
+      clearErrors(`itineraries.${index}` as any);
+    },
+    [removeItinerary, clearErrors],
+  );
+
+  const addItinerary = useCallback(() => {
+    appendItinerary({ ...DEFAULT_ITINERARY });
+  }, [appendItinerary]);
+
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) {
-        console.log("❌ Itinerary form validation failed");
-        return null;
-      }
-
-      const formData = getValues();
-      const itineraryData: {
-        title: string;
-        location: string;
-        dayOrder: string;
-        activities: Array<{
-          activityType: string;
-          information: string;
-        }>;
-        meals: Array<{
-          mealType: string;
-          mealCount: string;
-          mealUnit: string;
-          description: string;
-        }>;
-      }[] = [];
-
-      const itinerariesArray = Array.isArray(formData.itineraries)
-        ? formData.itineraries
-        : [formData.itineraries];
-
-      itinerariesArray.forEach((itinerary) => {
-        // Ensure activities and meals are arrays
-        const activities = Array.isArray(itinerary.activities)
-          ? itinerary.activities
-          : [itinerary.activities || DEFAULT_ACTIVITY];
-
-        const meals = Array.isArray(itinerary.meals)
-          ? itinerary.meals
-          : [itinerary.meals || DEFAULT_MEAL];
-
-        // Filter out completely empty activities and meals
-        const filteredActivities = activities.filter(
-          (activity) =>
-            (activity?.activityType?.trim() || activity?.information?.trim()) &&
-            activity !== null &&
-            activity !== undefined
-        );
-
-        const filteredMeals = meals.filter(
-          (meal) =>
-            (meal?.mealType?.trim() || meal?.description?.trim()) &&
-            meal !== null &&
-            meal !== undefined
-        );
-
-        // Ensure mealCount is always a string
-        const processedMeals = filteredMeals.map((meal) => ({
-          ...meal,
-          mealCount: String(meal.mealCount || ""),
-        }));
-
-        // Only add if there's at least some data
-        if (
-          itinerary.title?.trim() ||
-          itinerary.location?.trim() ||
-          itinerary.dayOrder?.trim() ||
-          filteredActivities.length > 0 ||
-          processedMeals.length > 0
-        ) {
-          itineraryData.push({
-            title: itinerary.title || "",
-            location: itinerary.location || "",
-            dayOrder: String(itinerary.dayOrder || ""),
-            activities: filteredActivities.length > 0 ? filteredActivities : [],
-            meals: processedMeals.length > 0 ? processedMeals : [],
-          });
-        }
-      });
-
-      console.log("🔍 Final itinerary data for submission:", itineraryData);
-
+      const { isValid, itineraryData } = validateAndGetFormData();
+      if (!isValid || itineraryData.length === 0) return null;
       return { itineraryData };
     },
   }));
 
-  // Render helpers
   const renderActivityForm = (
     itineraryIndex: number,
-    activityIndex: number
+    activityIndex: number,
   ) => {
-    const currentItinerary = watchItineraries?.[itineraryIndex];
+    const currentItinerary = getValues().itineraries[itineraryIndex];
     const activities = Array.isArray(currentItinerary?.activities)
       ? currentItinerary.activities
       : [currentItinerary?.activities || DEFAULT_ACTIVITY];
+    const currentActivity = activities[activityIndex];
+    const hasContent = hasActivityContent(currentActivity);
+    const informationError =
+      errors.itineraries?.[itineraryIndex]?.activities?.[activityIndex]
+        ?.information?.message;
 
     return (
       <div
@@ -303,19 +433,18 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
               "general",
             ]}
             {...register(
-              `itineraries.${itineraryIndex}.activities.${activityIndex}.activityType`
+              `itineraries.${itineraryIndex}.activities.${activityIndex}.activityType` as const,
             )}
           />
           <TextArea
             disabled={false}
             error={
-              errors.itineraries?.[itineraryIndex]?.activities?.[activityIndex]
-                ?.information?.message || ""
+              hasContent && informationError ? String(informationError) : ""
             }
             title="Information"
             placeholder="Describe the activity in detail"
             {...register(
-              `itineraries.${itineraryIndex}.activities.${activityIndex}.information`
+              `itineraries.${itineraryIndex}.activities.${activityIndex}.information` as const,
             )}
           />
           <div className="w-full border-t border-black/6 border-0 my-6" />
@@ -325,10 +454,18 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
   };
 
   const renderMealForm = (itineraryIndex: number, mealIndex: number) => {
-    const currentItinerary = watchItineraries?.[itineraryIndex];
+    const currentItinerary = getValues().itineraries[itineraryIndex];
     const meals = Array.isArray(currentItinerary?.meals)
       ? currentItinerary.meals
       : [currentItinerary?.meals || DEFAULT_MEAL];
+    const currentMeal = meals[mealIndex];
+    const hasContent = hasMealContent(currentMeal);
+    const mealCountError =
+      errors.itineraries?.[itineraryIndex]?.meals?.[mealIndex]?.mealCount
+        ?.message;
+    const descriptionError =
+      errors.itineraries?.[itineraryIndex]?.meals?.[mealIndex]?.description
+        ?.message;
 
     return (
       <div key={`meal-${itineraryIndex}-${mealIndex}`} className="space-y-3">
@@ -343,61 +480,69 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
             </button>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <InputOption
-            disabled={false}
-            style="bg-white w-full"
-            title="Meal Type"
-            options={["breakfast", "lunch", "dinner", "snacks", "others"]}
-            {...register(
-              `itineraries.${itineraryIndex}.meals.${mealIndex}.mealType`
-            )}
-          />
-          <Input
-            style="bg-white"
-            disabled={false}
-            error={
-              errors.itineraries?.[itineraryIndex]?.meals?.[mealIndex]
-                ?.mealCount?.message || ""
-            }
-            title="Meal Count"
-            placeholder="e.g., 2, 1, 3"
-            type="text"
-            {...register(
-              `itineraries.${itineraryIndex}.meals.${mealIndex}.mealCount`
-            )}
-          />
-
-          <InputOption
-            disabled={false}
-            style="bg-white w-full"
-            title="Meal Unit"
-            options={["person", "group", "team"]}
-            {...register(
-              `itineraries.${itineraryIndex}.meals.${mealIndex}.mealUnit`
-            )}
-          />
-          <Input
-            style="bg-white"
-            disabled={false}
-            error={
-              errors.itineraries?.[itineraryIndex]?.meals?.[mealIndex]
-                ?.description?.message || ""
-            }
-            title="Description"
-            placeholder="e.g., Hotel breakfast, Buffet lunch"
-            type="text"
-            {...register(
-              `itineraries.${itineraryIndex}.meals.${mealIndex}.description`
-            )}
-          />
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Meal Type"
+              options={["breakfast", "lunch", "dinner", "snacks", "others"]}
+              {...register(
+                `itineraries.${itineraryIndex}.meals.${mealIndex}.mealType` as const,
+              )}
+            />
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={hasContent && mealCountError ? String(mealCountError) : ""}
+              title="Meal Count"
+              placeholder="e.g., 2, 1, 3"
+              type="text"
+              {...register(
+                `itineraries.${itineraryIndex}.meals.${mealIndex}.mealCount` as const,
+              )}
+            />
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Meal Unit"
+              options={["person", "group", "team"]}
+              {...register(
+                `itineraries.${itineraryIndex}.meals.${mealIndex}.mealUnit` as const,
+              )}
+            />
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={
+                hasContent && descriptionError ? String(descriptionError) : ""
+              }
+              title="Description"
+              placeholder="e.g., Hotel breakfast, Buffet lunch"
+              type="text"
+              {...register(
+                `itineraries.${itineraryIndex}.meals.${mealIndex}.description` as const,
+              )}
+            />
+          </div>
+          <div className="w-full border-t border-black/6 border-0 my-6" />
         </div>
-        <div className="w-full border-t border-black/6 border-0 my-6" />
       </div>
     );
   };
 
   const renderItineraryForm = (field: { id: string }, index: number) => {
+    const currentItinerary = getValues().itineraries[index];
+    const hasMainFields =
+      (currentItinerary?.title?.trim() ?? "").length > 0 ||
+      (currentItinerary?.location?.trim() ?? "").length > 0 ||
+      (currentItinerary?.dayOrder?.trim() ?? "").length > 0;
+    const titleError = errors.itineraries?.[index]?.title?.message;
+    const locationError = errors.itineraries?.[index]?.location?.message;
+    const dayOrderError = errors.itineraries?.[index]?.dayOrder?.message;
+    const activitiesError = errors.itineraries?.[index]?.activities?.message;
+    const mealsError = errors.itineraries?.[index]?.meals?.message;
+
     return (
       <div
         key={field.id}
@@ -405,7 +550,7 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
       >
         {itineraryFields.length >= 1 && (
           <IconButton
-            action={() => removeItinerary(index)}
+            action={() => removeItineraryHandler(index)}
             style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
             title=""
             icon={<RiDeleteBin4Fill size={16} />}
@@ -413,44 +558,46 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
         )}
 
         <div className="w-full flex flex-col gap-4">
-          <div className="w-full flex flex-col items-center justify-center">
-            <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                style="bg-white"
-                disabled={false}
-                error={errors.itineraries?.[index]?.title?.message || ""}
-                title="Day Title"
-                placeholder="e.g., Day 1: Arrival in Paris"
-                type="text"
-                {...register(`itineraries.${index}.title`)}
-              />
-              <Input
-                style="bg-white"
-                disabled={false}
-                error={errors.itineraries?.[index]?.location?.message || ""}
-                title="Location"
-                placeholder="e.g., Paris, France"
-                type="text"
-                {...register(`itineraries.${index}.location`)}
-              />
-              <Input
-                style="bg-white"
-                disabled={false}
-                error={errors.itineraries?.[index]?.dayOrder?.message || ""}
-                title="Day Order"
-                placeholder="e.g., 1, 2, 3"
-                type="text"
-                {...register(`itineraries.${index}.dayOrder`)}
-              />
-            </div>
-            <div className="w-full border-t border-black/6 border-0 my-6" />
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={hasMainFields && titleError ? String(titleError) : ""}
+              title="Day Title"
+              placeholder="e.g., Day 1: Arrival in Paris"
+              type="text"
+              {...register(`itineraries.${index}.title` as const)}
+            />
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={
+                hasMainFields && locationError ? String(locationError) : ""
+              }
+              title="Location"
+              placeholder="e.g., Paris, France"
+              type="text"
+              {...register(`itineraries.${index}.location` as const)}
+            />
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={
+                hasMainFields && dayOrderError ? String(dayOrderError) : ""
+              }
+              title="Day Order"
+              placeholder="e.g., 1, 2, 3"
+              type="text"
+              {...register(`itineraries.${index}.dayOrder` as const)}
+            />
           </div>
 
-          {/* Activities Section */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-sm font-medium text-gray-700">Activities</p>
-
+              {hasMainFields && activitiesError && (
+                <p className="text-red-500 text-sm">{activitiesError}</p>
+              )}
               <IconButton
                 action={() => addActivity(index)}
                 style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
@@ -459,16 +606,18 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
               />
             </div>
             <div className="space-y-4">
-              {watchItineraries?.[index]?.activities?.map((_, activityIndex) =>
-                renderActivityForm(index, activityIndex)
+              {currentItinerary?.activities?.map((_, activityIndex) =>
+                renderActivityForm(index, activityIndex),
               )}
             </div>
           </div>
 
-          {/* Meals Section */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <p className="text-sm font-medium text-gray-700">Meals</p>
+              {hasMainFields && mealsError && (
+                <p className="text-red-500 text-sm">{mealsError}</p>
+              )}
               <IconButton
                 action={() => addMeal(index)}
                 style="bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
@@ -477,8 +626,8 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
               />
             </div>
             <div className="space-y-4">
-              {watchItineraries?.[index]?.meals?.map((_, mealIndex) =>
-                renderMealForm(index, mealIndex)
+              {currentItinerary?.meals?.map((_, mealIndex) =>
+                renderMealForm(index, mealIndex),
               )}
             </div>
           </div>
@@ -498,7 +647,7 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
     <div className="w-full flex flex-col items-center justify-center gap-6">
       <div className="relative w-full flex justify-center">
         <IconButton
-          action={() => appendItinerary({ ...DEFAULT_ITINERARY })}
+          action={addItinerary}
           style="fixed bottom-6 right-6 bg-[#1d2087] hover:bg-[#3b3eac] text-xs text-white duration-300 px-6 py-3 rounded-lg"
           title="New Itinerary Day"
           icon={<RiAddFill size={16} />}
