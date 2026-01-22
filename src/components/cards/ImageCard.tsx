@@ -3,7 +3,6 @@ import {
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiCloseLine,
-  RiFullscreenLine,
 } from "react-icons/ri";
 
 const api = import.meta.env.VITE_API_URL;
@@ -86,7 +85,7 @@ const useKeyboardNavigation = (
   goToPrevious: () => void,
   goToNext: () => void,
   isFullscreen: boolean = false,
-  onCloseFullscreen?: () => void
+  onCloseFullscreen?: () => void,
 ): void => {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
@@ -118,7 +117,7 @@ const useKeyboardNavigation = (
 const useImageUrls = (
   containerWidth: number,
   currentImage: number,
-  isFullscreen: boolean = false
+  isFullscreen: boolean = false,
 ): ImageUrls => {
   const getOptimalImageSize = useCallback((): ImageSize => {
     let targetWidth = containerWidth;
@@ -137,17 +136,17 @@ const useImageUrls = (
     if (containerWidth <= BREAKPOINTS.mobile.maxWidth) {
       targetWidth = Math.min(
         containerWidth * DPR,
-        BREAKPOINTS.mobile.maxImageWidth
+        BREAKPOINTS.mobile.maxImageWidth,
       );
     } else if (containerWidth <= BREAKPOINTS.tablet.maxWidth) {
       targetWidth = Math.min(
         containerWidth * DPR,
-        BREAKPOINTS.tablet.maxImageWidth
+        BREAKPOINTS.tablet.maxImageWidth,
       );
     } else {
       targetWidth = Math.min(
         containerWidth * DPR,
-        BREAKPOINTS.desktop.maxImageWidth
+        BREAKPOINTS.desktop.maxImageWidth,
       );
     }
 
@@ -176,7 +175,7 @@ const useImageUrls = (
 
       return `${api}/images/${encodedPath}?${params.toString()}`;
     },
-    [getOptimalImageSize, currentImage]
+    [getOptimalImageSize, currentImage],
   );
 
   const getFallbackUrl = useCallback((imagePath: string): string => {
@@ -212,7 +211,7 @@ const ImageComponent = memo<ImageComponentProps>(
   }) => {
     const [hasError, setHasError] = useState<boolean>(false);
     const [currentSrc, setCurrentSrc] = useState<string>(() =>
-      getOptimizedImageUrl(imagePath, index)
+      getOptimizedImageUrl(imagePath, index),
     );
 
     useEffect(() => {
@@ -262,7 +261,7 @@ const ImageComponent = memo<ImageComponentProps>(
         />
       </div>
     );
-  }
+  },
 );
 
 ImageComponent.displayName = "ImageComponent";
@@ -306,7 +305,7 @@ const NavigationControls = memo<NavigationControlsProps>(
         </div>
       </>
     );
-  }
+  },
 );
 
 NavigationControls.displayName = "NavigationControls";
@@ -319,17 +318,17 @@ const ImageCard = memo<ImageCardProps>(({ url, style }) => {
   const { getOptimizedImageUrl, getFallbackUrl } = useImageUrls(
     containerWidth,
     currentImage,
-    isFullscreen
+    isFullscreen,
   );
 
   const goToPrevious = useCallback(
     () => setCurrentImage((prev) => (prev === 0 ? url.length - 1 : prev - 1)),
-    [url.length]
+    [url.length],
   );
 
   const goToNext = useCallback(
     () => setCurrentImage((prev) => (prev === url.length - 1 ? 0 : prev + 1)),
-    [url.length]
+    [url.length],
   );
 
   const goToImage = useCallback((index: number) => setCurrentImage(index), []);
@@ -358,7 +357,7 @@ const ImageCard = memo<ImageCardProps>(({ url, style }) => {
     goToPrevious,
     goToNext,
     isFullscreen,
-    closeFullscreen
+    closeFullscreen,
   );
 
   // Fullscreen image URL generator (higher quality for fullscreen)
@@ -426,13 +425,13 @@ const ImageCard = memo<ImageCardProps>(({ url, style }) => {
         />
 
         {/* Fullscreen button */}
-        <button
+        {/* <button
           onClick={() => openFullscreen(currentImage)}
           className="absolute top-3 right-3 z-floating p-2 rounded-full bg-black/30 hover:bg-black/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
           aria-label="Open fullscreen"
         >
           <RiFullscreenLine size={16} className="text-white drop-shadow-lg" />
-        </button>
+        </button> */}
       </div>
 
       {/* Fullscreen overlay */}
