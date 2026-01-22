@@ -14,6 +14,7 @@ import TextArea from "../input/TextArea";
 import FileInput from "../input/FileInput";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
+import NumberInput from "../input/NumberInput";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -284,7 +285,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
               type="text"
               {...register(`pricelists.${index}.plan` as const)}
             />
-            <Input
+            <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && feeError ? String(feeError) : ""}

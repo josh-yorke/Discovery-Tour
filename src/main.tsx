@@ -65,6 +65,7 @@ import ViewTransportation from "./pages/transportation/ViewTransportation";
 import Rental from "./pages/rental/Rental";
 import AddRental from "./pages/rental/AddRental";
 import EditRental from "./pages/rental/EditRental";
+import PageNotFound from "./components/error/PageNotFound";
 
 const router = createBrowserRouter([
   {
@@ -528,30 +529,34 @@ const router = createBrowserRouter([
       </RouteProtection>
     ),
   },
-  // {
-  //   path: "/transport/rental",
-  //   element: (
-  //     <RouteProtection>
-  //       <Rental />
-  //     </RouteProtection>
-  //   ),
-  // },
-  // {
-  //   path: "/transport/rental/add",
-  //   element: (
-  //     <RouteProtection>
-  //       <AddRental />
-  //     </RouteProtection>
-  //   ),
-  // },
-  // {
-  //   path: "/transport/rental/edit/:id",
-  //   element: (
-  //     <RouteProtection>
-  //       <EditRental />
-  //     </RouteProtection>
-  //   ),
-  // },
+  {
+    path: "/transport/rental",
+    element: (
+      <RouteProtection>
+        <Rental />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/rental/add",
+    element: (
+      <RouteProtection>
+        <AddRental />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/rental/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditRental />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "*",
+    element: <PageNotFound />,
+  },
 ]);
 
 const queryClient = new QueryClient();

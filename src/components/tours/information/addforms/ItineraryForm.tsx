@@ -6,6 +6,7 @@ import IconButton from "../../../button/IconButton";
 import Input from "../../../input/Input";
 import TextArea from "../../../input/TextArea";
 import InputOption from "../../../input/InputOption";
+import NumberInput from "../../../input/NumberInput";
 
 export interface ItineraryFormHandle {
   getFormData: () => Promise<{
@@ -491,7 +492,7 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
                 `itineraries.${itineraryIndex}.meals.${mealIndex}.mealType` as const,
               )}
             />
-            <Input
+            <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && mealCountError ? String(mealCountError) : ""}
@@ -579,7 +580,7 @@ const ItineraryForm = forwardRef<ItineraryFormHandle>((_props, ref) => {
               type="text"
               {...register(`itineraries.${index}.location` as const)}
             />
-            <Input
+            <NumberInput
               style="bg-white"
               disabled={false}
               error={

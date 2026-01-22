@@ -19,6 +19,7 @@ import { getPassProcess } from "../../../../hooks/visa/process/getProcess";
 import SectionLoader from "../../../loader/SectionLoader";
 import SectionError from "../../../error/SectionError";
 import { getVisaFile } from "../../../../hooks/visa/visa/getVisa";
+
 interface FileData {
   _id: string;
   fileTitle: string;
@@ -33,10 +34,6 @@ interface ProcessData {
   filesAssociated: string[];
   pass: string;
   __v: number;
-}
-
-interface ProcessesResponse {
-  processes: ProcessData[];
 }
 
 interface PassProcessesProps {
@@ -105,47 +102,56 @@ const PassProcesses = ({ passId }: PassProcessesProps) => {
     setIsExpanded(!isExpanded);
   };
 
+  // Your API returns ProcessData[] directly
   const {
-    data: processesData,
+    data: processes,
     isLoading: isLoadingProcesses,
     isError: isErrorProcesses,
     error: processesError,
     refetch: refetchProcesses,
-  } = useQuery<ProcessesResponse>({
+  } = useQuery<ProcessData[], Error>({
     queryKey: ["pass-processes", passId],
     queryFn: () => getPassProcess(passId),
     enabled: !!passId,
   });
 
-  const processes = processesData?.processes || [];
-  const allFileIds = processes.flatMap((process) => process.filesAssociated);
+  const allFileIds = (processes || []).flatMap(
+    (process) => process.filesAssociated,
+  );
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
       queryKey: ["pass-process-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId && processes.length > 0,
+      enabled: !!fileId && (processes?.length || 0) > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
 
-  console.log(processesData?.processes);
+  console.log("Processes data:", processes);
 
-  const filesMap = fileQueries.reduce((acc, query) => {
-    if (query.data?.file) acc[query.data.file._id] = query.data.file;
-    return acc;
-  }, {} as Record<string, FileData>);
+  const filesMap = fileQueries.reduce(
+    (acc: Record<string, FileData>, query) => {
+      if (query.data?.file) {
+        acc[query.data.file._id] = query.data.file;
+      }
+      return acc;
+    },
+    {},
+  );
 
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
   const isLoading =
-    isLoadingProcesses || (processes.length > 0 && isLoadingFiles);
+    isLoadingProcesses || ((processes?.length || 0) > 0 && isLoadingFiles);
 
   if (isLoading) return <SectionLoader />;
   if (isErrorProcesses)
     return (
       <SectionError error={processesError?.message} action={refetchProcesses} />
     );
+
+  const processesList = processes || [];
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -177,7 +183,7 @@ const PassProcesses = ({ passId }: PassProcessesProps) => {
           <>
             <div className="w-full border-b border-black/6" />
 
-            {processes.length === 0 ? (
+            {processesList.length === 0 ? (
               <div className="w-full text-center py-6 sm:py-8">
                 <p className="text-gray-500 text-sm sm:text-base">
                   No process information available for this pass.
@@ -185,13 +191,13 @@ const PassProcesses = ({ passId }: PassProcessesProps) => {
               </div>
             ) : (
               <div className="w-full space-y-4 sm:space-y-6">
-                {processes.map((process, index) => {
+                {processesList.map((process, index) => {
                   const processFiles = process.filesAssociated
                     .map((fileId) => filesMap[fileId])
-                    .filter(Boolean);
+                    .filter((file): file is FileData => file !== undefined);
 
                   const processFileQueries = fileQueries.filter((q) =>
-                    process.filesAssociated.includes(q.data?.file?._id || "")
+                    process.filesAssociated.includes(q.data?.file?._id || ""),
                   );
 
                   return (
@@ -263,7 +269,7 @@ const PassProcesses = ({ passId }: PassProcessesProps) => {
                             <div className="space-y-2 sm:space-y-3">
                               {processFiles.map((file) => {
                                 const fileQuery = fileQueries.find(
-                                  (q) => q.data?.file?._id === file._id
+                                  (q) => q.data?.file?._id === file._id,
                                 );
                                 const isFileError = fileQuery?.isError;
                                 const fileUrl = getFileUrl(file.file);

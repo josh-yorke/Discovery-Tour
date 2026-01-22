@@ -26,9 +26,7 @@ export const getPassDocument = async (id?: string) => {
   try {
     const res = await api.get(`/shared-fields/?railPassId=${id}&type=document`);
     console.log(res);
-    return {
-      documents: res.data.data,
-    };
+    return res.data.data;
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);
@@ -38,7 +36,7 @@ export const getPassDocument = async (id?: string) => {
 export const getTransportDocument = async (id?: string) => {
   try {
     const res = await api.get(
-      `/shared-fields/?transportId=${id}&type=document`
+      `/shared-fields/?transportId=${id}&type=document`,
     );
     console.log(res);
     return res.data.data;

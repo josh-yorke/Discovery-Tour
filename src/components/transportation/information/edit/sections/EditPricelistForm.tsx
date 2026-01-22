@@ -13,6 +13,7 @@ import IconButton from "../../../../button/IconButton";
 import TextArea from "../../../../input/TextArea";
 import SearchableVehicleDropdown from "../../../../input/SearchableVehicleDropdown";
 import EditFileInput from "../../../../input/EditFileInput";
+import NumberInput from "../../../../input/NumberInput";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -469,13 +470,13 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
                 type="text"
                 {...register(`pricelists.${index}.plan` as const)}
               />
-              <Input
+              <NumberInput
                 style="bg-white"
                 disabled={false}
                 error={hasContent && feeError ? String(feeError) : ""}
                 title="Fee Amount *"
                 placeholder="Enter fee amount"
-                type="number"
+                type="text"
                 {...register(`pricelists.${index}.fee` as const)}
               />
             </div>

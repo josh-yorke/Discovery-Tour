@@ -16,6 +16,7 @@ import IconButton from "../../../../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import SearchableVehicleDropdown from "../../../../input/SearchableVehicleDropdown";
 import TextArea from "../../../../input/TextArea";
+import NumberInput from "../../../../input/NumberInput";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -295,13 +296,13 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
               type="text"
               {...register(`pricelists.${index}.plan`)}
             />
-            <Input
+            <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && feeError ? String(feeError) : ""}
               title="Fee Amount"
               placeholder="Enter fee amount"
-              type="number"
+              type="text"
               {...register(`pricelists.${index}.fee`)}
             />
           </div>

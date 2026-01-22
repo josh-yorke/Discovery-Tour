@@ -12,8 +12,8 @@ import type z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Pagination from "../../components/pagination/Pagination";
 import UsersParent from "../../components/users/UsersParent";
-import PageLoader from "../../components/loader/PageLoader";
-import PageError from "../../components/error/PageError";
+import SectionLoader from "../../components/loader/SectionLoader";
+import SectionError from "../../components/error/SectionError";
 
 const Users = () => {
   const { register, handleSubmit, setValue, getValues } = useForm<
@@ -52,7 +52,7 @@ const Users = () => {
   return (
     <>
       <Navbar />
-      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-[100svh] px-6 py-12 gap-12">
+      <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-svh px-6 py-12 gap-12">
         <UsersSearch
           search={register("search")}
           status={register("status")}
@@ -61,9 +61,9 @@ const Users = () => {
         />
 
         {isError ? (
-          <PageError action={refetch} title="Reload" error={error?.message} />
+          <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : (
           <>
             {data && <UsersParent users={data.users} isLoading={isLoading} />}

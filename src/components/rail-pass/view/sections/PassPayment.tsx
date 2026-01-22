@@ -31,9 +31,8 @@ interface PaymentData {
   __v: number;
 }
 
-interface PaymentsResponse {
-  payments: PaymentData[];
-}
+// Since your API returns PaymentData[] directly (not wrapped in { payments: PaymentData[] })
+type ApiResponse = PaymentData[];
 
 interface PassPaymentsProps {
   passId: string;
@@ -71,16 +70,24 @@ const PassPayment = ({ passId }: PassPaymentsProps) => {
     isError,
     error,
     refetch,
-  } = useQuery<PaymentsResponse>({
+  } = useQuery<ApiResponse, Error>({
     queryKey: ["pass-payments", passId],
     queryFn: () => getPassPayment(passId),
     enabled: !!passId,
   });
 
-  const payments = paymentsData?.payments || [];
-
+  // Handle loading state
   if (isLoading) return <SectionLoader />;
-  if (isError) return <SectionError error={error?.message} action={refetch} />;
+
+  // Handle error state with type safety
+  if (isError) {
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    return <SectionError error={errorMessage} action={refetch} />;
+  }
+
+  // paymentsData is already the array, provide a default empty array
+  const payments: PaymentData[] = paymentsData ?? [];
 
   return (
     <div className="w-full flex flex-col gap-6">

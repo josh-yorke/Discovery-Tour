@@ -10,6 +10,7 @@ import type { editPricelistData } from "../../types/pricelist/pricelistDataTypes
 import type { visaFileData } from "../../types/visafile/visaFileDataTypes";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
+import NumberInput from "../input/NumberInput";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -418,13 +419,13 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               type="text"
               {...register(`pricelists.${index}.plan` as const)}
             />
-            <Input
+            <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && feeError ? String(feeError) : ""}
               title="Fee Amount *"
               placeholder="Enter fee amount"
-              type="number"
+              type="text"
               {...register(`pricelists.${index}.fee` as const)}
             />
             <TextArea

@@ -36,10 +36,6 @@ interface TermData {
   __v: number;
 }
 
-interface TermsResponse {
-  terms: TermData[];
-}
-
 interface PassTermsProps {
   passId: string;
 }
@@ -106,42 +102,50 @@ const PassTerm = ({ passId }: PassTermsProps) => {
     setIsExpanded(!isExpanded);
   };
 
+  // Your API returns TermData[] directly, not wrapped in { terms: TermData[] }
   const {
-    data: termsData,
+    data: terms,
     isLoading: isLoadingTerms,
     isError: isErrorTerms,
     error: termsError,
     refetch: refetchTerms,
-  } = useQuery<TermsResponse>({
+  } = useQuery<TermData[], Error>({
     queryKey: ["pass-terms", passId],
     queryFn: () => getPassTerm(passId),
     enabled: !!passId,
   });
 
-  const terms = termsData?.terms || [];
-  const allFileIds = terms.flatMap((term) => term.filesAssociated);
+  const allFileIds = (terms || []).flatMap((term) => term.filesAssociated);
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
       queryKey: ["pass-term-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId && terms.length > 0,
+      enabled: !!fileId && (terms?.length || 0) > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
 
-  const filesMap = fileQueries.reduce((acc, query) => {
-    if (query.data?.file) acc[query.data.file._id] = query.data.file;
-    return acc;
-  }, {} as Record<string, FileData>);
+  const filesMap = fileQueries.reduce(
+    (acc: Record<string, FileData>, query) => {
+      if (query.data?.file) {
+        acc[query.data.file._id] = query.data.file;
+      }
+      return acc;
+    },
+    {},
+  );
 
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
-  const isLoading = isLoadingTerms || (terms.length > 0 && isLoadingFiles);
+  const isLoading =
+    isLoadingTerms || ((terms?.length || 0) > 0 && isLoadingFiles);
 
   if (isLoading) return <SectionLoader />;
   if (isErrorTerms)
     return <SectionError error={termsError?.message} action={refetchTerms} />;
+
+  const termsList = terms || [];
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -173,7 +177,7 @@ const PassTerm = ({ passId }: PassTermsProps) => {
           <>
             <div className="w-full border-b border-black/6" />
 
-            {terms.length === 0 ? (
+            {termsList.length === 0 ? (
               <div className="w-full text-center py-6 sm:py-8">
                 <p className="text-gray-500 text-sm sm:text-base">
                   No terms and conditions available for this pass.
@@ -181,13 +185,13 @@ const PassTerm = ({ passId }: PassTermsProps) => {
               </div>
             ) : (
               <div className="w-full space-y-4 sm:space-y-6">
-                {terms.map((term, index) => {
+                {termsList.map((term, index) => {
                   const termFiles = term.filesAssociated
                     .map((fileId) => filesMap[fileId])
-                    .filter(Boolean);
+                    .filter((file): file is FileData => file !== undefined);
 
                   const termFileQueries = fileQueries.filter((q) =>
-                    term.filesAssociated.includes(q.data?.file?._id || "")
+                    term.filesAssociated.includes(q.data?.file?._id || ""),
                   );
 
                   return (
@@ -259,7 +263,7 @@ const PassTerm = ({ passId }: PassTermsProps) => {
                             <div className="space-y-2 sm:space-y-3">
                               {termFiles.map((file) => {
                                 const fileQuery = fileQueries.find(
-                                  (q) => q.data?.file?._id === file._id
+                                  (q) => q.data?.file?._id === file._id,
                                 );
                                 const isFileError = fileQuery?.isError;
                                 const fileUrl = getFileUrl(file.file);
