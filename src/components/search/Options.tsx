@@ -1,9 +1,15 @@
 interface OptionProps {
   options: string[];
   title: string;
+  allowShowAll?: boolean;
 }
 
-const Options = ({ options, title, ...props }: OptionProps) => {
+const Options = ({
+  options,
+  title,
+  allowShowAll = true,
+  ...props
+}: OptionProps) => {
   const renderOptions = () => {
     const lowerTitle = title.toLowerCase();
 
@@ -64,7 +70,8 @@ const Options = ({ options, title, ...props }: OptionProps) => {
         className="bg-white text-xs font-normal outline-none capitalize flex items-center justify-center"
         {...props}
       >
-        <option value="">All</option>
+        {allowShowAll && <option value="">All</option>}
+
         {renderOptions()}
       </select>
     </div>

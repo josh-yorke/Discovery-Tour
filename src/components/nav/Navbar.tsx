@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   RiAppsFill,
   RiAppsLine,
@@ -7,6 +8,8 @@ import {
   RiCarFill,
   RiCarLine,
   RiCloseFill,
+  RiGridFill,
+  RiGridLine,
   RiGlobeFill,
   RiGlobeLine,
   RiLandscapeAiFill,
@@ -18,13 +21,14 @@ import {
   RiMoneyDollarCircleLine,
   RiUser4Fill,
   RiUser4Line,
+  RiWalletFill,
+  RiWalletLine
 } from "react-icons/ri";
-import LinkButton from "./LinkButton";
-import LogoutButton from "../button/LogoutButton";
 import { NavLink, useLocation } from "react-router";
-import { useState } from "react";
-import HoverLink from "./HoverLink";
+import LogoutButton from "../button/LogoutButton";
 import DropdownLink from "./DropdownLink";
+import HoverLink from "./HoverLink";
+import LinkButton from "./LinkButton";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -139,6 +143,23 @@ const Navbar = () => {
                 )
               }
               title="Blogs"
+            />
+
+            <LinkButton
+              to="/types-categories"
+              style={`${
+                pathname.startsWith("/types-categories")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/types-categories") ? (
+                  <RiGridFill size={16} />
+                ) : (
+                  <RiGridLine size={16} />
+                )
+              }
+              title="Types And Categories"
             />
 
             <HoverLink
