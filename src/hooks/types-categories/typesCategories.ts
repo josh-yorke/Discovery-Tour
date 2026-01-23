@@ -1,27 +1,37 @@
 import type { addTypesCategoriesData } from "../../types/types-categories/addTypesCategoriesTypes";
-import type { rentalSearchData } from "../../types/rental/rentalSearchTypes";
 import type { typesCategoriesSearchData } from "../../types/types-categories/typesCategoriesSearchTypes";
+import { getFormattedTypeCategory } from "../../utils/getFormattedTypeCategory";
 import api from "../axios/axios";
 
 export const addTypesCategories = async (data: addTypesCategoriesData) => {
   try {
-    console.log({ sendingData: data });
     const res = await api.post(`/categories-available`, data);
-    console.log(res.data.message);
     return {
       id: res.data.data._id,
       message: res.data.message,
     };
   } catch (error: any) {
-    const message = error.response.data.message || error;
-    throw new Error(message);
+
+    let initialErrorMessage = error.response.data.message;
+    let finalErrorMessage =  null;
+    
+    if (initialErrorMessage === "Server error") {
+      initialErrorMessage = error.response.data.error;
+      if (initialErrorMessage.includes("E11000")) {
+        finalErrorMessage = `The name for this ${data.type.toUpperCase()} already exists!`
+      }
+    }
+
+    throw new Error(finalErrorMessage || initialErrorMessage);
   }
 };
 
-export const deleteRental = async (id: string) => {
+export const deleteTypesCategories = async (id: string, type: string) => {
   try {
-    const res = await api.delete(`/categories-available/${id}`);
-
+    let typeArgs = getFormattedTypeCategory(type);
+    const res = await api.delete(
+      `/categories-available/${id}?type=${typeArgs}`,
+    );
     return res.data.message;
   } catch (error: any) {
     const message = error.response.data.message || error;
@@ -38,20 +48,23 @@ export const updateTypesCategories = async (
     console.log(res.data.message);
     return res.data.message;
   } catch (error: any) {
-    const message = error.response.data.message || error;
-    throw new Error(message);
+    let initialErrorMessage = error.response.data.message;
+    let finalErrorMessage = null;
+
+    if (initialErrorMessage === "Server error") {
+      initialErrorMessage = error.response.data.error;
+      if (initialErrorMessage.includes("E11000")) {
+        finalErrorMessage = `The name for this ${data.type.toUpperCase()} already exists!`;
+      }
+    }
+
+    throw new Error(finalErrorMessage || initialErrorMessage);
   }
 };
 
 export const getTypesCategories = async (data: typesCategoriesSearchData) => {
   try {
-    let typeArgs = "";
-    if (data.service === "country" || data.service === "pass-category") {
-      typeArgs = data.service;
-    } else {
-      typeArgs = `${data.service}-type`;
-    }
-
+    let typeArgs = getFormattedTypeCategory(data.service);
     const res = await api.get(`/categories-available?type=${typeArgs}`);
     console.log(res.data.data);
     return {
@@ -65,13 +78,7 @@ export const getTypesCategories = async (data: typesCategoriesSearchData) => {
 
 export const getTypeCategory = async (type: string | null, id?: string) => {
   try {
-    let typeArgs = "";
-    if (type === "country" || type === "pass-category") {
-      typeArgs = type;
-    } else {
-      typeArgs = `${type}-type`;
-    }
-
+    let typeArgs = getFormattedTypeCategory(type);
     const res = await api.get(
       `/categories-available/${id}?type=${typeArgs}&withType=true`,
     );

@@ -1,11 +1,8 @@
-// components/search/searchform/RentalSearch.tsx
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
-import SearchInput from "../SearchInput";
 import Options from "../Options";
-import VehicleFilter from "../../input/VehicleFilter";
 
 interface FormProps {
   service: UseFormRegisterReturn;
@@ -28,7 +25,7 @@ const TypesCategoriesSearch = ({ action, services, service }: FormProps) => {
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options options={services} {...service} title="Types For" />
+        <Options options={services} {...service} allowShowAll={false} title="Types or Categories For" />
 
         <button
           type="submit"

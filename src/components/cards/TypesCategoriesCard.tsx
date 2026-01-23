@@ -1,23 +1,9 @@
 import {
-  RiCarFill,
   RiDeleteBin4Fill,
-  RiCalendar2Fill,
-  RiMapPin2Fill,
-  RiUserFill,
-  RiMailFill,
-  RiPhoneFill,
-  RiFileTextFill,
-  RiFlagFill,
-  RiFilePaperFill,
-  RiMoneyDollarCircleFill,
-  RiArrowUpSLine,
-  RiArrowDownSLine,
-  RiPencilFill,
+  RiPencilFill
 } from "react-icons/ri";
-import { useState } from "react";
-import IconButton from "../button/IconButton";
 import { useNavigate } from "react-router";
-import LinkText from "../nav/LinkText";
+import IconButton from "../button/IconButton";
 
 interface CardProps {
   _id: string;

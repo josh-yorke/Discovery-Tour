@@ -1,8 +1,11 @@
+import { useState } from "react";
 import {
   RiAppsFill,
   RiAppsLine,
   RiArrowUpSLine,
   RiCloseFill,
+  RiGridFill,
+  RiGridLine,
   RiMenuFill,
   RiMessage3Fill,
   RiMessage3Line,
@@ -17,17 +20,13 @@ import {
   RiUser4Fill,
   RiUser4Line,
   RiWalletFill,
-  RiWalletLine,
-  RiGridLine,
-  RiGradienterFill,
-  RiGridFill
+  RiWalletLine
 } from "react-icons/ri";
-import LinkButton from "./LinkButton";
-import LogoutButton from "../button/LogoutButton";
 import { NavLink, useLocation } from "react-router";
-import { useState } from "react";
-import HoverLink from "./HoverLink";
+import LogoutButton from "../button/LogoutButton";
 import DropdownLink from "./DropdownLink";
+import HoverLink from "./HoverLink";
+import LinkButton from "./LinkButton";
 
 const Navbar = () => {
   const { pathname } = useLocation();

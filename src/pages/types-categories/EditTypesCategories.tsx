@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "react-router";
-import Navbar from "../../components/nav/Navbar";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
-import Header from "../../components/users/Header";
-import { getRental } from "../../hooks/rental/rental";
+import Navbar from "../../components/nav/Navbar";
 import Edit from "../../components/types-categories/Edit";
+import Header from "../../components/users/Header";
 import { getTypeCategory } from "../../hooks/types-categories/typesCategories";
 
 const EditTypesCategories = () => {

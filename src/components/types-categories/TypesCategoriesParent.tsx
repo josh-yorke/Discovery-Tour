@@ -1,11 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import PageLoader from "../loader/PageLoader";
-import Modal from "../modal/Modal";
-import { deleteRental } from "../../hooks/rental/rental";
-import RentalCard from "../cards/RentalCard";
+import { deleteTypesCategories } from "../../hooks/types-categories/typesCategories";
 import type { typesCategoriesData } from "../../types/types-categories/typesCategoriesDataTypes";
 import TypesCategoriesCard from "../cards/TypesCategoriesCard";
+import PageLoader from "../loader/PageLoader";
+import Modal from "../modal/Modal";
 
 interface ParentProps {
   typeCategories: typesCategoriesData[];
@@ -22,11 +21,11 @@ const TypesCategoriesParent = ({
   const [modal, showModal] = useState(false);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteRental(id),
+    mutationFn: (id: string) => deleteTypesCategories(id, type),
     onSuccess: () => {
       showModal(true);
       queryClient.invalidateQueries({
-        queryKey: ["typeCategories"],
+        queryKey: ["typesCategories"],
         exact: false,
       });
     },

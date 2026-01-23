@@ -1,26 +1,19 @@
-import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
 import { useState } from "react";
-import {
-  addRentalSchema,
-  type addRentalData,
-} from "../../types/rental/addRentalTypes";
+import { FormProvider, useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
+import { TYPES_CATEGORIES_KEYS, TYPES_CATEGORIES_MAPPING } from "../../constants/typesCategoriesConstants";
 import { addTypesCategories } from "../../hooks/types-categories/typesCategories";
-import Input from "../input/Input";
-import Button from "../button/Button";
-import SearchableTransportDropdown from "../input/SearchableTransportDropdown";
-import SearchablePlanDropdown from "../input/SearchablePlanDropdown";
-import InputOption from "../input/InputOption";
-import DatePicker from "../input/DatePicker";
 import {
   addTypesCategoriesSchema,
   type addTypesCategoriesData,
 } from "../../types/types-categories/addTypesCategoriesTypes";
-import { success } from "zod";
+import Button from "../button/Button";
+import Input from "../input/Input";
+import InputOption from "../input/InputOption";
 import Modal from "../modal/Modal";
-import { TYPE_CATEGORIES_MAPPING } from "../../utils/constants";
+import { getParentOfTypeCategory } from "../../utils/getFormattedTypeCategory";
 
 const AddTypesCategories = () => {
   const queryClient = useQueryClient();
@@ -33,7 +26,6 @@ const AddTypesCategories = () => {
 
   const {
     register,
-    setValue,
     handleSubmit,
     reset,
     watch,
@@ -46,7 +38,7 @@ const AddTypesCategories = () => {
     mutationFn: (data: addTypesCategoriesData) => addTypesCategories(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["visaType"], exact: false });
-      navigate("/types-categories");
+      navigate(`/types-categories?type=${getParentOfTypeCategory(type)}`);
       reset();
     },
     onError: (error) => {
@@ -72,14 +64,7 @@ const AddTypesCategories = () => {
               disabled={false}
               style="bg-white w-full"
               title="Type"
-              options={[
-                "visa-type",
-                "tour-type",
-                "transport-type",
-                "pass-type",
-                "pass-category",
-                "country",
-              ]}
+              options={TYPES_CATEGORIES_KEYS}
               {...register("type")}
             />
 
@@ -91,7 +76,7 @@ const AddTypesCategories = () => {
                 title="Name"
                 placeholder="Enter Type/Category Name Here"
                 type="text"
-                {...register(TYPE_CATEGORIES_MAPPING[type])}
+                {...register(TYPES_CATEGORIES_MAPPING[type])}
               />
             )}
 
@@ -103,12 +88,12 @@ const AddTypesCategories = () => {
           </div>
         </form>
       </FormProvider>
-      {message && (
+      {mutation.isError && message && (
         <Modal
           message={message}
           success={mutation.isSuccess}
           action={() => {
-            navigate("/types-categories/add");
+            navigate(`/types-categories?type=${getParentOfTypeCategory(type)}`);
           }}
         />
       )}

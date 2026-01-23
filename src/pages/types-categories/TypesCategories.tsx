@@ -1,38 +1,40 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import type z from "zod";
-import { useState, useCallback } from "react";
-import Navbar from "../../components/nav/Navbar";
-import Pagination from "../../components/pagination/Pagination";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
-import {
-  rentalSearchSchema,
-  type rentalSearchData,
-} from "../../types/rental/rentalSearchTypes";
-import { getTypesCategories } from "../../hooks/types-categories/typesCategories";
-import RentalSearch from "../../components/search/searchform/RentalSearch";
-import RentalParent from "../../components/rental/RentalParent";
+import Navbar from "../../components/nav/Navbar";
 import TypesCategoriesSearch from "../../components/search/searchform/TypesCategoriesSearch";
+import TypesCategoriesParent from "../../components/types-categories/TypesCategoriesParent";
+import { TYPES_CATEGORIES_OPTIONS } from "../../constants/typesCategoriesConstants";
+import { getTypesCategories } from "../../hooks/types-categories/typesCategories";
 import {
   typesCategoriesSearchSchema,
   type typesCategoriesSearchData,
 } from "../../types/types-categories/typesCategoriesSearchTypes";
-import TypesCategoriesParent from "../../components/types-categories/TypesCategoriesParent";
+import { useLocation } from "react-router";
 
 const TypesCategories = () => {
-  const { register, handleSubmit, setValue, getValues, watch } = useForm<
+  const location = useLocation();
+
+  const urlParams = new URLSearchParams(location.search);
+  const rawType = urlParams.get("type");
+  const type =
+    rawType && TYPES_CATEGORIES_OPTIONS.includes(rawType) ? rawType : null;
+
+  const { register, handleSubmit } = useForm<
     z.input<typeof typesCategoriesSearchSchema>
   >({
     resolver: zodResolver(typesCategoriesSearchSchema),
     defaultValues: {
-      service: "visa-type",
+      service: type || "visa",
     },
   });
 
   const [searchParams, setSearchParams] = useState<typesCategoriesSearchData>({
-    service: "visa-type",
+    service: type || "visa",
   });
 
   const onSubmit = (data: z.input<typeof typesCategoriesSearchSchema>) => {
@@ -56,14 +58,7 @@ const TypesCategories = () => {
         <TypesCategoriesSearch
           service={register("service")}
           action={handleSubmit(onSubmit)}
-          services={[
-            "visa",
-            "tour",
-            "transport",
-            "pass",
-            "pass-category",
-            "country",
-          ]}
+          services={TYPES_CATEGORIES_OPTIONS}
         />
         {isError ? (
           <SectionError action={refetch} error={error?.message} />
