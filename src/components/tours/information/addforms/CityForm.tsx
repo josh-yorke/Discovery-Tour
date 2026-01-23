@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
@@ -16,19 +15,16 @@ export interface CityFormHandle {
   } | null>;
 }
 
-// Types
-const cityFormSchema = addCitySchema;
+const hasCityContent = (city: { city?: string }): boolean => {
+  return (city.city?.trim() ?? "").length > 0;
+};
 
-type CityFormData = z.infer<typeof cityFormSchema>;
+const citySchema = addCitySchema;
 
-const formSchema = z.object({
-  cities: z.array(cityFormSchema),
-});
+type CitySchemaType = z.infer<typeof citySchema>;
+type FormData = { cities: CitySchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-// Constants
-const DEFAULT_CITY: CityFormData = {
+const DEFAULT_CITY: CitySchemaType = {
   city: "",
 };
 
@@ -37,14 +33,14 @@ const CityForm = forwardRef<CityFormHandle>((_props, ref) => {
     register,
     control,
     formState: { errors },
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       cities: [DEFAULT_CITY],
     },
-    mode: "onChange",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -52,7 +48,41 @@ const CityForm = forwardRef<CityFormHandle>((_props, ref) => {
     name: "cities",
   });
 
-  // Handlers
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const cityData: addCityData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.cities.forEach((city, index) => {
+      const hasContent = hasCityContent(city);
+
+      if (hasContent) {
+        const result = citySchema.safeParse(city);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`cities.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          cityData.push({
+            city: city.city,
+          });
+        }
+      }
+    });
+
+    return { isValid, cityData };
+  }, [getValues, setError, clearErrors]);
+
   const addCity = useCallback(() => {
     append(DEFAULT_CITY);
   }, [append]);
@@ -60,42 +90,28 @@ const CityForm = forwardRef<CityFormHandle>((_props, ref) => {
   const removeCity = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`cities.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
-  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, cityData } = validateAndGetFormData();
 
-      const formData = getValues();
-      const cityData: addCityData[] = [];
-
-      console.log("🔍 CityForm - formData.cities:", formData.cities);
-      console.log("🔍 CityForm - isArray:", Array.isArray(formData.cities));
-
-      // Ensure we're always working with an array
-      const citiesArray = Array.isArray(formData.cities)
-        ? formData.cities
-        : [formData.cities];
-
-      citiesArray.forEach((city, index) => {
-        console.log(`🔍 Processing city ${index}:`, city);
-
-        cityData.push({
-          city: city.city,
-        });
-      });
-
-      console.log("🔍 CityForm - final cityData:", cityData);
+      if (!isValid || cityData.length === 0) {
+        return null;
+      }
 
       return { cityData };
     },
   }));
 
   const renderCityForm = (field: { id: string }, index: number) => {
+    const cityError = errors.cities?.[index]?.city?.message;
+    const currentCity = getValues().cities[index];
+    const hasContent = hasCityContent(currentCity);
+
     return (
       <div
         key={field.id}
@@ -114,11 +130,11 @@ const CityForm = forwardRef<CityFormHandle>((_props, ref) => {
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.cities?.[index]?.city?.message || ""}
+            error={hasContent && cityError ? String(cityError) : ""}
             title="City Name"
             placeholder="Enter city name (e.g., New York, Paris, Tokyo)"
             type="text"
-            {...register(`cities.${index}.city`)}
+            {...register(`cities.${index}.city` as const)}
           />
 
           <div className="text-xs text-gray-500">

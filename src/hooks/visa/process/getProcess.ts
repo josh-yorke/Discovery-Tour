@@ -26,9 +26,7 @@ export const getPassProcess = async (id?: string) => {
   try {
     const res = await api.get(`/shared-fields/?railPassId=${id}&type=process`);
     console.log(res);
-    return {
-      processes: res.data.data,
-    };
+    return res.data.data;
   } catch (error: any) {
     const message = error.response.data.message || error;
     throw new Error(message);

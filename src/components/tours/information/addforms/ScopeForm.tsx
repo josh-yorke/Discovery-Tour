@@ -1,6 +1,4 @@
-// components/tours/add/addforms/ScopeForm.tsx
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
@@ -19,19 +17,26 @@ export interface ScopeFormHandle {
   } | null>;
 }
 
-// Types
-const scopeFormSchema = addScopeSchema;
+const hasScopeContent = (scope: {
+  scopeCategory?: string;
+  scopeType?: string;
+  scopeTitle?: string;
+  scopeDescription?: string;
+}): boolean => {
+  return (
+    (scope.scopeCategory?.trim() ?? "").length > 0 ||
+    (scope.scopeType?.trim() ?? "").length > 0 ||
+    (scope.scopeTitle?.trim() ?? "").length > 0 ||
+    (scope.scopeDescription?.trim() ?? "").length > 0
+  );
+};
 
-type ScopeFormData = z.infer<typeof scopeFormSchema>;
+const scopeSchema = addScopeSchema;
 
-const formSchema = z.object({
-  scopes: z.array(scopeFormSchema),
-});
+type ScopeSchemaType = z.infer<typeof scopeSchema>;
+type FormData = { scopes: ScopeSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-// Constants
-const DEFAULT_SCOPE: ScopeFormData = {
+const DEFAULT_SCOPE: ScopeSchemaType = {
   scopeCategory: "",
   scopeType: "",
   scopeTitle: "",
@@ -43,14 +48,14 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
     register,
     control,
     formState: { errors },
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       scopes: [DEFAULT_SCOPE],
     },
-    mode: "onChange",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -58,7 +63,44 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
     name: "scopes",
   });
 
-  // Handlers
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const scopeData: addScopeData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.scopes.forEach((scope, index) => {
+      const hasContent = hasScopeContent(scope);
+
+      if (hasContent) {
+        const result = scopeSchema.safeParse(scope);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`scopes.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          scopeData.push({
+            scopeCategory: scope.scopeCategory,
+            scopeType: scope.scopeType,
+            scopeTitle: scope.scopeTitle,
+            scopeDescription: scope.scopeDescription,
+          });
+        }
+      }
+    });
+
+    return { isValid, scopeData };
+  }, [getValues, setError, clearErrors]);
+
   const addScope = useCallback(() => {
     append(DEFAULT_SCOPE);
   }, [append]);
@@ -66,45 +108,30 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
   const removeScope = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`scopes.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
-  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, scopeData } = validateAndGetFormData();
 
-      const formData = getValues();
-      const scopeData: addScopeData[] = [];
-
-      console.log("🔍 ScopeForm - formData.scopes:", formData.scopes);
-      console.log("🔍 ScopeForm - isArray:", Array.isArray(formData.scopes));
-
-      // Ensure we're always working with an array
-      const scopesArray = Array.isArray(formData.scopes)
-        ? formData.scopes
-        : [formData.scopes];
-
-      scopesArray.forEach((scope, index) => {
-        console.log(`🔍 Processing scope ${index}:`, scope);
-
-        scopeData.push({
-          scopeCategory: scope.scopeCategory,
-          scopeType: scope.scopeType,
-          scopeTitle: scope.scopeTitle,
-          scopeDescription: scope.scopeDescription,
-        });
-      });
-
-      console.log("🔍 ScopeForm - final scopeData:", scopeData);
+      if (!isValid || scopeData.length === 0) {
+        return null;
+      }
 
       return { scopeData };
     },
   }));
 
   const renderScopeForm = (field: { id: string }, index: number) => {
+    const currentScope = getValues().scopes[index];
+    const hasContent = hasScopeContent(currentScope);
+    const typeError = errors.scopes?.[index]?.scopeType?.message;
+    const titleError = errors.scopes?.[index]?.scopeTitle?.message;
+    const descriptionError = errors.scopes?.[index]?.scopeDescription?.message;
+
     return (
       <div
         key={field.id}
@@ -126,35 +153,37 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
               style="bg-white w-full"
               title="Scope Category"
               options={["inclusion", "exclusion"]}
-              {...register(`scopes.${index}.scopeCategory`)}
+              {...register(`scopes.${index}.scopeCategory` as const)}
             />
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.scopes?.[index]?.scopeType?.message || ""}
+              error={hasContent && typeError ? String(typeError) : ""}
               title="Scope Type"
               placeholder="Enter scope type (e.g., Standard, Premium, Optional)"
               type="text"
-              {...register(`scopes.${index}.scopeType`)}
+              {...register(`scopes.${index}.scopeType` as const)}
             />
           </div>
 
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.scopes?.[index]?.scopeTitle?.message || ""}
+            error={hasContent && titleError ? String(titleError) : ""}
             title="Scope Title"
             placeholder="Enter scope title (e.g., Transportation, Meals, Activities)"
             type="text"
-            {...register(`scopes.${index}.scopeTitle`)}
+            {...register(`scopes.${index}.scopeTitle` as const)}
           />
 
           <TextArea
             disabled={false}
-            error={errors.scopes?.[index]?.scopeDescription?.message || ""}
+            error={
+              hasContent && descriptionError ? String(descriptionError) : ""
+            }
             title="Scope Description"
             placeholder="Enter detailed description of what this scope includes"
-            {...register(`scopes.${index}.scopeDescription`)}
+            {...register(`scopes.${index}.scopeDescription` as const)}
           />
 
           <div className="text-xs text-gray-500">

@@ -5,6 +5,31 @@
   --font-sans: "DM Sans", sans-serif;
 }
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .z-dropdown {
+    z-index: 60;
+  }
+  .z-floating {
+    z-index: 20;
+  }
+  .z-sticky {
+    z-index: 50;
+  }
+  .z-search {
+    z-index: 40;
+  }
+  .z-sticky2 {
+    z-index: 30;
+  }
+}
+
 @layer base {
   body {
     @apply font-sans;

@@ -8,7 +8,7 @@ interface ModalProps {
 
 const Modal = ({ message, success, action }: ModalProps) => {
   return (
-    <div className="w-full h-screen fixed top-0 left-0 bg-black/10 z-sticky flex items-center justify-center">
+    <div className="w-full h-screen fixed top-0 left-0 bg-black/10 z-sticky2 flex items-center justify-center">
       <div className="w-60 bg-white flex flex-col items-center justify-center text-sm p-6 rounded-lg gap-6">
         <div className="w-full flex flex-row items-center justify-between">
           <p

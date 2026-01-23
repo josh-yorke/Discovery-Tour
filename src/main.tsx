@@ -68,6 +68,7 @@ import EditRental from "./pages/rental/EditRental";
 import TypesCategories from "./pages/types-categories/TypesCategories";
 import AddTypesCategories from "./pages/types-categories/AddTypesCategories";
 import EditTypesCategories from "./pages/types-categories/EditTypesCategories";
+import PageNotFound from "./components/error/PageNotFound";
 
 const router = createBrowserRouter([
   {
@@ -579,6 +580,10 @@ const router = createBrowserRouter([
       </RouteProtection>
     ),
   },
+  {
+    path: "*",
+    element: <PageNotFound />,
+  },
 ]);
 
 const queryClient = new QueryClient();
@@ -586,5 +591,5 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
     <RouterProvider router={router} />
-  </QueryClientProvider>
+  </QueryClientProvider>,
 );

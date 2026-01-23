@@ -10,7 +10,7 @@ const EditTransportInfo = () => {
     <div className="w-full flex flex-col items-center justify-center bg-gray-100">
       <Navbar />
       <Header
-        style="py-6"
+        style="px-6 lg:px-0 py-6"
         title="Edit Transport Information"
         url="/transport/transportation"
         id={id ? id : ""}

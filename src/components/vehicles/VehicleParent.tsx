@@ -40,6 +40,7 @@ const VehicleParent = ({ vehicles, isLoading }: ParentProps) => {
         <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {vehicles.map((vehicle: vehicleData) => (
             <VehicleCard
+              key={vehicle._id}
               _id={vehicle._id}
               onDelete={() => handleDelete(vehicle._id)}
               images={vehicle.images}

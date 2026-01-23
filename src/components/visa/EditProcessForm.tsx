@@ -1,16 +1,11 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import {
-  addProcessSchema,
   type addProcessData,
   type editProcessData,
 } from "../../types/process/addProcessTypes";
-import {
-  addVisaFileSchema,
-  type addVisaFileData,
-} from "../../types/visafile/addVisaFileTypes";
+import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
 import Input from "../input/Input";
 import TextArea from "../input/TextArea";
 import EditFileInput from "../input/EditFileInput";
@@ -35,17 +30,39 @@ interface ProcessFormProps {
   isDeletingProcess?: boolean;
 }
 
-// Types - Fix: Make fileTitle required only when file is present
-const processWithFileSchema = addProcessSchema
-  .merge(
-    addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
-      file: addVisaFileSchema.shape.file.optional(),
-      fileTitle: z.string().optional(),
-    })
-  )
+const hasProcessContent = (process: {
+  processTitle?: string;
+  process?: string;
+  fileTitle?: string;
+  file?: FileList;
+}): boolean => {
+  return (
+    (process.processTitle?.trim() ?? "").length > 0 ||
+    (process.process?.trim() ?? "").length > 0 ||
+    (process.fileTitle?.trim() ?? "").length > 0 ||
+    (process.file?.length ?? 0) > 0
+  );
+};
+
+const hasCompleteProcess = (process: {
+  processTitle?: string;
+  process?: string;
+}): boolean => {
+  return (
+    (process.processTitle?.trim() ?? "").length > 0 &&
+    (process.process?.trim() ?? "").length > 0
+  );
+};
+
+const mergedSchema = z
+  .object({
+    processTitle: z.string().min(1, "Process title is required"),
+    process: z.string().min(1, "Process description is required"),
+    fileTitle: z.string().optional(),
+    file: z.any().optional(),
+  })
   .refine(
     (data) => {
-      // File title is only required if a file is uploaded
       if (data.file && data.file.length > 0) {
         return !!data.fileTitle?.trim();
       }
@@ -54,38 +71,33 @@ const processWithFileSchema = addProcessSchema
     {
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
-    }
+    },
   );
 
-type ProcessWithFileData = addProcessData & {
+type MergedSchemaType = {
+  processTitle: string;
+  process: string;
   fileTitle?: string;
   file?: FileList;
 };
 
-const formSchema = z.object({
-  processes: z.array(processWithFileSchema),
-});
+type FormData = { processes: MergedSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-// Constants
-const DEFAULT_PROCESS: ProcessWithFileData = {
+const DEFAULT_PROCESS: MergedSchemaType = {
   processTitle: "",
   process: "",
   fileTitle: "",
   file: undefined,
 };
 
-// Helper functions
 const getCleanFileTitle = (title: string): string => {
   return title?.replace(/^process\s*-\s*/i, "") || "";
 };
 
 const mapEditDataToDefaultValues = (
   editData: editProcessData[],
-  fileData: visaFileData[]
-): ProcessWithFileData[] => {
-  // If no edit data, start with one empty process
+  fileData: visaFileData[],
+): MergedSchemaType[] => {
   if (editData.length === 0) return [DEFAULT_PROCESS];
 
   return editData.map((data, index) => ({
@@ -96,37 +108,26 @@ const mapEditDataToDefaultValues = (
   }));
 };
 
-// FIX: Create a type that includes _id for existing processes
 interface ProcessWithId extends editProcessData {
   _id: string;
 }
 
 const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
-  (
-    {
-      editData = [],
-      fileData = [],
-      onDeleteFile,
-      onDeleteProcess,
-      isDeleting,
-      // isDeletingProcess,
-    },
-    ref
-  ) => {
+  ({ editData = [], fileData = [], onDeleteFile, onDeleteProcess }, ref) => {
     const {
       register,
       control,
       formState: { errors },
       setValue,
       watch,
-      trigger,
       getValues,
+      clearErrors,
+      setError,
     } = useForm<FormData>({
-      resolver: zodResolver(formSchema),
+      mode: "onChange",
       defaultValues: {
         processes: mapEditDataToDefaultValues(editData, fileData),
       },
-      mode: "onChange",
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -136,122 +137,174 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
 
     const watchProcesses = watch("processes");
 
-    // Handlers
+    const validateAndGetFormData = useCallback(() => {
+      const values = getValues();
+      const processData: addProcessData[] = [];
+      const processFileData: addVisaFileData[] = [];
+      let isValid = true;
+      let hasAnyCompleteData = false;
+
+      clearErrors();
+
+      values.processes.forEach((process, index) => {
+        const hasContent = hasProcessContent(process);
+        const hasFile = (process.file?.length ?? 0) > 0;
+        const hasCompleteData = hasCompleteProcess(process);
+
+        if (hasContent) {
+          const result = mergedSchema.safeParse(process);
+
+          if (!result.success) {
+            isValid = false;
+            result.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(`processes.${index}.${path}` as any, {
+                  type: "manual",
+                  message: issue.message,
+                });
+              }
+            });
+          }
+
+          if (hasCompleteData) {
+            hasAnyCompleteData = true;
+            processData.push({
+              processTitle: process.processTitle,
+              process: process.process,
+            });
+
+            processFileData.push({
+              fileTitle: process.fileTitle || "",
+              file: process.file,
+            });
+          } else if (hasContent && !hasCompleteData) {
+            isValid = false;
+            if (!process.processTitle?.trim()) {
+              setError(`processes.${index}.processTitle` as any, {
+                type: "manual",
+                message: "Process title is required",
+              });
+            }
+            if (!process.process?.trim()) {
+              setError(`processes.${index}.process` as any, {
+                type: "manual",
+                message: "Process description is required",
+              });
+            }
+          }
+
+          if (hasFile && !hasCompleteData) {
+            isValid = false;
+            setError(`processes.${index}.processTitle` as any, {
+              type: "manual",
+              message: "Complete all fields before uploading a file",
+            });
+          }
+        }
+      });
+
+      return { isValid, processData, processFileData, hasAnyCompleteData };
+    }, [getValues, setError, clearErrors]);
+
     const addProcess = useCallback(() => {
       append(DEFAULT_PROCESS);
     }, [append]);
 
-    // UPDATED: Allow deletion even when there's only one process, no auto-add
     const removeProcess = useCallback(
       (index: number) => {
-        const processItem = editData[index];
-        // Use type assertion to safely access _id
-        const processWithId = processItem as ProcessWithId;
-
-        // If it's an existing process (has _id), use API deletion
-        if (processWithId?._id && onDeleteProcess) {
-          onDeleteProcess(processWithId._id, index);
+        const processItem = editData[index] as ProcessWithId;
+        if (processItem?._id && onDeleteProcess) {
+          onDeleteProcess(processItem._id, index);
         } else {
-          // If it's a new process (no _id), just remove from local state
           remove(index);
+          clearErrors(`processes.${index}` as any);
         }
       },
-      [remove, editData, onDeleteProcess]
+      [remove, editData, onDeleteProcess, clearErrors],
     );
-
-    console.log(editData);
 
     const handleFileSelect = useCallback(
       (files: FileList | null, index: number) => {
-        if (!files || files.length === 0) return;
+        if (!files || files.length === 0) {
+          setValue(`processes.${index}.file`, undefined);
+          setValue(`processes.${index}.fileTitle`, "");
+          clearErrors(`processes.${index}.fileTitle` as any);
+          clearErrors(`processes.${index}.file` as any);
+          return;
+        }
+
+        const currentProcess = watchProcesses?.[index];
+        if (!hasCompleteProcess(currentProcess)) {
+          setError(`processes.${index}.processTitle` as any, {
+            type: "manual",
+            message: "Complete all fields before uploading a file",
+          });
+          return;
+        }
 
         setValue(`processes.${index}.file`, files);
 
-        // Auto-fill file title if empty
         const currentFileTitle = watchProcesses?.[index]?.fileTitle;
         if (!currentFileTitle) {
           const fileName = files[0].name.split(".").slice(0, -1).join(".");
           setValue(`processes.${index}.fileTitle`, fileName);
         }
+
+        clearErrors(`processes.${index}.fileTitle` as any);
+        clearErrors(`processes.${index}.file` as any);
       },
-      [setValue, watchProcesses]
+      [setValue, watchProcesses, clearErrors, setError],
     );
 
     const handleClearFile = useCallback(
       (index: number) => {
         setValue(`processes.${index}.file`, undefined);
+        setValue(`processes.${index}.fileTitle`, "");
+        clearErrors(`processes.${index}.fileTitle` as any);
+        clearErrors(`processes.${index}.file` as any);
       },
-      [setValue]
+      [setValue, clearErrors],
     );
 
-    // UPDATED: Expose form data and remove method to parent
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
-        const isValid = await trigger();
-        if (!isValid) return null;
+        const { isValid, processData, processFileData } =
+          validateAndGetFormData();
 
-        const formData = getValues();
-        const processData: addProcessData[] = [];
-        const processFileData: addVisaFileData[] = [];
-
-        console.log(
-          "🔍 EditProcessForm - formData.processes:",
-          formData.processes
-        );
-        console.log(
-          "🔍 EditProcessForm - isArray:",
-          Array.isArray(formData.processes)
-        );
-
-        // FIX: Ensure we're always working with an array
-        const processesArray = Array.isArray(formData.processes)
-          ? formData.processes
-          : [formData.processes];
-
-        processesArray.forEach((process, index) => {
-          console.log(`🔍 Processing process ${index}:`, process);
-
-          processData.push({
-            processTitle: process.processTitle,
-            process: process.process,
-          });
-
-          processFileData.push({
-            fileTitle: process.fileTitle || "", // Provide empty string if undefined
-            file: process.file,
-          });
-        });
-
-        console.log("🔍 EditProcessForm - final processData:", processData);
-        console.log(
-          "🔍 EditProcessForm - final processFileData:",
-          processFileData
-        );
+        if (!isValid) {
+          return null;
+        }
 
         return { processData, processFileData };
       },
       removeProcessField: (index: number) => {
-        // UPDATED: Allow deletion even when there's only one process
         remove(index);
       },
     }));
 
-    // Render helpers
     const renderFileSection = (index: number) => {
       const hasExistingFile =
         fileData[index]?._id && !watchProcesses?.[index]?.file;
       const hasNewFile = !!watchProcesses?.[index]?.file;
+      const currentFileData = fileData[index];
+      const currentProcess = watchProcesses?.[index];
+      const hasContent = hasProcessContent(currentProcess);
+      const fileTitleError = errors.processes?.[index]?.fileTitle?.message;
+      const fileError = errors.processes?.[index]?.file?.message;
+      const processTitleError =
+        errors.processes?.[index]?.processTitle?.message;
 
       return (
         <div className="space-y-4">
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.processes?.[index]?.fileTitle?.message || ""}
+            error={hasContent && fileTitleError ? String(fileTitleError) : ""}
             title="Process File Title"
             placeholder="Enter process file title"
             type="text"
-            {...register(`processes.${index}.fileTitle`)}
+            {...register(`processes.${index}.fileTitle` as const)}
           />
 
           <EditFileInput
@@ -259,65 +312,85 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
             disabled={false}
             setValue={(fieldName, value) => {
               if (fieldName === "file") {
-                setValue(`processes.${index}.file`, value as FileList);
+                handleFileSelect(value as FileList, index);
               }
             }}
             onChange={(files) => handleFileSelect(files, index)}
             error={
-              typeof errors.processes?.[index]?.file?.message === "string"
-                ? errors.processes[index]?.file?.message
-                : ""
+              hasContent && fileError
+                ? String(fileError)
+                : processTitleError
+                  ? String(processTitleError)
+                  : ""
             }
           />
 
-          {hasExistingFile && (
-            <ExistingFileDisplay
-              fileData={fileData[index]}
-              onDelete={() => onDeleteFile?.(index, fileData[index]._id!)}
-              isDeleting={isDeleting}
-            />
+          {hasExistingFile && currentFileData && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-900">
+                    Current File:
+                  </p>
+                  <p className="text-sm text-red-700 mt-1">
+                    {getCleanFileTitle(currentFileData.fileTitle)}
+                  </p>
+                </div>
+                <IconButton
+                  action={() => onDeleteFile?.(index, currentFileData._id!)}
+                  style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+                  title=""
+                  icon={<RiDeleteBin4Fill size={16} />}
+                />
+              </div>
+            </div>
           )}
 
-          {hasNewFile && (
-            <NewFileDisplay
-              fileName={watchProcesses[index].file![0].name}
-              onClear={() => handleClearFile(index)}
-            />
+          {hasNewFile && watchProcesses[index]?.file && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700 font-medium">
+                New file selected: {watchProcesses[index].file![0].name}
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                This will be uploaded as a new file.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleClearFile(index)}
+                className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+              >
+                Clear selection
+              </button>
+            </div>
           )}
 
           <div className="text-xs text-gray-500">
-            <p>• File is optional when editing existing process</p>
-            <p>• If you upload a new file, it will replace the existing one</p>
+            <p>• Complete all fields before uploading a file</p>
             <p>• File title is required if you upload a file</p>
-            {fileData[index]?.file && (
-              <p>• To remove a file permanently, use the delete button</p>
-            )}
+            <p>• If you upload a new file, it will replace the existing one</p>
           </div>
         </div>
       );
     };
 
-    // UPDATED: Render function with always visible delete button
     const renderProcessForm = (field: { id: string }, index: number) => {
-      // const processItem = editData[index];
-      // // Use type assertion to safely access _id
-      // const processWithId = processItem as ProcessWithId;
-      // const isExistingProcess = !!processWithId?._id;
-      // const isThisProcessDeleting = isExistingProcess && isDeletingProcess;
+      const currentProcess = watchProcesses?.[index];
+      const hasContent = hasProcessContent(currentProcess);
+      const processTitleError =
+        errors.processes?.[index]?.processTitle?.message;
+      const processError = errors.processes?.[index]?.process?.message;
 
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* UPDATED: Always show delete button when there's at least one process */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removeProcess(index)}
-              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+              style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
               title=""
               icon={<RiDeleteBin4Fill size={16} />}
-              // isLoading={isThisProcessDeleting}
             />
           )}
 
@@ -325,18 +398,20 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.processes?.[index]?.processTitle?.message || ""}
-              title="Process Title"
+              error={
+                hasContent && processTitleError ? String(processTitleError) : ""
+              }
+              title="Process Title *"
               placeholder="Enter process title (e.g., Step 1: Application, Step 2: Review)"
               type="text"
-              {...register(`processes.${index}.processTitle`)}
+              {...register(`processes.${index}.processTitle` as const)}
             />
             <TextArea
               disabled={false}
-              error={errors.processes?.[index]?.process?.message || ""}
-              title="Process Description"
+              error={hasContent && processError ? String(processError) : ""}
+              title="Process Description *"
               placeholder="Enter detailed step-by-step process description"
-              {...register(`processes.${index}.process`)}
+              {...register(`processes.${index}.process` as const)}
             />
 
             {renderFileSection(index)}
@@ -359,65 +434,7 @@ const EditProcessForm = forwardRef<ProcessFormHandle, ProcessFormProps>(
         {fields.map(renderProcessForm)}
       </div>
     );
-  }
-);
-
-// Sub-components for better organization
-interface ExistingFileDisplayProps {
-  fileData: visaFileData;
-  onDelete: () => void;
-  isDeleting?: boolean;
-}
-
-const ExistingFileDisplay: React.FC<ExistingFileDisplayProps> = ({
-  fileData,
-  onDelete,
-  // isDeleting,
-}) => (
-  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-    <div className="flex flex-row items-center justify-between">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-red-900">Current File:</p>
-        <p className="text-sm text-red-700 mt-1">
-          {getCleanFileTitle(fileData.fileTitle)}
-        </p>
-      </div>
-
-      <IconButton
-        action={onDelete}
-        style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
-        title=""
-        icon={<RiDeleteBin4Fill size={16} />}
-        // isLoading={isDeleting}
-      />
-    </div>
-  </div>
-);
-
-interface NewFileDisplayProps {
-  fileName: string;
-  onClear: () => void;
-}
-
-const NewFileDisplay: React.FC<NewFileDisplayProps> = ({
-  fileName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
+  },
 );
 
 EditProcessForm.displayName = "EditProcessForm";

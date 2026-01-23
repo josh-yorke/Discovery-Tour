@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import {
@@ -20,12 +19,26 @@ export interface TermFormHandle {
   } | null>;
 }
 
-const termWithFileSchema = addTermSchema
+const hasTermContent = (term: {
+  title?: string;
+  terms?: string;
+  fileTitle?: string;
+  file?: FileList;
+}): boolean => {
+  return (
+    (term.title?.trim() ?? "").length > 0 ||
+    (term.terms?.trim() ?? "").length > 0 ||
+    (term.fileTitle?.trim() ?? "").length > 0 ||
+    (term.file?.length ?? 0) > 0
+  );
+};
+
+const mergedSchema = addTermSchema
   .merge(
     addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
       file: addVisaFileSchema.shape.file.optional(),
       fileTitle: z.string().optional(),
-    })
+    }),
   )
   .refine(
     (data) => {
@@ -37,21 +50,13 @@ const termWithFileSchema = addTermSchema
     {
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
-    }
+    },
   );
 
-type TermWithFileData = addTermData & {
-  fileTitle?: string;
-  file?: FileList;
-};
+type MergedSchemaType = z.infer<typeof mergedSchema>;
+type FormData = { terms: MergedSchemaType[] };
 
-const formSchema = z.object({
-  terms: z.array(termWithFileSchema),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_TERM: TermWithFileData = {
+const DEFAULT_TERM: MergedSchemaType = {
   title: "",
   terms: "",
   fileTitle: "",
@@ -65,14 +70,12 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
     formState: { errors },
     setValue,
     watch,
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      terms: [DEFAULT_TERM],
-    },
     mode: "onChange",
+    defaultValues: { terms: [DEFAULT_TERM] },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -82,21 +85,69 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
 
   const watchTerms = watch("terms");
 
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const termData: addTermData[] = [];
+    const termFileData: addVisaFileData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.terms.forEach((term, index) => {
+      const hasContent = hasTermContent(term);
+
+      if (hasContent) {
+        const result = mergedSchema.safeParse(term);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`terms.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          termData.push({
+            title: term.title,
+            terms: term.terms,
+          });
+
+          termFileData.push({
+            fileTitle: term.fileTitle || "",
+            file: term.file,
+          });
+        }
+      }
+    });
+
+    return { isValid, termData, termFileData };
+  }, [getValues, setError, clearErrors]);
+
   const addTerm = useCallback(() => {
     append(DEFAULT_TERM);
   }, [append]);
 
-  // UPDATED: Allow deletion even when there's only one term, no auto-add
   const removeTerm = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`terms.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
   const handleFileSelect = useCallback(
     (files: FileList | null, index: number) => {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {
+        setValue(`terms.${index}.file`, undefined);
+        setValue(`terms.${index}.fileTitle`, "");
+        clearErrors(`terms.${index}.fileTitle` as any);
+        clearErrors(`terms.${index}.file` as any);
+        return;
+      }
 
       setValue(`terms.${index}.file`, files);
 
@@ -105,42 +156,30 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
         const fileName = files[0].name.split(".").slice(0, -1).join(".");
         setValue(`terms.${index}.fileTitle`, fileName);
       }
+
+      clearErrors(`terms.${index}.fileTitle` as any);
+      clearErrors(`terms.${index}.file` as any);
     },
-    [setValue, watchTerms]
+    [setValue, watchTerms, clearErrors],
   );
 
   const handleClearFile = useCallback(
     (index: number) => {
       setValue(`terms.${index}.file`, undefined);
-      setValue(`terms.${index}.fileTitle`, ""); // Clear file title when clearing file
+      setValue(`terms.${index}.fileTitle`, "");
+      clearErrors(`terms.${index}.fileTitle` as any);
+      clearErrors(`terms.${index}.file` as any);
     },
-    [setValue]
+    [setValue, clearErrors],
   );
 
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, termData, termFileData } = validateAndGetFormData();
 
-      const formData = getValues();
-      const termData: addTermData[] = [];
-      const termFileData: addVisaFileData[] = [];
-
-      const termsArray = Array.isArray(formData.terms)
-        ? formData.terms
-        : [formData.terms];
-
-      termsArray.forEach((term) => {
-        termData.push({
-          title: term.title,
-          terms: term.terms,
-        });
-
-        termFileData.push({
-          fileTitle: term.fileTitle || "",
-          file: term.file,
-        });
-      });
+      if (!isValid || termData.length === 0) {
+        return null;
+      }
 
       return { termData, termFileData };
     },
@@ -150,17 +189,20 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
     const currentTerm = watchTerms?.[index];
     const hasNewFile = !!currentTerm?.file;
     const fileName = currentTerm?.file?.[0]?.name || "";
+    const hasContent = hasTermContent(currentTerm);
+    const fileTitleError = errors.terms?.[index]?.fileTitle?.message;
+    const fileError = errors.terms?.[index]?.file?.message;
 
     return (
       <div className="space-y-4">
         <Input
           style="bg-white"
           disabled={false}
-          error={errors.terms?.[index]?.fileTitle?.message || ""}
+          error={hasContent && fileTitleError ? String(fileTitleError) : ""}
           title="Term File Title"
           placeholder="Enter term file title"
           type="text"
-          {...register(`terms.${index}.fileTitle`)}
+          {...register(`terms.${index}.fileTitle` as const)}
         />
 
         <FileInput
@@ -168,22 +210,29 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
           disabled={false}
           setValue={(fieldName, value) => {
             if (fieldName === "file") {
-              setValue(`terms.${index}.file`, value as FileList);
+              handleFileSelect(value as FileList, index);
             }
           }}
           onChange={(files) => handleFileSelect(files, index)}
-          error={
-            typeof errors.terms?.[index]?.file?.message === "string"
-              ? errors.terms[index]?.file?.message
-              : ""
-          }
+          error={hasContent && fileError ? String(fileError) : ""}
         />
 
         {hasNewFile && fileName && (
-          <NewFileDisplay
-            fileName={fileName}
-            onClear={() => handleClearFile(index)}
-          />
+          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-700 font-medium">
+              New file selected: {fileName}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              This will be uploaded as a new file.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleClearFile(index)}
+              className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+            >
+              Clear selection
+            </button>
+          </div>
         )}
 
         <div className="text-xs text-gray-500">
@@ -196,12 +245,16 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
   };
 
   const renderTermForm = (field: { id: string }, index: number) => {
+    const currentTerm = watchTerms?.[index];
+    const hasContent = hasTermContent(currentTerm);
+    const titleError = errors.terms?.[index]?.title?.message;
+    const termsError = errors.terms?.[index]?.terms?.message;
+
     return (
       <div
         key={field.id}
         className="w-full flex flex-col items-end justify-center"
       >
-        {/* UPDATED: Always show delete button when there's at least one term */}
         {fields.length >= 1 && (
           <IconButton
             action={() => removeTerm(index)}
@@ -215,18 +268,18 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.terms?.[index]?.title?.message || ""}
+            error={hasContent && titleError ? String(titleError) : ""}
             title="Term Title"
             placeholder="Enter term title (e.g., General Terms, Privacy Policy)"
             type="text"
-            {...register(`terms.${index}.title`)}
+            {...register(`terms.${index}.title` as const)}
           />
           <TextArea
             disabled={false}
-            error={errors.terms?.[index]?.terms?.message || ""}
+            error={hasContent && termsError ? String(termsError) : ""}
             title="Terms and Conditions"
             placeholder="Enter detailed terms and conditions"
-            {...register(`terms.${index}.terms`)}
+            {...register(`terms.${index}.terms` as const)}
           />
 
           {renderFileSection(index)}
@@ -251,32 +304,5 @@ const TermForm = forwardRef<TermFormHandle>((_props, ref) => {
   );
 });
 
-interface NewFileDisplayProps {
-  fileName: string;
-  onClear: () => void;
-}
-
-const NewFileDisplay: React.FC<NewFileDisplayProps> = ({
-  fileName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
-);
-
 TermForm.displayName = "TermForm";
-
 export default TermForm;

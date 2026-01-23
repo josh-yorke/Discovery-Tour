@@ -3,20 +3,22 @@ import {
   RiAppsFill,
   RiAppsLine,
   RiArrowUpSLine,
+  RiCameraAiFill,
+  RiCameraAiLine,
+  RiCarFill,
+  RiCarLine,
   RiCloseFill,
   RiGridFill,
   RiGridLine,
+  RiGlobeFill,
+  RiGlobeLine,
+  RiLandscapeAiFill,
+  RiLandscapeAiLine,
+  RiMailOpenFill,
+  RiMailOpenLine,
   RiMenuFill,
-  RiMessage3Fill,
-  RiMessage3Line,
   RiMoneyDollarCircleFill,
   RiMoneyDollarCircleLine,
-  RiRedPacketFill,
-  RiRedPacketLine,
-  RiShip2Fill,
-  RiShip2Line,
-  RiTrainFill,
-  RiTrainLine,
   RiUser4Fill,
   RiUser4Line,
   RiWalletFill,
@@ -49,9 +51,9 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/visas") ? (
-                  <RiWalletFill size={16} />
+                  <RiGlobeFill size={16} />
                 ) : (
-                  <RiWalletLine size={16} />
+                  <RiGlobeLine size={16} />
                 )
               }
               title="Visa"
@@ -66,9 +68,9 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/tours") ? (
-                  <RiShip2Fill size={16} />
+                  <RiLandscapeAiFill size={16} />
                 ) : (
-                  <RiShip2Line size={16} />
+                  <RiLandscapeAiLine size={16} />
                 )
               }
               title="Tours"
@@ -84,9 +86,9 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/transport") ? (
-                  <RiTrainFill size={16} />
+                  <RiCarFill size={16} />
                 ) : (
-                  <RiTrainLine size={16} />
+                  <RiCarLine size={16} />
                 )
               }
               title="Transport"
@@ -118,9 +120,9 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/news") ? (
-                  <RiMessage3Fill size={16} />
+                  <RiMailOpenFill size={16} />
                 ) : (
-                  <RiMessage3Line size={16} />
+                  <RiMailOpenLine size={16} />
                 )
               }
               title="News"
@@ -135,9 +137,9 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/blogs") ? (
-                  <RiRedPacketFill size={16} />
+                  <RiCameraAiFill size={16} />
                 ) : (
-                  <RiRedPacketLine size={16} />
+                  <RiCameraAiLine size={16} />
                 )
               }
               title="Blogs"
@@ -237,9 +239,9 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/visas/visa") ? (
-                    <RiWalletFill size={16} />
+                    <RiGlobeFill size={16} />
                   ) : (
-                    <RiWalletLine size={16} />
+                    <RiGlobeLine size={16} />
                   )
                 }
                 title="Visa"
@@ -254,9 +256,9 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/tours") ? (
-                    <RiShip2Fill size={16} />
+                    <RiLandscapeAiFill size={16} />
                   ) : (
-                    <RiShip2Line size={16} />
+                    <RiLandscapeAiLine size={16} />
                   )
                 }
                 title="Tours"
@@ -272,9 +274,9 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/transport") ? (
-                    <RiTrainFill size={16} />
+                    <RiCarFill size={16} />
                   ) : (
-                    <RiTrainLine size={16} />
+                    <RiCarLine size={16} />
                   )
                 }
                 title="Transport"
@@ -306,9 +308,9 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/news") ? (
-                    <RiMessage3Fill size={16} />
+                    <RiMailOpenFill size={16} />
                   ) : (
-                    <RiMessage3Line size={16} />
+                    <RiMailOpenLine size={16} />
                   )
                 }
                 title="News"
@@ -323,9 +325,9 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/blogs") ? (
-                    <RiRedPacketFill size={16} />
+                    <RiCameraAiFill size={16} />
                   ) : (
-                    <RiRedPacketLine size={16} />
+                    <RiCameraAiLine size={16} />
                   )
                 }
                 title="Blogs"

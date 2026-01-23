@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
@@ -21,40 +20,32 @@ interface CityFormProps {
   isDeletingCity?: boolean;
 }
 
-// Form schema matching your accommodation form structure
-const cityFormSchema = z.object({
+// Helper functions similar to pricelist form
+const hasCityContent = (city: { city?: string }): boolean => {
+  return (city.city?.trim() ?? "").length > 0;
+};
+
+const hasCompleteCity = (city: { city?: string }): boolean => {
+  return (city.city?.trim() ?? "").length > 0;
+};
+
+const citySchema = z.object({
   city: z.string().min(1, "City name is required"),
 });
 
-type CityFormData = {
+type CitySchemaType = {
   city: string;
 };
 
-// ULTRA STRICT form schema
-const formSchema = z.object({
-  cities: z
-    .array(cityFormSchema)
-    .min(1, "At least one city is required")
-    .refine(
-      (cities) => {
-        // Check that every city has the required fields
-        return cities.every((city) => city.city.trim() !== "");
-      },
-      {
-        message: "All cities must have a name filled out",
-      }
-    ),
-});
+type FormData = { cities: CitySchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_CITY: CityFormData = {
+const DEFAULT_CITY: CitySchemaType = {
   city: "",
 };
 
 const mapEditDataToDefaultValues = (
-  editData: editCityData[]
-): CityFormData[] => {
+  editData: editCityData[],
+): CitySchemaType[] => {
   if (editData.length === 0) return [DEFAULT_CITY];
 
   return editData.map((data) => ({
@@ -68,20 +59,92 @@ const EditCityForm = forwardRef<CityFormHandle, CityFormProps>(
       register,
       control,
       formState: { errors },
-      trigger,
+      watch,
       getValues,
+      clearErrors,
+      setError,
     } = useForm<FormData>({
-      resolver: zodResolver(formSchema),
+      mode: "onChange",
       defaultValues: {
         cities: mapEditDataToDefaultValues(editData),
       },
-      mode: "onChange",
     });
 
     const { fields, append, remove } = useFieldArray({
       control,
       name: "cities",
     });
+
+    const watchCities = watch("cities");
+
+    const validateAndGetFormData = useCallback(() => {
+      const values = getValues();
+      const cityData: addCityData[] = [];
+      let isValid = true;
+      let hasAnyCompleteData = false;
+
+      clearErrors();
+
+      values.cities.forEach((city, index) => {
+        const hasContent = hasCityContent(city);
+        const hasCompleteData = hasCompleteCity(city);
+
+        // If there's any content at all, validate it
+        if (hasContent) {
+          const result = citySchema.safeParse(city);
+
+          if (!result.success) {
+            isValid = false;
+            result.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(`cities.${index}.${path}` as any, {
+                  type: "manual",
+                  message: issue.message,
+                });
+              }
+            });
+          }
+
+          // Only add to data array if it's complete
+          if (hasCompleteData) {
+            hasAnyCompleteData = true;
+            cityData.push({
+              city: city.city,
+            });
+          } else if (hasContent && !hasCompleteData) {
+            // If there's content but it's incomplete, show validation error
+            isValid = false;
+            if (!city.city?.trim()) {
+              setError(`cities.${index}.city` as any, {
+                type: "manual",
+                message: "City name is required",
+              });
+            }
+          }
+        }
+      });
+
+      // Additional check: if there's at least one city with content but none are complete
+      const anyCityHasContent = values.cities.some((city) =>
+        hasCityContent(city),
+      );
+      if (anyCityHasContent && !hasAnyCompleteData) {
+        isValid = false;
+        // Find the first incomplete city and highlight its error
+        const firstIncompleteIndex = values.cities.findIndex(
+          (city) => hasCityContent(city) && !hasCompleteCity(city),
+        );
+        if (firstIncompleteIndex >= 0) {
+          setError(`cities.${firstIncompleteIndex}.city` as any, {
+            type: "manual",
+            message: "City name is required",
+          });
+        }
+      }
+
+      return { isValid, cityData, hasAnyCompleteData };
+    }, [getValues, setError, clearErrors]);
 
     const addCity = useCallback(() => {
       append(DEFAULT_CITY);
@@ -94,63 +157,38 @@ const EditCityForm = forwardRef<CityFormHandle, CityFormProps>(
           onDeleteCity(cityItem._id, index);
         } else {
           remove(index);
+          clearErrors(`cities.${index}` as any);
         }
       },
-      [remove, editData, onDeleteCity]
+      [remove, editData, onDeleteCity, clearErrors],
     );
 
-    // ULTRA STRICT getFormData
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
-        console.log("🔄 Validating city form...");
+        const { isValid, cityData } = validateAndGetFormData();
 
-        // First validate with Zod
-        const isValid = await trigger();
+        // Only return null if there are validation errors
         if (!isValid) {
-          console.log("❌ Zod validation failed");
           return null;
         }
 
-        const formData = getValues();
-        const cityData: addCityData[] = [];
-
-        const citiesArray = Array.isArray(formData.cities)
-          ? formData.cities
-          : [formData.cities];
-
-        console.log("📋 Raw cities data:", citiesArray);
-
-        // MANUAL VALIDATION - Check every city has required data
-        for (let i = 0; i < citiesArray.length; i++) {
-          const city = citiesArray[i];
-
-          const hasName = city.city && city.city.trim() !== "";
-
-          console.log(`📝 City ${i}:`, {
-            hasName,
-            name: city.city,
-          });
-
-          // Only include if ALL required fields are filled
-          if (hasName) {
-            cityData.push({
-              city: city.city,
-            });
-          } else {
-            console.log(`⚠️ Skipping city ${i} - missing required field`);
-          }
-        }
-
-        // Final check - must have at least one valid city
+        // Return data even if arrays are empty (form is valid but has no complete data)
+        // But in this case, we should check if we have any data to submit
         if (cityData.length === 0) {
-          console.log("❌ No valid cities found");
-          alert(
-            "❌ Please fill out all required fields (City Name) for at least one city."
+          // If user has entered any content but it's incomplete, don't submit
+          const values = getValues();
+          const anyCityHasContent = values.cities.some((city) =>
+            hasCityContent(city),
           );
-          return null;
+          if (anyCityHasContent) {
+            // Show an alert or handle the case where there's partial data
+            console.log("Partial city data exists but is incomplete");
+            return null;
+          }
+          // If no content at all, it's valid but empty
+          return { cityData: [] };
         }
 
-        console.log("✅ Valid cities:", cityData.length);
         return { cityData };
       },
       removeCityField: (index: number) => {
@@ -159,12 +197,15 @@ const EditCityForm = forwardRef<CityFormHandle, CityFormProps>(
     }));
 
     const renderCityForm = (field: { id: string }, index: number) => {
+      const currentCity = watchCities?.[index];
+      const hasContent = hasCityContent(currentCity);
+      const cityError = errors.cities?.[index]?.city?.message;
+
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* Delete button */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removeCity(index)}
@@ -178,11 +219,11 @@ const EditCityForm = forwardRef<CityFormHandle, CityFormProps>(
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.cities?.[index]?.city?.message || ""}
+              error={hasContent && cityError ? String(cityError) : ""}
               title="City Name *"
               placeholder="Enter city name (e.g., New York, Paris, Tokyo)"
               type="text"
-              {...register(`cities.${index}.city`)}
+              {...register(`cities.${index}.city` as const)}
             />
 
             <div className="text-xs text-gray-500">
@@ -212,7 +253,7 @@ const EditCityForm = forwardRef<CityFormHandle, CityFormProps>(
         {fields.map(renderCityForm)}
       </div>
     );
-  }
+  },
 );
 
 EditCityForm.displayName = "EditCityForm";

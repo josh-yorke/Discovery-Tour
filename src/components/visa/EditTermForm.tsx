@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback, useEffect } from "react";
 import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
 import EditFileInput from "../input/EditFileInput";
@@ -31,8 +30,28 @@ interface TermFormProps {
   isDeletingTerm?: boolean;
 }
 
-// FIXED: STRICTER validation - require title and terms
-const termWithFileSchema = z
+const hasTermContent = (term: {
+  title?: string;
+  terms?: string;
+  fileTitle?: string;
+  file?: FileList;
+}): boolean => {
+  return (
+    (term.title?.trim() ?? "").length > 0 ||
+    (term.terms?.trim() ?? "").length > 0 ||
+    (term.fileTitle?.trim() ?? "").length > 0 ||
+    (term.file?.length ?? 0) > 0
+  );
+};
+
+const hasCompleteTerm = (term: { title?: string; terms?: string }): boolean => {
+  return (
+    (term.title?.trim() ?? "").length > 0 &&
+    (term.terms?.trim() ?? "").length > 0
+  );
+};
+
+const mergedSchema = z
   .object({
     title: z.string().min(1, "Term title is required"),
     terms: z.string().min(1, "Terms content is required"),
@@ -41,7 +60,6 @@ const termWithFileSchema = z
   })
   .refine(
     (data) => {
-      // Only require file title if file is actually provided
       if (data.file && data.file.length > 0) {
         return !!data.fileTitle?.trim();
       }
@@ -50,52 +68,29 @@ const termWithFileSchema = z
     {
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
-    }
+    },
   );
 
-type TermWithFileData = {
+type MergedSchemaType = {
   title: string;
   terms: string;
   fileTitle?: string;
   file?: FileList;
 };
 
-// FIXED: ULTRA STRICT form schema
-const formSchema = z.object({
-  terms: z
-    .array(termWithFileSchema)
-    .min(1, "At least one term is required")
-    .refine(
-      (terms) => {
-        // Check that every term has the required fields
-        return terms.every(
-          (term) => term.title.trim() !== "" && term.terms.trim() !== ""
-        );
-      },
-      {
-        message: "All terms must have Title and Terms content filled out",
-      }
-    ),
-});
+type FormData = { terms: MergedSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_TERM: TermWithFileData = {
+const DEFAULT_TERM: MergedSchemaType = {
   title: "",
   terms: "",
   fileTitle: "",
   file: undefined,
 };
 
-// FIXED: Type for edit data with _id
-interface EditTermWithId extends editTermData {
-  _id?: string;
-}
-
 const mapEditDataToDefaultValues = (
   editData: editTermData[],
-  fileData: visaFileData[]
-): TermWithFileData[] => {
+  fileData: visaFileData[],
+): MergedSchemaType[] => {
   if (editData.length === 0) return [DEFAULT_TERM];
 
   return editData.map((data, index) => ({
@@ -106,34 +101,30 @@ const mapEditDataToDefaultValues = (
   }));
 };
 
+interface TermWithId extends editTermData {
+  _id: string;
+}
+
 const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
-  (
-    {
-      editData = [],
-      fileData = [],
-      onDeleteFile,
-      onDeleteTerm,
-      isDeleting,
-      // isDeletingTerm,
-    },
-    ref
-  ) => {
+  ({ editData = [], fileData = [], onDeleteFile, onDeleteTerm }, ref) => {
     const {
       register,
       control,
       formState: { errors },
       setValue,
       watch,
-      trigger,
       getValues,
+      clearErrors,
+      setError,
       reset,
     } = useForm<FormData>({
-      resolver: zodResolver(formSchema),
+      mode: "onChange",
       defaultValues: {
         terms: mapEditDataToDefaultValues(editData, fileData),
       },
-      mode: "onChange",
     });
+
+    console.log(editData);
 
     const { fields, append, remove } = useFieldArray({
       control,
@@ -142,7 +133,6 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
 
     const watchTerms = watch("terms");
 
-    // Pre-fill form when editData or fileData changes
     useEffect(() => {
       if (editData.length > 0 || fileData.length > 0) {
         reset({
@@ -151,100 +141,38 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       }
     }, [editData, fileData, reset]);
 
-    // Handlers
-    const addTerm = useCallback(() => {
-      append(DEFAULT_TERM);
-    }, [append]);
+    const validateAndGetFormData = useCallback(() => {
+      const values = getValues();
+      const termData: addTermData[] = [];
+      const termFileData: addVisaFileData[] = [];
+      let isValid = true;
+      let hasAnyCompleteData = false;
 
-    const removeTerm = useCallback(
-      (index: number) => {
-        // FIXED: Use type assertion to safely access _id
-        const termItem = editData[index] as EditTermWithId | undefined;
+      clearErrors();
 
-        // If it's an existing term (has _id), use API deletion
-        if (termItem?._id && onDeleteTerm) {
-          onDeleteTerm(termItem._id, index);
-        } else {
-          // If it's a new term (no _id), just remove from local state
-          remove(index);
-        }
-      },
-      [remove, editData, onDeleteTerm]
-    );
+      values.terms.forEach((term, index) => {
+        const hasContent = hasTermContent(term);
+        const hasFile = (term.file?.length ?? 0) > 0;
+        const hasCompleteData = hasCompleteTerm(term);
 
-    const handleFileSelect = useCallback(
-      (files: FileList | null, index: number) => {
-        if (!files || files.length === 0) return;
+        if (hasContent) {
+          const result = mergedSchema.safeParse(term);
 
-        setValue(`terms.${index}.file`, files);
-
-        const currentFileTitle = watchTerms?.[index]?.fileTitle;
-        if (!currentFileTitle) {
-          const fileName = files[0].name.split(".").slice(0, -1).join(".");
-          setValue(`terms.${index}.fileTitle`, fileName);
-        }
-      },
-      [setValue, watchTerms]
-    );
-
-    const handleClearFile = useCallback(
-      (index: number) => {
-        setValue(`terms.${index}.file`, undefined);
-      },
-      [setValue]
-    );
-
-    // FIXED: ULTRA STRICT getFormData
-    useImperativeHandle(ref, () => ({
-      getFormData: async () => {
-        console.log("🔄 Validating term form...");
-
-        // First validate with Zod
-        const isValid = await trigger();
-        if (!isValid) {
-          console.log("❌ Zod validation failed");
-          return null;
-        }
-
-        const formData = getValues();
-        const termData: addTermData[] = [];
-        const termFileData: addVisaFileData[] = [];
-
-        const termsArray = Array.isArray(formData.terms)
-          ? formData.terms
-          : [formData.terms];
-
-        console.log("📋 Raw terms data:", termsArray);
-
-        // FIXED: MANUAL VALIDATION - Check every term has required data
-        for (let i = 0; i < termsArray.length; i++) {
-          const term = termsArray[i];
-
-          const hasTitle = term.title && term.title.trim() !== "";
-          const hasTermsContent = term.terms && term.terms.trim() !== "";
-          const hasFile = term.file && term.file.length > 0;
-
-          console.log(`📝 Term ${i}:`, {
-            hasTitle,
-            hasTermsContent,
-            hasFile,
-            title: term.title,
-            terms: term.terms,
-          });
-
-          // FIXED: BLOCK submission if term data is missing but file is present
-          if ((!hasTitle || !hasTermsContent) && hasFile) {
-            console.log("🚫 BLOCKED: File provided without complete term data");
-            alert(
-              `❌ Term #${
-                i + 1
-              }: Please fill out Title and Terms content before uploading a file.`
-            );
-            return null;
+          if (!result.success) {
+            isValid = false;
+            result.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(`terms.${index}.${path}` as any, {
+                  type: "manual",
+                  message: issue.message,
+                });
+              }
+            });
           }
 
-          // FIXED: Only include if ALL required fields are filled
-          if (hasTitle && hasTermsContent) {
+          if (hasCompleteData) {
+            hasAnyCompleteData = true;
             termData.push({
               title: term.title,
               terms: term.terms,
@@ -254,21 +182,103 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
               fileTitle: term.fileTitle || "",
               file: term.file,
             });
-          } else {
-            console.log(`⚠️ Skipping term ${i} - missing required fields`);
+          } else if (hasContent && !hasCompleteData) {
+            isValid = false;
+            if (!term.title?.trim()) {
+              setError(`terms.${index}.title` as any, {
+                type: "manual",
+                message: "Term title is required",
+              });
+            }
+            if (!term.terms?.trim()) {
+              setError(`terms.${index}.terms` as any, {
+                type: "manual",
+                message: "Terms content is required",
+              });
+            }
+          }
+
+          if (hasFile && !hasCompleteData) {
+            isValid = false;
+            setError(`terms.${index}.title` as any, {
+              type: "manual",
+              message: "Complete all fields before uploading a file",
+            });
           }
         }
+      });
 
-        // FIXED: Final check - must have at least one valid term
-        if (termData.length === 0) {
-          console.log("❌ No valid terms found");
-          alert(
-            "❌ Please fill out all required fields (Title and Terms content) for at least one term."
-          );
+      return { isValid, termData, termFileData, hasAnyCompleteData };
+    }, [getValues, setError, clearErrors]);
+
+    const addTerm = useCallback(() => {
+      append(DEFAULT_TERM);
+    }, [append]);
+
+    const removeTerm = useCallback(
+      (index: number) => {
+        const termItem = editData[index] as TermWithId;
+        if (termItem?._id && onDeleteTerm) {
+          onDeleteTerm(termItem._id, index);
+        } else {
+          remove(index);
+          clearErrors(`terms.${index}` as any);
+        }
+      },
+      [remove, editData, onDeleteTerm, clearErrors],
+    );
+
+    const handleFileSelect = useCallback(
+      (files: FileList | null, index: number) => {
+        if (!files || files.length === 0) {
+          setValue(`terms.${index}.file`, undefined);
+          setValue(`terms.${index}.fileTitle`, "");
+          clearErrors(`terms.${index}.fileTitle` as any);
+          clearErrors(`terms.${index}.file` as any);
+          return;
+        }
+
+        const currentTerm = watchTerms?.[index];
+        if (!hasCompleteTerm(currentTerm)) {
+          setError(`terms.${index}.title` as any, {
+            type: "manual",
+            message: "Complete all fields before uploading a file",
+          });
+          return;
+        }
+
+        setValue(`terms.${index}.file`, files);
+
+        const currentFileTitle = watchTerms?.[index]?.fileTitle;
+        if (!currentFileTitle) {
+          const fileName = files[0].name.split(".").slice(0, -1).join(".");
+          setValue(`terms.${index}.fileTitle`, fileName);
+        }
+
+        clearErrors(`terms.${index}.fileTitle` as any);
+        clearErrors(`terms.${index}.file` as any);
+      },
+      [setValue, watchTerms, clearErrors, setError],
+    );
+
+    const handleClearFile = useCallback(
+      (index: number) => {
+        setValue(`terms.${index}.file`, undefined);
+        setValue(`terms.${index}.fileTitle`, "");
+        clearErrors(`terms.${index}.fileTitle` as any);
+        clearErrors(`terms.${index}.file` as any);
+      },
+      [setValue, clearErrors],
+    );
+
+    useImperativeHandle(ref, () => ({
+      getFormData: async () => {
+        const { isValid, termData, termFileData } = validateAndGetFormData();
+
+        if (!isValid) {
           return null;
         }
 
-        console.log("✅ Valid terms:", termData.length);
         return { termData, termFileData };
       },
       removeTermField: (index: number) => {
@@ -281,17 +291,22 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
         fileData[index]?._id && !watchTerms?.[index]?.file;
       const hasNewFile = !!watchTerms?.[index]?.file;
       const currentFileData = fileData[index];
+      const currentTerm = watchTerms?.[index];
+      const hasContent = hasTermContent(currentTerm);
+      const fileTitleError = errors.terms?.[index]?.fileTitle?.message;
+      const fileError = errors.terms?.[index]?.file?.message;
+      const titleError = errors.terms?.[index]?.title?.message;
 
       return (
         <div className="space-y-4">
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.terms?.[index]?.fileTitle?.message || ""}
+            error={hasContent && fileTitleError ? String(fileTitleError) : ""}
             title="Term File Title"
             placeholder="Enter term file title"
             type="text"
-            {...register(`terms.${index}.fileTitle`)}
+            {...register(`terms.${index}.fileTitle` as const)}
           />
 
           <EditFileInput
@@ -299,39 +314,60 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
             disabled={false}
             setValue={(fieldName, value) => {
               if (fieldName === "file") {
-                setValue(`terms.${index}.file`, value as FileList);
+                handleFileSelect(value as FileList, index);
               }
             }}
             onChange={(files) => handleFileSelect(files, index)}
             error={
-              typeof errors.terms?.[index]?.file?.message === "string"
-                ? errors.terms[index]?.file?.message
-                : ""
+              hasContent && fileError
+                ? String(fileError)
+                : titleError
+                  ? String(titleError)
+                  : ""
             }
           />
 
           {hasExistingFile && currentFileData && (
-            <ExistingFileDisplay
-              fileData={currentFileData}
-              onDelete={() => onDeleteFile?.(index, currentFileData._id!)}
-              isDeleting={isDeleting}
-            />
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-900">
+                    Current File:
+                  </p>
+                  <p className="text-sm text-red-700 mt-1">
+                    {currentFileData.fileTitle}
+                  </p>
+                </div>
+                <IconButton
+                  action={() => onDeleteFile?.(index, currentFileData._id!)}
+                  style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+                  title=""
+                  icon={<RiDeleteBin4Fill size={16} />}
+                />
+              </div>
+            </div>
           )}
 
           {hasNewFile && watchTerms[index]?.file && (
-            <NewFileDisplay
-              fileName={watchTerms[index].file![0].name}
-              onClear={() => handleClearFile(index)}
-            />
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700 font-medium">
+                New file selected: {watchTerms[index].file![0].name}
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                This will be uploaded as a new file.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleClearFile(index)}
+                className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+              >
+                Clear selection
+              </button>
+            </div>
           )}
 
           <div className="text-xs text-gray-500">
-            <p>
-              •{" "}
-              <strong>
-                File upload is only allowed after filling all term fields
-              </strong>
-            </p>
+            <p>• Complete all fields before uploading a file</p>
             <p>• File title is required if you upload a file</p>
             <p>• If you upload a new file, it will replace the existing one</p>
           </div>
@@ -340,12 +376,16 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
     };
 
     const renderTermForm = (field: { id: string }, index: number) => {
+      const currentTerm = watchTerms?.[index];
+      const hasContent = hasTermContent(currentTerm);
+      const titleError = errors.terms?.[index]?.title?.message;
+      const termsError = errors.terms?.[index]?.terms?.message;
+
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* Delete button */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removeTerm(index)}
@@ -359,18 +399,18 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.terms?.[index]?.title?.message || ""}
+              error={hasContent && titleError ? String(titleError) : ""}
               title="Term Title *"
               placeholder="Enter term title"
               type="text"
-              {...register(`terms.${index}.title`)}
+              {...register(`terms.${index}.title` as const)}
             />
             <TextArea
               disabled={false}
-              error={errors.terms?.[index]?.terms?.message || ""}
+              error={hasContent && termsError ? String(termsError) : ""}
               title="Terms and Conditions *"
               placeholder="Enter terms and conditions"
-              {...register(`terms.${index}.terms`)}
+              {...register(`terms.${index}.terms` as const)}
             />
 
             {renderFileSection(index)}
@@ -381,15 +421,6 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
 
     return (
       <div className="w-full flex flex-col items-center justify-center gap-6">
-        {/* Form-level errors */}
-        {errors.terms?.message && (
-          <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">
-              {errors.terms.message}
-            </p>
-          </div>
-        )}
-
         <div className="w-full flex justify-center">
           <IconButton
             action={addTerm}
@@ -402,62 +433,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
         {fields.map(renderTermForm)}
       </div>
     );
-  }
-);
-
-// Sub-components for better organization
-interface ExistingFileDisplayProps {
-  fileData: visaFileData;
-  onDelete: () => void;
-  isDeleting?: boolean;
-}
-
-const ExistingFileDisplay: React.FC<ExistingFileDisplayProps> = ({
-  fileData,
-  onDelete,
-  // isDeleting,
-}) => (
-  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-    <div className="flex flex-row items-center justify-between">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-red-900">Current File:</p>
-        <p className="text-sm text-red-700 mt-1">{fileData.fileTitle}</p>
-      </div>
-
-      <IconButton
-        action={onDelete}
-        style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
-        title=""
-        icon={<RiDeleteBin4Fill size={16} />}
-      />
-    </div>
-  </div>
-);
-
-interface NewFileDisplayProps {
-  fileName: string;
-  onClear: () => void;
-}
-
-const NewFileDisplay: React.FC<NewFileDisplayProps> = ({
-  fileName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
+  },
 );
 
 EditTermForm.displayName = "EditTermForm";

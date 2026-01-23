@@ -104,7 +104,7 @@ const Add = () => {
 
   const uploadFile = async (
     fileData: File[],
-    fileTitle: string
+    fileTitle: string,
   ): Promise<string> => {
     if (!fileData || fileData.length === 0) {
       return "";
@@ -151,15 +151,7 @@ const Add = () => {
       Array.isArray(formData.itineraryData) &&
       formData.itineraryData.length > 0
     ) {
-      return formData.itineraryData.some(
-        (itinerary: any) =>
-          itinerary.title?.trim() ||
-          itinerary.location?.trim() ||
-          itinerary.dayOrder?.trim() ||
-          (Array.isArray(itinerary.activities) &&
-            itinerary.activities.length > 0) ||
-          (Array.isArray(itinerary.meals) && itinerary.meals.length > 0)
-      );
+      return true;
     }
     if (
       "pricelistData" in formData &&
@@ -256,19 +248,19 @@ const Add = () => {
           accommodationFormDataToSubmit.append("type", "tour-accommodation");
           accommodationFormDataToSubmit.append(
             "accommodationName",
-            accommodationItem.accommodationName
+            accommodationItem.accommodationName,
           );
           accommodationFormDataToSubmit.append(
             "accommodationDescription",
-            accommodationItem.accommodationDescription
+            accommodationItem.accommodationDescription,
           );
           accommodationFormDataToSubmit.append(
             "accommodationStar",
-            accommodationItem.accommodationStar
+            accommodationItem.accommodationStar,
           );
           accommodationFormDataToSubmit.append(
             "accommodationWebsite",
-            accommodationItem.accommodationWebsite
+            accommodationItem.accommodationWebsite,
           );
           accommodationFormDataToSubmit.append("tour", tourId);
 
@@ -280,7 +272,7 @@ const Add = () => {
           }
 
           allSubmissions.push(
-            accommodationMutation.mutateAsync(accommodationFormDataToSubmit)
+            accommodationMutation.mutateAsync(accommodationFormDataToSubmit),
           );
         }
       }
@@ -314,13 +306,13 @@ const Add = () => {
           scopeFormDataToSubmit.append("type", "tour-scope");
           scopeFormDataToSubmit.append(
             "scopeCategory",
-            scopeItem.scopeCategory
+            scopeItem.scopeCategory,
           );
           scopeFormDataToSubmit.append("scopeType", scopeItem.scopeType);
           scopeFormDataToSubmit.append("scopeTitle", scopeItem.scopeTitle);
           scopeFormDataToSubmit.append(
             "scopeDescription",
-            scopeItem.scopeDescription
+            scopeItem.scopeDescription,
           );
           scopeFormDataToSubmit.append("tour", tourId);
 
@@ -341,21 +333,16 @@ const Add = () => {
             ? itineraryItem.activities.filter(
                 (activity: any) =>
                   activity?.activityType?.trim() ||
-                  activity?.information?.trim()
+                  activity?.information?.trim(),
               )
             : [];
 
           const filteredMeals = Array.isArray(itineraryItem.meals)
             ? itineraryItem.meals.filter(
                 (meal: any) =>
-                  meal?.mealType?.trim() || meal?.description?.trim()
+                  meal?.mealType?.trim() || meal?.description?.trim(),
               )
             : [];
-
-          const processedMeals = filteredMeals.map((meal: any) => ({
-            ...meal,
-            mealCount: String(meal.mealCount || ""),
-          }));
 
           const payload: AddItineraryPayload = {
             type: "tour-itinerary",
@@ -364,7 +351,10 @@ const Add = () => {
             location: itineraryItem.location || "",
             dayOrder: parseInt(itineraryItem.dayOrder) || 0,
             activities: filteredActivities,
-            meals: processedMeals,
+            meals: filteredMeals.map((meal: any) => ({
+              ...meal,
+              mealCount: String(meal.mealCount || ""),
+            })),
           };
 
           allSubmissions.push(itineraryMutation.mutateAsync(payload));
@@ -373,8 +363,8 @@ const Add = () => {
 
       if (pricelistFormData && hasFormData(pricelistFormData)) {
         const { pricelistData, pricelistFileData } = pricelistFormData;
-        const pricelistFileUploadPromises = [];
 
+        const pricelistFileUploadPromises = [];
         const safePricelistFileData = Array.isArray(pricelistFileData)
           ? pricelistFileData
           : [pricelistFileData];
@@ -385,8 +375,8 @@ const Add = () => {
             pricelistFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Pricelist ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Pricelist ${i + 1}`}`,
+              ),
             );
           } else {
             pricelistFileUploadPromises.push(Promise.resolve(""));
@@ -394,7 +384,7 @@ const Add = () => {
         }
 
         const pricelistFileUploadIds = await Promise.all(
-          pricelistFileUploadPromises
+          pricelistFileUploadPromises,
         );
         const safePricelistData = Array.isArray(pricelistData)
           ? pricelistData
@@ -408,25 +398,26 @@ const Add = () => {
           pricelistFormDataToSubmit.append("fee", pricelistItem.fee);
           pricelistFormDataToSubmit.append(
             "description",
-            pricelistItem.description
+            pricelistItem.description,
           );
           pricelistFormDataToSubmit.append("tour", tourId);
 
           if (pricelistFileUploadIds[i]) {
             pricelistFormDataToSubmit.append(
               "filesAssociated",
-              pricelistFileUploadIds[i]
+              pricelistFileUploadIds[i],
             );
           }
 
           allSubmissions.push(
-            pricelistMutation.mutateAsync(pricelistFormDataToSubmit)
+            pricelistMutation.mutateAsync(pricelistFormDataToSubmit),
           );
         }
       }
 
       if (processFormData && hasFormData(processFormData)) {
         const { processData, processFileData } = processFormData;
+
         const processFileUploadPromises = [];
         const safeProcessFileData = Array.isArray(processFileData)
           ? processFileData
@@ -438,8 +429,8 @@ const Add = () => {
             processFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Process ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Process ${i + 1}`}`,
+              ),
             );
           } else {
             processFileUploadPromises.push(Promise.resolve(""));
@@ -447,7 +438,7 @@ const Add = () => {
         }
 
         const processFileUploadIds = await Promise.all(
-          processFileUploadPromises
+          processFileUploadPromises,
         );
         const safeProcessData = Array.isArray(processData)
           ? processData
@@ -459,7 +450,7 @@ const Add = () => {
           processFormDataToSubmit.append("type", "process");
           processFormDataToSubmit.append(
             "processTitle",
-            processItem.processTitle
+            processItem.processTitle,
           );
           processFormDataToSubmit.append("process", processItem.process);
           processFormDataToSubmit.append("tour", tourId);
@@ -467,18 +458,19 @@ const Add = () => {
           if (processFileUploadIds[i]) {
             processFormDataToSubmit.append(
               "filesAssociated",
-              processFileUploadIds[i]
+              processFileUploadIds[i],
             );
           }
 
           allSubmissions.push(
-            processMutation.mutateAsync(processFormDataToSubmit)
+            processMutation.mutateAsync(processFormDataToSubmit),
           );
         }
       }
 
       if (paymentFormData && hasFormData(paymentFormData)) {
         const { paymentData } = paymentFormData;
+
         const safePaymentData = Array.isArray(paymentData)
           ? paymentData
           : [paymentData];
@@ -489,30 +481,31 @@ const Add = () => {
           paymentFormDataToSubmit.append("type", "payment");
           paymentFormDataToSubmit.append(
             "paymentType",
-            paymentItem.paymentType
+            paymentItem.paymentType,
           );
           paymentFormDataToSubmit.append("currency", paymentItem.currency);
           paymentFormDataToSubmit.append(
             "accountName",
-            paymentItem.accountName
+            paymentItem.accountName,
           );
           paymentFormDataToSubmit.append("bankName", paymentItem.bankName);
           paymentFormDataToSubmit.append("accountNo", paymentItem.accountNo);
           paymentFormDataToSubmit.append(
             "bankAddress",
-            paymentItem.bankAddress
+            paymentItem.bankAddress,
           );
           paymentFormDataToSubmit.append("swiftCode", paymentItem.swiftCode);
           paymentFormDataToSubmit.append("tour", tourId);
 
           allSubmissions.push(
-            paymentMutation.mutateAsync(paymentFormDataToSubmit)
+            paymentMutation.mutateAsync(paymentFormDataToSubmit),
           );
         }
       }
 
       if (termFormData && hasFormData(termFormData)) {
         const { termData, termFileData } = termFormData;
+
         const termFileUploadPromises = [];
         const safeTermFileData = Array.isArray(termFileData)
           ? termFileData
@@ -524,8 +517,8 @@ const Add = () => {
             termFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Terms ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Terms ${i + 1}`}`,
+              ),
             );
           } else {
             termFileUploadPromises.push(Promise.resolve(""));
@@ -538,7 +531,7 @@ const Add = () => {
         for (let i = 0; i < safeTermData.length; i++) {
           const termItem = safeTermData[i];
           const termFormDataToSubmit = new FormData();
-          termFormDataToSubmit.append("type", "term");
+          termFormDataToSubmit.append("type", "terms");
           termFormDataToSubmit.append("title", termItem.title);
           termFormDataToSubmit.append("terms", termItem.terms);
           termFormDataToSubmit.append("tour", tourId);
@@ -546,7 +539,7 @@ const Add = () => {
           if (termFileUploadIds[i]) {
             termFormDataToSubmit.append(
               "filesAssociated",
-              termFileUploadIds[i]
+              termFileUploadIds[i],
             );
           }
 
@@ -556,6 +549,7 @@ const Add = () => {
 
       if (documentFormData && hasFormData(documentFormData)) {
         const { documentData, documentFileData } = documentFormData;
+
         const documentFileUploadPromises = [];
         const safeDocumentFileData = Array.isArray(documentFileData)
           ? documentFileData
@@ -567,8 +561,8 @@ const Add = () => {
             documentFileUploadPromises.push(
               uploadFile(
                 fileData.file,
-                `${fileData.fileTitle || `Document ${i + 1}`}`
-              )
+                `${fileData.fileTitle || `Document ${i + 1}`}`,
+              ),
             );
           } else {
             documentFileUploadPromises.push(Promise.resolve(""));
@@ -576,7 +570,7 @@ const Add = () => {
         }
 
         const documentFileUploadIds = await Promise.all(
-          documentFileUploadPromises
+          documentFileUploadPromises,
         );
         const safeDocumentData = Array.isArray(documentData)
           ? documentData
@@ -589,19 +583,19 @@ const Add = () => {
           documentFormDataToSubmit.append("docTitle", documentItem.docTitle);
           documentFormDataToSubmit.append(
             "docDescription",
-            documentItem.docDescription
+            documentItem.docDescription,
           );
           documentFormDataToSubmit.append("tour", tourId);
 
           if (documentFileUploadIds[i]) {
             documentFormDataToSubmit.append(
               "filesAssociated",
-              documentFileUploadIds[i]
+              documentFileUploadIds[i],
             );
           }
 
           allSubmissions.push(
-            documentMutation.mutateAsync(documentFormDataToSubmit)
+            documentMutation.mutateAsync(documentFormDataToSubmit),
           );
         }
       }
@@ -627,12 +621,9 @@ const Add = () => {
 
       alert("Tour information added successfully!");
       navigate("/tours");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submission error:", error);
-      alert(
-        error.message ||
-          "There was an error submitting the forms. Please try again."
-      );
+      alert("There was an error submitting the forms. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import {
@@ -15,6 +14,7 @@ import TextArea from "../input/TextArea";
 import FileInput from "../input/FileInput";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
+import NumberInput from "../input/NumberInput";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -23,17 +23,31 @@ export interface PricelistFormHandle {
   } | null>;
 }
 
-// Types - Make fileTitle required only when file is present
-const pricelistWithFileSchema = addPricelistSchema
+const hasPricelistContent = (pricelist: {
+  plan?: string;
+  fee?: string;
+  description?: string;
+  fileTitle?: string;
+  file?: FileList;
+}): boolean => {
+  return (
+    (pricelist.plan?.trim() ?? "").length > 0 ||
+    (pricelist.fee?.trim() ?? "").length > 0 ||
+    (pricelist.description?.trim() ?? "").length > 0 ||
+    (pricelist.fileTitle?.trim() ?? "").length > 0 ||
+    (pricelist.file?.length ?? 0) > 0
+  );
+};
+
+const mergedSchema = addPricelistSchema
   .merge(
     addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
       file: addVisaFileSchema.shape.file.optional(),
       fileTitle: z.string().optional(),
-    })
+    }),
   )
   .refine(
     (data) => {
-      // File title is only required if a file is uploaded
       if (data.file && data.file.length > 0) {
         return !!data.fileTitle?.trim();
       }
@@ -42,22 +56,13 @@ const pricelistWithFileSchema = addPricelistSchema
     {
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
-    }
+    },
   );
 
-type PricelistWithFileData = addPricelistData & {
-  fileTitle?: string;
-  file?: FileList;
-};
+type MergedSchemaType = z.infer<typeof mergedSchema>;
+type FormData = { pricelists: MergedSchemaType[] };
 
-const formSchema = z.object({
-  pricelists: z.array(pricelistWithFileSchema),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-// Constants
-const DEFAULT_PRICELIST: PricelistWithFileData = {
+const DEFAULT_PRICELIST: MergedSchemaType = {
   plan: "",
   fee: "",
   description: "",
@@ -72,14 +77,12 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     formState: { errors },
     setValue,
     watch,
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      pricelists: [DEFAULT_PRICELIST],
-    },
     mode: "onChange",
+    defaultValues: { pricelists: [DEFAULT_PRICELIST] },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -89,109 +92,126 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
 
   const watchPricelists = watch("pricelists");
 
-  // Handlers
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const pricelistData: addPricelistData[] = [];
+    const pricelistFileData: addVisaFileData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.pricelists.forEach((pricelist, index) => {
+      const hasContent = hasPricelistContent(pricelist);
+
+      if (hasContent) {
+        const result = mergedSchema.safeParse(pricelist);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`pricelists.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          pricelistData.push({
+            plan: pricelist.plan,
+            fee: pricelist.fee,
+            description: pricelist.description,
+          });
+
+          pricelistFileData.push({
+            fileTitle: pricelist.fileTitle || "",
+            file: pricelist.file,
+          });
+        }
+      }
+    });
+
+    return { isValid, pricelistData, pricelistFileData };
+  }, [getValues, setError, clearErrors]);
+
   const addPricelist = useCallback(() => {
     append(DEFAULT_PRICELIST);
   }, [append]);
 
-  // UPDATED: Allow deletion even when there's only one pricelist, no auto-add
   const removePricelist = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`pricelists.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
   const handleFileSelect = useCallback(
     (files: FileList | null, index: number) => {
-      if (!files || files.length === 0) return;
+      if (!files || files.length === 0) {
+        setValue(`pricelists.${index}.file`, undefined);
+        setValue(`pricelists.${index}.fileTitle`, "");
+        clearErrors(`pricelists.${index}.fileTitle` as any);
+        clearErrors(`pricelists.${index}.file` as any);
+        return;
+      }
 
       setValue(`pricelists.${index}.file`, files);
 
-      // Auto-fill file title if empty
       const currentFileTitle = watchPricelists?.[index]?.fileTitle;
       if (!currentFileTitle) {
         const fileName = files[0].name.split(".").slice(0, -1).join(".");
         setValue(`pricelists.${index}.fileTitle`, fileName);
       }
+
+      clearErrors(`pricelists.${index}.fileTitle` as any);
+      clearErrors(`pricelists.${index}.file` as any);
     },
-    [setValue, watchPricelists]
+    [setValue, watchPricelists, clearErrors],
   );
 
   const handleClearFile = useCallback(
     (index: number) => {
-      // Clear both file and file title
       setValue(`pricelists.${index}.file`, undefined);
       setValue(`pricelists.${index}.fileTitle`, "");
+      clearErrors(`pricelists.${index}.fileTitle` as any);
+      clearErrors(`pricelists.${index}.file` as any);
     },
-    [setValue]
+    [setValue, clearErrors],
   );
 
-  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, pricelistData, pricelistFileData } =
+        validateAndGetFormData();
 
-      const formData = getValues();
-      const pricelistData: addPricelistData[] = [];
-      const pricelistFileData: addVisaFileData[] = [];
-
-      console.log(
-        "🔍 PricelistForm - formData.pricelists:",
-        formData.pricelists
-      );
-      console.log(
-        "🔍 PricelistForm - isArray:",
-        Array.isArray(formData.pricelists)
-      );
-
-      // Ensure we're always working with an array
-      const pricelistsArray = Array.isArray(formData.pricelists)
-        ? formData.pricelists
-        : [formData.pricelists];
-
-      pricelistsArray.forEach((pricelist, index) => {
-        console.log(`🔍 Processing pricelist ${index}:`, pricelist);
-
-        pricelistData.push({
-          plan: pricelist.plan,
-          fee: pricelist.fee,
-          description: pricelist.description,
-        });
-
-        pricelistFileData.push({
-          fileTitle: pricelist.fileTitle || "", // Provide empty string if undefined
-          file: pricelist.file,
-        });
-      });
-
-      console.log("🔍 PricelistForm - final pricelistData:", pricelistData);
-      console.log(
-        "🔍 PricelistForm - final pricelistFileData:",
-        pricelistFileData
-      );
+      if (!isValid || pricelistData.length === 0) {
+        return null;
+      }
 
       return { pricelistData, pricelistFileData };
     },
   }));
 
-  // Render helpers
   const renderFileSection = (index: number) => {
     const currentPricelist = watchPricelists?.[index];
     const hasNewFile = !!currentPricelist?.file;
     const fileName = currentPricelist?.file?.[0]?.name || "";
+    const hasContent = hasPricelistContent(currentPricelist);
+    const fileTitleError = errors.pricelists?.[index]?.fileTitle?.message;
+    const fileError = errors.pricelists?.[index]?.file?.message;
 
     return (
       <div className="space-y-4">
         <Input
           style="bg-white"
           disabled={false}
-          error={errors.pricelists?.[index]?.fileTitle?.message || ""}
+          error={hasContent && fileTitleError ? String(fileTitleError) : ""}
           title="Pricelist File Title"
           placeholder="Enter pricelist file title"
           type="text"
-          {...register(`pricelists.${index}.fileTitle`)}
+          {...register(`pricelists.${index}.fileTitle` as const)}
         />
 
         <FileInput
@@ -199,22 +219,29 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
           disabled={false}
           setValue={(fieldName, value) => {
             if (fieldName === "file") {
-              setValue(`pricelists.${index}.file`, value as FileList);
+              handleFileSelect(value as FileList, index);
             }
           }}
           onChange={(files) => handleFileSelect(files, index)}
-          error={
-            typeof errors.pricelists?.[index]?.file?.message === "string"
-              ? errors.pricelists[index]?.file?.message
-              : ""
-          }
+          error={hasContent && fileError ? String(fileError) : ""}
         />
 
         {hasNewFile && fileName && (
-          <NewFileDisplay
-            fileName={fileName}
-            onClear={() => handleClearFile(index)}
-          />
+          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-700 font-medium">
+              New file selected: {fileName}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              This will be uploaded as a new file.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleClearFile(index)}
+              className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+            >
+              Clear selection
+            </button>
+          </div>
         )}
 
         <div className="text-xs text-gray-500">
@@ -227,12 +254,17 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
   };
 
   const renderPricelistForm = (field: { id: string }, index: number) => {
+    const currentPricelist = watchPricelists?.[index];
+    const hasContent = hasPricelistContent(currentPricelist);
+    const planError = errors.pricelists?.[index]?.plan?.message;
+    const feeError = errors.pricelists?.[index]?.fee?.message;
+    const descriptionError = errors.pricelists?.[index]?.description?.message;
+
     return (
       <div
         key={field.id}
         className="w-full flex flex-col items-end justify-center"
       >
-        {/* UPDATED: Always show delete button when there's at least one pricelist */}
         {fields.length >= 1 && (
           <IconButton
             action={() => removePricelist(index)}
@@ -247,29 +279,31 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.pricelists?.[index]?.plan?.message || ""}
+              error={hasContent && planError ? String(planError) : ""}
               title="Plan Name"
               placeholder="Enter plan name (e.g., Standard, Express, Premium)"
               type="text"
-              {...register(`pricelists.${index}.plan`)}
+              {...register(`pricelists.${index}.plan` as const)}
             />
-            <Input
+            <NumberInput
               style="bg-white"
               disabled={false}
-              error={errors.pricelists?.[index]?.fee?.message || ""}
+              error={hasContent && feeError ? String(feeError) : ""}
               title="Fee Amount"
               placeholder="Enter fee amount"
               type="number"
-              {...register(`pricelists.${index}.fee`)}
+              {...register(`pricelists.${index}.fee` as const)}
             />
           </div>
 
           <TextArea
             disabled={false}
-            error={errors.pricelists?.[index]?.description?.message || ""}
+            error={
+              hasContent && descriptionError ? String(descriptionError) : ""
+            }
             title="Plan Description"
             placeholder="Enter detailed description of what this plan includes"
-            {...register(`pricelists.${index}.description`)}
+            {...register(`pricelists.${index}.description` as const)}
           />
 
           {renderFileSection(index)}
@@ -294,33 +328,5 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
   );
 });
 
-// Sub-component for new file display
-interface NewFileDisplayProps {
-  fileName: string;
-  onClear: () => void;
-}
-
-const NewFileDisplay: React.FC<NewFileDisplayProps> = ({
-  fileName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
-);
-
 PricelistForm.displayName = "PricelistForm";
-
 export default PricelistForm;

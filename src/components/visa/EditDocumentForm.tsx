@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback, useEffect } from "react";
 import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
 import EditFileInput from "../input/EditFileInput";
@@ -31,8 +30,31 @@ interface DocumentFormProps {
   isDeletingDocument?: boolean;
 }
 
-// FIXED: STRICTER validation - require document title and description
-const documentWithFileSchema = z
+const hasDocumentContent = (document: {
+  docTitle?: string;
+  docDescription?: string;
+  fileTitle?: string;
+  file?: FileList;
+}): boolean => {
+  return (
+    (document.docTitle?.trim() ?? "").length > 0 ||
+    (document.docDescription?.trim() ?? "").length > 0 ||
+    (document.fileTitle?.trim() ?? "").length > 0 ||
+    (document.file?.length ?? 0) > 0
+  );
+};
+
+const hasCompleteDocument = (document: {
+  docTitle?: string;
+  docDescription?: string;
+}): boolean => {
+  return (
+    (document.docTitle?.trim() ?? "").length > 0 &&
+    (document.docDescription?.trim() ?? "").length > 0
+  );
+};
+
+const mergedSchema = z
   .object({
     docTitle: z.string().min(1, "Document title is required"),
     docDescription: z.string().min(1, "Document description is required"),
@@ -41,7 +63,6 @@ const documentWithFileSchema = z
   })
   .refine(
     (data) => {
-      // Only require file title if file is actually provided
       if (data.file && data.file.length > 0) {
         return !!data.fileTitle?.trim();
       }
@@ -50,55 +71,29 @@ const documentWithFileSchema = z
     {
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
-    }
+    },
   );
 
-type DocumentWithFileData = {
+type MergedSchemaType = {
   docTitle: string;
   docDescription: string;
   fileTitle?: string;
   file?: FileList;
 };
 
-// FIXED: ULTRA STRICT form schema
-const formSchema = z.object({
-  documents: z
-    .array(documentWithFileSchema)
-    .min(1, "At least one document is required")
-    .refine(
-      (documents) => {
-        // Check that every document has the required fields
-        return documents.every(
-          (document) =>
-            document.docTitle.trim() !== "" &&
-            document.docDescription.trim() !== ""
-        );
-      },
-      {
-        message:
-          "All documents must have Document Title and Document Description filled out",
-      }
-    ),
-});
+type FormData = { documents: MergedSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_DOCUMENT: DocumentWithFileData = {
+const DEFAULT_DOCUMENT: MergedSchemaType = {
   docTitle: "",
   docDescription: "",
   fileTitle: "",
   file: undefined,
 };
 
-// FIXED: Type for edit data with _id
-interface EditDocumentWithId extends editDocumentData {
-  _id?: string;
-}
-
 const mapEditDataToDefaultValues = (
   editData: editDocumentData[],
-  fileData: visaFileData[]
-): DocumentWithFileData[] => {
+  fileData: visaFileData[],
+): MergedSchemaType[] => {
   if (editData.length === 0) return [DEFAULT_DOCUMENT];
 
   return editData.map((data, index) => ({
@@ -109,41 +104,27 @@ const mapEditDataToDefaultValues = (
   }));
 };
 
-const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
-  (
-    {
-      editData = [],
-      fileData = [],
-      onDeleteFile,
-      onDeleteDocument,
-      isDeleting,
-      // isDeletingDocument,
-    },
-    ref
-  ) => {
-    useEffect(() => {
-      console.log("EditDocumentForm - editData received:", editData);
-      console.log(
-        "Document Titles:",
-        editData?.map((doc) => doc?.title)
-      );
-    }, [editData]);
+interface DocumentWithId extends editDocumentData {
+  _id: string;
+}
 
+const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
+  ({ editData = [], fileData = [], onDeleteFile, onDeleteDocument }, ref) => {
     const {
       register,
       control,
       formState: { errors },
       setValue,
       watch,
-      trigger,
       getValues,
+      clearErrors,
+      setError,
       reset,
     } = useForm<FormData>({
-      resolver: zodResolver(formSchema),
+      mode: "onChange",
       defaultValues: {
         documents: mapEditDataToDefaultValues(editData, fileData),
       },
-      mode: "onChange",
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -153,7 +134,6 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
 
     const watchDocuments = watch("documents");
 
-    // Pre-fill form when editData or fileData changes
     useEffect(() => {
       if (editData.length > 0 || fileData.length > 0) {
         reset({
@@ -162,104 +142,38 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       }
     }, [editData, fileData, reset]);
 
-    // Handlers
-    const addDocument = useCallback(() => {
-      append(DEFAULT_DOCUMENT);
-    }, [append]);
+    const validateAndGetFormData = useCallback(() => {
+      const values = getValues();
+      const documentData: addDocumentData[] = [];
+      const documentFileData: addVisaFileData[] = [];
+      let isValid = true;
+      let hasAnyCompleteData = false;
 
-    const removeDocument = useCallback(
-      (index: number) => {
-        // FIXED: Use type assertion to safely access _id
-        const documentItem = editData[index] as EditDocumentWithId | undefined;
+      clearErrors();
 
-        // If it's an existing document (has _id), use API deletion
-        if (documentItem?._id && onDeleteDocument) {
-          onDeleteDocument(documentItem._id, index);
-        } else {
-          // If it's a new document (no _id), just remove from local state
-          remove(index);
-        }
-      },
-      [remove, editData, onDeleteDocument]
-    );
+      values.documents.forEach((document, index) => {
+        const hasContent = hasDocumentContent(document);
+        const hasFile = (document.file?.length ?? 0) > 0;
+        const hasCompleteData = hasCompleteDocument(document);
 
-    const handleFileSelect = useCallback(
-      (files: FileList | null, index: number) => {
-        if (!files || files.length === 0) return;
+        if (hasContent) {
+          const result = mergedSchema.safeParse(document);
 
-        setValue(`documents.${index}.file`, files);
-
-        const currentFileTitle = watchDocuments?.[index]?.fileTitle;
-        if (!currentFileTitle) {
-          const fileName = files[0].name.split(".").slice(0, -1).join(".");
-          setValue(`documents.${index}.fileTitle`, fileName);
-        }
-      },
-      [setValue, watchDocuments]
-    );
-
-    const handleClearFile = useCallback(
-      (index: number) => {
-        setValue(`documents.${index}.file`, undefined);
-      },
-      [setValue]
-    );
-
-    // FIXED: ULTRA STRICT getFormData
-    useImperativeHandle(ref, () => ({
-      getFormData: async () => {
-        console.log("🔄 Validating document form...");
-
-        // First validate with Zod
-        const isValid = await trigger();
-        if (!isValid) {
-          console.log("❌ Zod validation failed");
-          return null;
-        }
-
-        const formData = getValues();
-        const documentData: addDocumentData[] = [];
-        const documentFileData: addVisaFileData[] = [];
-
-        const documentsArray = Array.isArray(formData.documents)
-          ? formData.documents
-          : [formData.documents];
-
-        console.log("📋 Raw documents data:", documentsArray);
-
-        // FIXED: MANUAL VALIDATION - Check every document has required data
-        for (let i = 0; i < documentsArray.length; i++) {
-          const document = documentsArray[i];
-
-          const hasDocTitle =
-            document.docTitle && document.docTitle.trim() !== "";
-          const hasDocDescription =
-            document.docDescription && document.docDescription.trim() !== "";
-          const hasFile = document.file && document.file.length > 0;
-
-          console.log(`📝 Document ${i}:`, {
-            hasDocTitle,
-            hasDocDescription,
-            hasFile,
-            docTitle: document.docTitle,
-            docDescription: document.docDescription,
-          });
-
-          // FIXED: BLOCK submission if document data is missing but file is present
-          if ((!hasDocTitle || !hasDocDescription) && hasFile) {
-            console.log(
-              "🚫 BLOCKED: File provided without complete document data"
-            );
-            alert(
-              `❌ Document #${
-                i + 1
-              }: Please fill out Document Title and Document Description before uploading a file.`
-            );
-            return null;
+          if (!result.success) {
+            isValid = false;
+            result.error.issues.forEach((issue) => {
+              const path = issue.path[0];
+              if (typeof path === "string") {
+                setError(`documents.${index}.${path}` as any, {
+                  type: "manual",
+                  message: issue.message,
+                });
+              }
+            });
           }
 
-          // FIXED: Only include if ALL required fields are filled
-          if (hasDocTitle && hasDocDescription) {
+          if (hasCompleteData) {
+            hasAnyCompleteData = true;
             documentData.push({
               docTitle: document.docTitle,
               docDescription: document.docDescription,
@@ -269,21 +183,104 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
               fileTitle: document.fileTitle || "",
               file: document.file,
             });
-          } else {
-            console.log(`⚠️ Skipping document ${i} - missing required fields`);
+          } else if (hasContent && !hasCompleteData) {
+            isValid = false;
+            if (!document.docTitle?.trim()) {
+              setError(`documents.${index}.docTitle` as any, {
+                type: "manual",
+                message: "Document title is required",
+              });
+            }
+            if (!document.docDescription?.trim()) {
+              setError(`documents.${index}.docDescription` as any, {
+                type: "manual",
+                message: "Document description is required",
+              });
+            }
+          }
+
+          if (hasFile && !hasCompleteData) {
+            isValid = false;
+            setError(`documents.${index}.docTitle` as any, {
+              type: "manual",
+              message: "Complete all fields before uploading a file",
+            });
           }
         }
+      });
 
-        // FIXED: Final check - must have at least one valid document
-        if (documentData.length === 0) {
-          console.log("❌ No valid documents found");
-          alert(
-            "❌ Please fill out all required fields (Document Title and Document Description) for at least one document."
-          );
+      return { isValid, documentData, documentFileData, hasAnyCompleteData };
+    }, [getValues, setError, clearErrors]);
+
+    const addDocument = useCallback(() => {
+      append(DEFAULT_DOCUMENT);
+    }, [append]);
+
+    const removeDocument = useCallback(
+      (index: number) => {
+        const documentItem = editData[index] as DocumentWithId;
+        if (documentItem?._id && onDeleteDocument) {
+          onDeleteDocument(documentItem._id, index);
+        } else {
+          remove(index);
+          clearErrors(`documents.${index}` as any);
+        }
+      },
+      [remove, editData, onDeleteDocument, clearErrors],
+    );
+
+    const handleFileSelect = useCallback(
+      (files: FileList | null, index: number) => {
+        if (!files || files.length === 0) {
+          setValue(`documents.${index}.file`, undefined);
+          setValue(`documents.${index}.fileTitle`, "");
+          clearErrors(`documents.${index}.fileTitle` as any);
+          clearErrors(`documents.${index}.file` as any);
+          return;
+        }
+
+        const currentDocument = watchDocuments?.[index];
+        if (!hasCompleteDocument(currentDocument)) {
+          setError(`documents.${index}.docTitle` as any, {
+            type: "manual",
+            message: "Complete all fields before uploading a file",
+          });
+          return;
+        }
+
+        setValue(`documents.${index}.file`, files);
+
+        const currentFileTitle = watchDocuments?.[index]?.fileTitle;
+        if (!currentFileTitle) {
+          const fileName = files[0].name.split(".").slice(0, -1).join(".");
+          setValue(`documents.${index}.fileTitle`, fileName);
+        }
+
+        clearErrors(`documents.${index}.fileTitle` as any);
+        clearErrors(`documents.${index}.file` as any);
+      },
+      [setValue, watchDocuments, clearErrors, setError],
+    );
+
+    const handleClearFile = useCallback(
+      (index: number) => {
+        setValue(`documents.${index}.file`, undefined);
+        setValue(`documents.${index}.fileTitle`, "");
+        clearErrors(`documents.${index}.fileTitle` as any);
+        clearErrors(`documents.${index}.file` as any);
+      },
+      [setValue, clearErrors],
+    );
+
+    useImperativeHandle(ref, () => ({
+      getFormData: async () => {
+        const { isValid, documentData, documentFileData } =
+          validateAndGetFormData();
+
+        if (!isValid) {
           return null;
         }
 
-        console.log("✅ Valid documents:", documentData.length);
         return { documentData, documentFileData };
       },
       removeDocumentField: (index: number) => {
@@ -296,17 +293,22 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
         fileData[index]?._id && !watchDocuments?.[index]?.file;
       const hasNewFile = !!watchDocuments?.[index]?.file;
       const currentFileData = fileData[index];
+      const currentDocument = watchDocuments?.[index];
+      const hasContent = hasDocumentContent(currentDocument);
+      const fileTitleError = errors.documents?.[index]?.fileTitle?.message;
+      const fileError = errors.documents?.[index]?.file?.message;
+      const docTitleError = errors.documents?.[index]?.docTitle?.message;
 
       return (
         <div className="space-y-4">
           <Input
             style="bg-white"
             disabled={false}
-            error={errors.documents?.[index]?.fileTitle?.message || ""}
+            error={hasContent && fileTitleError ? String(fileTitleError) : ""}
             title="Document File Title"
             placeholder="Enter document file title"
             type="text"
-            {...register(`documents.${index}.fileTitle`)}
+            {...register(`documents.${index}.fileTitle` as const)}
           />
 
           <EditFileInput
@@ -314,39 +316,60 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
             disabled={false}
             setValue={(fieldName, value) => {
               if (fieldName === "file") {
-                setValue(`documents.${index}.file`, value as FileList);
+                handleFileSelect(value as FileList, index);
               }
             }}
             onChange={(files) => handleFileSelect(files, index)}
             error={
-              typeof errors.documents?.[index]?.file?.message === "string"
-                ? errors.documents[index]?.file?.message
-                : ""
+              hasContent && fileError
+                ? String(fileError)
+                : docTitleError
+                  ? String(docTitleError)
+                  : ""
             }
           />
 
           {hasExistingFile && currentFileData && (
-            <ExistingFileDisplay
-              fileData={currentFileData}
-              onDelete={() => onDeleteFile?.(index, currentFileData._id!)}
-              isDeleting={isDeleting}
-            />
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-900">
+                    Current File:
+                  </p>
+                  <p className="text-sm text-red-700 mt-1">
+                    {currentFileData.fileTitle}
+                  </p>
+                </div>
+                <IconButton
+                  action={() => onDeleteFile?.(index, currentFileData._id!)}
+                  style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+                  title=""
+                  icon={<RiDeleteBin4Fill size={16} />}
+                />
+              </div>
+            </div>
           )}
 
           {hasNewFile && watchDocuments[index]?.file && (
-            <NewFileDisplay
-              fileName={watchDocuments[index].file![0].name}
-              onClear={() => handleClearFile(index)}
-            />
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700 font-medium">
+                New file selected: {watchDocuments[index].file![0].name}
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                This will be uploaded as a new file.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleClearFile(index)}
+                className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+              >
+                Clear selection
+              </button>
+            </div>
           )}
 
           <div className="text-xs text-gray-500">
-            <p>
-              •{" "}
-              <strong>
-                File upload is only allowed after filling all document fields
-              </strong>
-            </p>
+            <p>• Complete all fields before uploading a file</p>
             <p>• File title is required if you upload a file</p>
             <p>• If you upload a new file, it will replace the existing one</p>
           </div>
@@ -355,12 +378,17 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
     };
 
     const renderDocumentForm = (field: { id: string }, index: number) => {
+      const currentDocument = watchDocuments?.[index];
+      const hasContent = hasDocumentContent(currentDocument);
+      const docTitleError = errors.documents?.[index]?.docTitle?.message;
+      const docDescriptionError =
+        errors.documents?.[index]?.docDescription?.message;
+
       return (
         <div
           key={field.id}
           className="w-full flex flex-col items-end justify-center"
         >
-          {/* Delete button */}
           {fields.length >= 1 && (
             <IconButton
               action={() => removeDocument(index)}
@@ -374,18 +402,22 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.documents?.[index]?.docTitle?.message || ""}
+              error={hasContent && docTitleError ? String(docTitleError) : ""}
               title="Document Title *"
               placeholder="Enter document title"
               type="text"
-              {...register(`documents.${index}.docTitle`)}
+              {...register(`documents.${index}.docTitle` as const)}
             />
             <TextArea
               disabled={false}
-              error={errors.documents?.[index]?.docDescription?.message || ""}
+              error={
+                hasContent && docDescriptionError
+                  ? String(docDescriptionError)
+                  : ""
+              }
               title="Document Description *"
               placeholder="Enter document description"
-              {...register(`documents.${index}.docDescription`)}
+              {...register(`documents.${index}.docDescription` as const)}
             />
 
             {renderFileSection(index)}
@@ -396,15 +428,6 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
 
     return (
       <div className="w-full flex flex-col items-center justify-center gap-6">
-        {/* Form-level errors */}
-        {errors.documents?.message && (
-          <div className="w-full p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">
-              {errors.documents.message}
-            </p>
-          </div>
-        )}
-
         <div className="w-full flex justify-center">
           <IconButton
             action={addDocument}
@@ -417,61 +440,7 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
         {fields.map(renderDocumentForm)}
       </div>
     );
-  }
-);
-
-// Sub-components for better organization
-interface ExistingFileDisplayProps {
-  fileData: visaFileData;
-  onDelete: () => void;
-  isDeleting?: boolean;
-}
-
-const ExistingFileDisplay: React.FC<ExistingFileDisplayProps> = ({
-  fileData,
-  onDelete,
-}) => (
-  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-    <div className="flex flex-row items-center justify-between">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-red-900">Current File:</p>
-        <p className="text-sm text-red-700 mt-1">{fileData.fileTitle}</p>
-      </div>
-
-      <IconButton
-        action={onDelete}
-        style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
-        title=""
-        icon={<RiDeleteBin4Fill size={16} />}
-      />
-    </div>
-  </div>
-);
-
-interface NewFileDisplayProps {
-  fileName: string;
-  onClear: () => void;
-}
-
-const NewFileDisplay: React.FC<NewFileDisplayProps> = ({
-  fileName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
+  },
 );
 
 EditDocumentForm.displayName = "EditDocumentForm";

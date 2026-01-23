@@ -1,5 +1,4 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
@@ -19,19 +18,28 @@ export interface AccommodationFormHandle {
   } | null>;
 }
 
-// Types - Make images required
-const accommodationFormSchema = addAccomodationSchema;
+const hasAccommodationContent = (accommodation: {
+  accommodationName?: string;
+  accommodationDescription?: string;
+  accommodationStar?: string;
+  accommodationWebsite?: string;
+  images?: FileList;
+}): boolean => {
+  return (
+    (accommodation.accommodationName?.trim() ?? "").length > 0 ||
+    (accommodation.accommodationDescription?.trim() ?? "").length > 0 ||
+    (accommodation.accommodationStar?.trim() ?? "").length > 0 ||
+    (accommodation.accommodationWebsite?.trim() ?? "").length > 0 ||
+    (accommodation.images?.length ?? 0) > 0
+  );
+};
 
-type AccommodationFormData = z.infer<typeof accommodationFormSchema>;
+const accommodationSchema = addAccomodationSchema;
 
-const formSchema = z.object({
-  accommodations: z.array(accommodationFormSchema),
-});
+type AccommodationSchemaType = z.infer<typeof accommodationSchema>;
+type FormData = { accommodations: AccommodationSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-// Constants
-const DEFAULT_ACCOMMODATION: AccommodationFormData = {
+const DEFAULT_ACCOMMODATION: AccommodationSchemaType = {
   accommodationName: "",
   accommodationDescription: "",
   accommodationStar: "",
@@ -46,14 +54,14 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
     formState: { errors },
     setValue,
     watch,
-    trigger,
     getValues,
+    clearErrors,
+    setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       accommodations: [DEFAULT_ACCOMMODATION],
     },
-    mode: "onChange",
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -63,7 +71,45 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
 
   const watchAccommodations = watch("accommodations");
 
-  // Handlers
+  const validateAndGetFormData = useCallback(() => {
+    const values = getValues();
+    const accommodationData: addAccomodationData[] = [];
+    let isValid = true;
+
+    clearErrors();
+
+    values.accommodations.forEach((accommodation, index) => {
+      const hasContent = hasAccommodationContent(accommodation);
+
+      if (hasContent) {
+        const result = accommodationSchema.safeParse(accommodation);
+
+        if (!result.success) {
+          isValid = false;
+          result.error.issues.forEach((issue) => {
+            const path = issue.path[0];
+            if (typeof path === "string") {
+              setError(`accommodations.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
+            }
+          });
+        } else {
+          accommodationData.push({
+            accommodationName: accommodation.accommodationName,
+            accommodationDescription: accommodation.accommodationDescription,
+            accommodationStar: accommodation.accommodationStar,
+            accommodationWebsite: accommodation.accommodationWebsite,
+            images: accommodation.images,
+          });
+        }
+      }
+    });
+
+    return { isValid, accommodationData };
+  }, [getValues, setError, clearErrors]);
+
   const addAccommodation = useCallback(() => {
     append(DEFAULT_ACCOMMODATION);
   }, [append]);
@@ -71,69 +117,38 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
   const removeAccommodation = useCallback(
     (index: number) => {
       remove(index);
+      clearErrors(`accommodations.${index}` as any);
     },
-    [remove]
+    [remove, clearErrors],
   );
 
   const handleClearImages = useCallback(
     (index: number) => {
-      setValue(`accommodations.${index}.images`, undefined as any, {
-        shouldValidate: true,
-      });
+      setValue(`accommodations.${index}.images`, undefined as any);
+      clearErrors(`accommodations.${index}.images` as any);
     },
-    [setValue]
+    [setValue, clearErrors],
   );
 
-  // Expose methods to parent
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
-      const isValid = await trigger();
-      if (!isValid) return null;
+      const { isValid, accommodationData } = validateAndGetFormData();
 
-      const formData = getValues();
-      const accommodationData: addAccomodationData[] = [];
-
-      console.log(
-        "🔍 AccommodationForm - formData.accommodations:",
-        formData.accommodations
-      );
-      console.log(
-        "🔍 AccommodationForm - isArray:",
-        Array.isArray(formData.accommodations)
-      );
-
-      // Ensure we're always working with an array
-      const accommodationsArray = Array.isArray(formData.accommodations)
-        ? formData.accommodations
-        : [formData.accommodations];
-
-      accommodationsArray.forEach((accommodation, index) => {
-        console.log(`🔍 Processing accommodation ${index}:`, accommodation);
-
-        accommodationData.push({
-          accommodationName: accommodation.accommodationName,
-          accommodationDescription: accommodation.accommodationDescription,
-          accommodationStar: accommodation.accommodationStar,
-          accommodationWebsite: accommodation.accommodationWebsite,
-          images: accommodation.images,
-        });
-      });
-
-      console.log(
-        "🔍 AccommodationForm - final accommodationData:",
-        accommodationData
-      );
+      if (!isValid || accommodationData.length === 0) {
+        return null;
+      }
 
       return { accommodationData };
     },
   }));
 
-  // FIXED: Updated ImageInput usage
   const renderImagesSection = (index: number) => {
     const currentAccommodation = watchAccommodations?.[index];
     const hasNewImages = !!currentAccommodation?.images;
     const imageCount = currentAccommodation?.images?.length || 0;
     const firstImageName = currentAccommodation?.images?.[0]?.name || "";
+    const hasContent = hasAccommodationContent(currentAccommodation);
+    const imagesError = errors.accommodations?.[index]?.images?.message;
 
     return (
       <div className="space-y-4">
@@ -142,20 +157,29 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
           disabled={false}
           register={register}
           setValue={setValue}
-          error={
-            typeof errors.accommodations?.[index]?.images?.message === "string"
-              ? errors.accommodations[index]?.images?.message
-              : ""
-          }
+          error={hasContent && imagesError ? String(imagesError) : ""}
           fieldName={`accommodations.${index}.images`}
         />
 
         {hasNewImages && imageCount > 0 && (
-          <NewImagesDisplay
-            imageCount={imageCount}
-            firstImageName={firstImageName}
-            onClear={() => handleClearImages(index)}
-          />
+          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-sm text-green-700 font-medium">
+              {imageCount} image{imageCount > 1 ? "s" : ""} selected
+              {imageCount > 1
+                ? `, first: ${firstImageName}`
+                : `: ${firstImageName}`}
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              These will be uploaded as new accommodation images.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleClearImages(index)}
+              className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+            >
+              Clear selection
+            </button>
+          </div>
         )}
 
         <div className="text-xs text-gray-500">
@@ -168,6 +192,17 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
   };
 
   const renderAccommodationForm = (field: { id: string }, index: number) => {
+    const currentAccommodation = watchAccommodations?.[index];
+    const hasContent = hasAccommodationContent(currentAccommodation);
+    const nameError =
+      errors.accommodations?.[index]?.accommodationName?.message;
+    const starError =
+      errors.accommodations?.[index]?.accommodationStar?.message;
+    const websiteError =
+      errors.accommodations?.[index]?.accommodationWebsite?.message;
+    const descriptionError =
+      errors.accommodations?.[index]?.accommodationDescription?.message;
+
     return (
       <div
         key={field.id}
@@ -187,49 +222,49 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
             <Input
               style="bg-white"
               disabled={false}
-              error={
-                errors.accommodations?.[index]?.accommodationName?.message || ""
-              }
+              error={hasContent && nameError ? String(nameError) : ""}
               title="Accommodation Name"
               placeholder="Enter accommodation name (e.g., Luxury Hotel, Beach Resort)"
               type="text"
-              {...register(`accommodations.${index}.accommodationName`)}
+              {...register(
+                `accommodations.${index}.accommodationName` as const,
+              )}
             />
             <StarInput
               style="bg-white"
               disabled={false}
-              error={
-                errors.accommodations?.[index]?.accommodationStar?.message || ""
-              }
+              error={hasContent && starError ? String(starError) : ""}
               title="Star Rating"
               placeholder="Enter star rating (e.g., 5-star, 4-star, Budget)"
               type="number"
-              {...register(`accommodations.${index}.accommodationStar`)}
+              {...register(
+                `accommodations.${index}.accommodationStar` as const,
+              )}
             />
           </div>
 
           <Input
             style="bg-white"
             disabled={false}
-            error={
-              errors.accommodations?.[index]?.accommodationWebsite?.message ||
-              ""
-            }
+            error={hasContent && websiteError ? String(websiteError) : ""}
             title="Website URL"
             placeholder="Enter accommodation website URL"
             type="url"
-            {...register(`accommodations.${index}.accommodationWebsite`)}
+            {...register(
+              `accommodations.${index}.accommodationWebsite` as const,
+            )}
           />
 
           <TextArea
             disabled={false}
             error={
-              errors.accommodations?.[index]?.accommodationDescription
-                ?.message || ""
+              hasContent && descriptionError ? String(descriptionError) : ""
             }
             title="Accommodation Description"
             placeholder="Enter detailed description of the accommodation including amenities, location, and features"
-            {...register(`accommodations.${index}.accommodationDescription`)}
+            {...register(
+              `accommodations.${index}.accommodationDescription` as const,
+            )}
           />
 
           {renderImagesSection(index)}
@@ -255,36 +290,6 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
     </div>
   );
 });
-
-// Sub-component for new images display
-interface NewImagesDisplayProps {
-  imageCount: number;
-  firstImageName: string;
-  onClear: () => void;
-}
-
-const NewImagesDisplay: React.FC<NewImagesDisplayProps> = ({
-  imageCount,
-  firstImageName,
-  onClear,
-}) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      {imageCount} image{imageCount > 1 ? "s" : ""} selected
-      {imageCount > 1 ? `, first: ${firstImageName}` : `: ${firstImageName}`}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      These will be uploaded as new accommodation images.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
-);
 
 AccommodationForm.displayName = "AccommodationForm";
 

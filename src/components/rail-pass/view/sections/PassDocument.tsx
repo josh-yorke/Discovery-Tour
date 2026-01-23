@@ -23,10 +23,6 @@ interface DocumentData {
   __v: number;
 }
 
-interface DocumentsResponse {
-  documents: DocumentData[];
-}
-
 interface PassDocumentsProps {
   passId: string;
 }
@@ -74,45 +70,52 @@ const PassDocument = ({ passId }: PassDocumentsProps) => {
     setIsExpanded(!isExpanded);
   };
 
+  // Your API returns DocumentData[] directly
   const {
-    data: documentsData,
+    data: documents,
     isLoading: isLoadingDocuments,
     isError: isErrorDocuments,
     error: documentsError,
     refetch: refetchDocuments,
-  } = useQuery<DocumentsResponse>({
+  } = useQuery<DocumentData[], Error>({
     queryKey: ["pass-documents", passId],
     queryFn: () => getPassDocument(passId),
     enabled: !!passId,
   });
 
-  const documents = documentsData?.documents || [];
-  const allFileIds = documents.flatMap((doc) => doc.filesAssociated);
+  const allFileIds = (documents || []).flatMap((doc) => doc.filesAssociated);
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
       queryKey: ["pass-document-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId && documents.length > 0,
+      enabled: !!fileId && (documents?.length || 0) > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
 
-  const filesMap = fileQueries.reduce((acc, query) => {
-    if (query.data?.file) acc[query.data.file._id] = query.data.file;
-    return acc;
-  }, {} as Record<string, FileData>);
+  const filesMap = fileQueries.reduce(
+    (acc: Record<string, FileData>, query) => {
+      if (query.data?.file) {
+        acc[query.data.file._id] = query.data.file;
+      }
+      return acc;
+    },
+    {},
+  );
 
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
   const isLoading =
-    isLoadingDocuments || (documents.length > 0 && isLoadingFiles);
+    isLoadingDocuments || ((documents?.length || 0) > 0 && isLoadingFiles);
 
   if (isLoading) return <SectionLoader />;
   if (isErrorDocuments)
     return (
       <SectionError error={documentsError?.message} action={refetchDocuments} />
     );
+
+  const documentsList = documents || [];
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -144,7 +147,7 @@ const PassDocument = ({ passId }: PassDocumentsProps) => {
           <>
             <div className="w-full border-b border-black/6" />
 
-            {documents.length === 0 ? (
+            {documentsList.length === 0 ? (
               <div className="w-full text-center py-6 sm:py-8">
                 <p className="text-gray-500 text-sm sm:text-base">
                   No documents found for this pass.
@@ -152,13 +155,13 @@ const PassDocument = ({ passId }: PassDocumentsProps) => {
               </div>
             ) : (
               <div className="w-full space-y-4 sm:space-y-6">
-                {documents.map((document) => {
+                {documentsList.map((document) => {
                   const documentFiles = document.filesAssociated
                     .map((fileId) => filesMap[fileId])
-                    .filter(Boolean);
+                    .filter((file): file is FileData => file !== undefined);
 
                   const documentFileQueries = fileQueries.filter((q) =>
-                    document.filesAssociated.includes(q.data?.file?._id || "")
+                    document.filesAssociated.includes(q.data?.file?._id || ""),
                   );
 
                   return (
@@ -182,7 +185,7 @@ const PassDocument = ({ passId }: PassDocumentsProps) => {
                               <button
                                 onClick={() =>
                                   documentFileQueries.forEach((q) =>
-                                    q.refetch()
+                                    q.refetch(),
                                   )
                                 }
                                 className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-700 hover:text-red-900 font-medium"
@@ -216,7 +219,7 @@ const PassDocument = ({ passId }: PassDocumentsProps) => {
                             <div className="space-y-2 sm:space-y-3">
                               {documentFiles.map((file) => {
                                 const fileQuery = fileQueries.find(
-                                  (q) => q.data?.file?._id === file._id
+                                  (q) => q.data?.file?._id === file._id,
                                 );
                                 const isFileError = fileQuery?.isError;
                                 const fileUrl = getFileUrl(file.file);
