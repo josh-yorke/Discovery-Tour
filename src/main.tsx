@@ -65,6 +65,9 @@ import ViewTransportation from "./pages/transportation/ViewTransportation";
 import Rental from "./pages/rental/Rental";
 import AddRental from "./pages/rental/AddRental";
 import EditRental from "./pages/rental/EditRental";
+import TypesCategories from "./pages/types-categories/TypesCategories";
+import AddTypesCategories from "./pages/types-categories/AddTypesCategories";
+import EditTypesCategories from "./pages/types-categories/EditTypesCategories";
 
 const router = createBrowserRouter([
   {
@@ -549,6 +552,30 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditRental />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/types-categories",
+    element: (
+      <RouteProtection>
+        <TypesCategories />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/types-categories/add",
+    element: (
+      <RouteProtection>
+        <AddTypesCategories />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/types-categories/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditTypesCategories />
       </RouteProtection>
     ),
   },

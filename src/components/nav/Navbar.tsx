@@ -18,6 +18,9 @@ import {
   RiUser4Line,
   RiWalletFill,
   RiWalletLine,
+  RiGridLine,
+  RiGradienterFill,
+  RiGridFill
 } from "react-icons/ri";
 import LinkButton from "./LinkButton";
 import LogoutButton from "../button/LogoutButton";
@@ -139,6 +142,23 @@ const Navbar = () => {
                 )
               }
               title="Blogs"
+            />
+
+            <LinkButton
+              to="/types-categories"
+              style={`${
+                pathname.startsWith("/types-categories")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/types-categories") ? (
+                  <RiGridFill size={16} />
+                ) : (
+                  <RiGridLine size={16} />
+                )
+              }
+              title="Types And Categories"
             />
 
             <HoverLink
