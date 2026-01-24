@@ -21,8 +21,6 @@ import {
   RiMoneyDollarCircleLine,
   RiUser4Fill,
   RiUser4Line,
-  RiWalletFill,
-  RiWalletLine
 } from "react-icons/ri";
 import { NavLink, useLocation } from "react-router";
 import LogoutButton from "../button/LogoutButton";
