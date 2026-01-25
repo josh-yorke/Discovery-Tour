@@ -38,29 +38,8 @@ const LocationImageInput = ({
     const files = e.target.files;
     if (!files) return;
 
-    const allowedPattern = /^[a-zA-Z0-9._-]+$/;
-
-    const validFiles: File[] = [];
-    const invalidFiles: string[] = [];
-
-    Array.from(files).forEach((file) => {
-      const fileName = file.name;
-      const baseName =
-        fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-      if (allowedPattern.test(baseName)) {
-        validFiles.push(file);
-      } else {
-        invalidFiles.push(fileName);
-      }
-    });
-
-    if (invalidFiles.length > 0) {
-      alert(
-        `The following files were not added because they contain special characters:\n\n${invalidFiles.join(
-          "\n"
-        )}\n\nOnly letters, numbers, underscores (_), hyphens (-), and dots (.) are allowed.`
-      );
-    }
+    // Simplified: Accept all files regardless of special characters
+    const validFiles: File[] = Array.from(files);
 
     if (validFiles.length === 0) return;
 
