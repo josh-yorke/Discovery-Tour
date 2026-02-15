@@ -31,6 +31,8 @@ interface PricelistData {
   _id: string;
   plan: string;
   fee: number;
+  priceCurrency?: string;
+  currency?: string;
   description: string;
   filesAssociated: string[];
   visa: string;
@@ -44,6 +46,16 @@ interface PricelistsResponse {
 interface PricelistsProps {
   visaId: string;
 }
+
+// Currency symbol mapping
+const currencySymbols: Record<string, string> = {
+  USD: "$",
+  KRW: "₩",
+  JPY: "¥",
+  PHP: "₱",
+  EUR: "€",
+  GBP: "£",
+};
 
 const getFileType = (filename: string): string => {
   const extension = filename.split(".").pop()?.toLowerCase() || "";
@@ -81,13 +93,20 @@ const getFileUrl = (filename: string): string => {
   return `${baseURL.replace(/\/$/, "")}/files/${filename}`;
 };
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
+const formatCurrency = (
+  amount: number,
+  currencyCode: string = "PHP",
+): string => {
+  if (amount === 0 || amount < 0.01) {
+    return "Flexible";
+  }
+
+  const symbol = currencySymbols[currencyCode] || currencyCode;
+
+  return `${symbol}${amount.toLocaleString(undefined, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  })}`;
 };
 
 const getStepIcon = (index: number) => {
@@ -124,27 +143,35 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
 
   const pricelists = pricelistsData?.pricelists || [];
   const allFileIds = pricelists.flatMap(
-    (pricelist) => pricelist.filesAssociated
+    (pricelist) => pricelist.filesAssociated,
   );
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
-      queryKey: ["pricelist-file", fileId],
+      queryKey: ["pricelist-file", fileId, visaId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId && pricelists.length > 0,
+      enabled: !!fileId && !!visaId,
       staleTime: 5 * 60 * 1000,
     })),
   });
 
-  const filesMap = fileQueries.reduce((acc, query) => {
-    if (query.data?.file) acc[query.data.file._id] = query.data.file;
-    return acc;
-  }, {} as Record<string, FileData>);
+  const filesMap = fileQueries.reduce(
+    (acc, query) => {
+      if (query.data?.file) acc[query.data.file._id] = query.data.file;
+      return acc;
+    },
+    {} as Record<string, FileData>,
+  );
 
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
-  const isLoading =
-    isLoadingPricelists || (pricelists.length > 0 && isLoadingFiles);
+  const isLoading = isLoadingPricelists || isLoadingFiles;
+
+  if (!visaId) return null;
+
+  if (!isLoading && !isErrorPricelists && pricelists.length === 0) {
+    return null;
+  }
 
   if (isLoading) return <SectionLoader />;
   if (isErrorPricelists)
@@ -190,8 +217,12 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
               .filter(Boolean);
 
             const pricelistFileQueries = fileQueries.filter((q) =>
-              pricelist.filesAssociated.includes(q.data?.file?._id || "")
+              pricelist.filesAssociated.includes(q.data?.file?._id || ""),
             );
+
+            // Get currency from pricelist (handle both priceCurrency and currency fields)
+            const currency =
+              pricelist.priceCurrency || pricelist.currency || "USD";
 
             return (
               <div key={pricelist._id} className="space-y-3 sm:space-y-4">
@@ -205,7 +236,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                         {pricelist.plan}
                       </p>
                       <p className="text-lg sm:text-xl font-bold text-[#1d2087]">
-                        {formatCurrency(pricelist.fee)}
+                        {formatCurrency(pricelist.fee, currency)}
                       </p>
                     </div>
                     <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
@@ -256,7 +287,7 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
                       <div className="space-y-2 sm:space-y-3">
                         {pricelistFiles.map((file) => {
                           const fileQuery = fileQueries.find(
-                            (q) => q.data?.file?._id === file._id
+                            (q) => q.data?.file?._id === file._id,
                           );
                           const isFileError = fileQuery?.isError;
                           const fileUrl = getFileUrl(file.file);

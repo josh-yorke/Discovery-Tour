@@ -215,6 +215,15 @@ const Add = () => {
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
 
+      // Check if accommodation form has validation errors
+      if (accommodationFormData && accommodationFormData.isValid === false) {
+        alert(
+          "Please fix the errors in the accommodation form before submitting.",
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
       const allFormsEmpty = [
         accommodationFormData,
         cityFormData,
@@ -243,6 +252,19 @@ const Add = () => {
 
         for (let i = 0; i < safeAccommodationData.length; i++) {
           const accommodationItem = safeAccommodationData[i];
+
+          if (!accommodationItem.accommodationName?.trim()) {
+            alert("Accommodation name is required.");
+            setIsSubmitting(false);
+            return;
+          }
+
+          if (!accommodationItem.accommodationDescription?.trim()) {
+            alert("Accommodation description is required.");
+            setIsSubmitting(false);
+            return;
+          }
+
           const accommodationFormDataToSubmit = new FormData();
 
           accommodationFormDataToSubmit.append("type", "tour-accommodation");
@@ -256,11 +278,11 @@ const Add = () => {
           );
           accommodationFormDataToSubmit.append(
             "accommodationStar",
-            accommodationItem.accommodationStar,
+            accommodationItem.accommodationStar || "",
           );
           accommodationFormDataToSubmit.append(
             "accommodationWebsite",
-            accommodationItem.accommodationWebsite,
+            accommodationItem.accommodationWebsite || "",
           );
           accommodationFormDataToSubmit.append("tour", tourId);
 
@@ -332,30 +354,39 @@ const Add = () => {
           const filteredActivities = Array.isArray(itineraryItem.activities)
             ? itineraryItem.activities.filter(
                 (activity: any) =>
-                  activity?.activityType?.trim() ||
+                  activity?.activityType?.trim() &&
                   activity?.information?.trim(),
               )
             : [];
 
-          const filteredMeals = Array.isArray(itineraryItem.meals)
+          // Only include meals if they exist and have all fields filled
+          const validMeals = Array.isArray(itineraryItem.meals)
             ? itineraryItem.meals.filter(
                 (meal: any) =>
-                  meal?.mealType?.trim() || meal?.description?.trim(),
+                  meal?.mealType?.trim() &&
+                  meal?.mealCount?.trim() &&
+                  meal?.mealUnit?.trim() &&
+                  meal?.description?.trim(),
               )
             : [];
 
-          const payload: AddItineraryPayload = {
+          // Prepare payload - don't include meals field if empty
+          const payload: any = {
             type: "tour-itinerary",
             tour: tourId,
             title: itineraryItem.title || "",
             location: itineraryItem.location || "",
             dayOrder: parseInt(itineraryItem.dayOrder) || 0,
             activities: filteredActivities,
-            meals: filteredMeals.map((meal: any) => ({
+          };
+
+          // Only add meals field if there are valid meals
+          if (validMeals.length > 0) {
+            payload.meals = validMeals.map((meal: any) => ({
               ...meal,
               mealCount: String(meal.mealCount || ""),
-            })),
-          };
+            }));
+          }
 
           allSubmissions.push(itineraryMutation.mutateAsync(payload));
         }
@@ -395,7 +426,16 @@ const Add = () => {
           const pricelistFormDataToSubmit = new FormData();
           pricelistFormDataToSubmit.append("type", "price");
           pricelistFormDataToSubmit.append("plan", pricelistItem.plan);
-          pricelistFormDataToSubmit.append("fee", pricelistItem.fee);
+          pricelistFormDataToSubmit.append(
+            "priceCurrency",
+            pricelistItem.priceCurrency,
+          );
+          if (pricelistItem.fee !== undefined && pricelistItem.fee !== null) {
+            pricelistFormDataToSubmit.append(
+              "fee",
+              pricelistItem.fee.toString(),
+            );
+          }
           pricelistFormDataToSubmit.append(
             "description",
             pricelistItem.description,
@@ -620,7 +660,7 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["tour-files"], exact: false });
 
       alert("Tour information added successfully!");
-      navigate("/tours");
+      navigate(-1);
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");

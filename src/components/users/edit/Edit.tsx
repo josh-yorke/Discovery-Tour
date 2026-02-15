@@ -30,7 +30,12 @@ const Edit = ({
 }: EditInputsProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [modal, showModal] = useState(false);
+  const [errorModal, showErrorModal] = useState(false);
+  const [logoutModal, showLogoutModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const currentUserId = currentUser?._id;
 
   const {
     register,
@@ -64,13 +69,30 @@ const Edit = ({
         queryKey: ["user", variables.id],
         exact: false,
       });
-      navigate("/users");
+
+      console.log(`${currentUserId}, ${id}`);
+
+      if (currentUserId === id) {
+        showLogoutModal(true);
+      } else {
+        navigate(-1);
+      }
+
       reset();
     },
-    onError: () => {
-      showModal(true);
+    onError: (error) => {
+      setErrorMessage(error.message);
+      showErrorModal(true);
     },
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    showLogoutModal(false);
+    navigate("/login");
+  };
 
   const onSubmit: SubmitHandler<editUserData> = (data) => {
     mutation.mutate({ id, data });
@@ -80,7 +102,7 @@ const Edit = ({
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="w-full lg:w-2xl min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+        className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
       >
         <div className="w-full grid grid-cols-1 gap-4">
           <Input
@@ -117,20 +139,39 @@ const Edit = ({
             error={errors.password ? errors.password.message : ""}
             {...register("password")}
           />
-          <InputOption
-            disabled={false}
-            options={["admin", "user"]}
-            {...register("role")}
-            style="w-full bg-white"
-            title="Role"
-          />
-          <InputOption
-            disabled={false}
-            options={["active", "pending"]}
-            {...register("status")}
-            style="w-full bg-white"
-            title="Status"
-          />
+
+          {/* InputOption with error display */}
+          <div className="w-full">
+            <InputOption
+              disabled={false}
+              options={["superAdmin", "admin", "staff", "user"]}
+              {...register("role")}
+              style="w-full bg-white"
+              title="Role"
+            />
+            {errors.role && (
+              <p className="text-red-500 text-xs mt-1 ml-1">
+                {errors.role.message}
+              </p>
+            )}
+          </div>
+
+          {/* InputOption with error display */}
+          <div className="w-full">
+            <InputOption
+              disabled={false}
+              options={["active", "pending"]}
+              {...register("status")}
+              style="w-full bg-white"
+              title="Status"
+            />
+            {errors.status && (
+              <p className="text-red-500 text-xs mt-1 ml-1">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
+
           <Button
             isLoading={mutation.isPending}
             title="Update"
@@ -138,12 +179,45 @@ const Edit = ({
           />
         </div>
       </form>
-      {modal && mutation.isError && (
+
+      {errorModal && (
         <Modal
-          success={!mutation.isError}
-          action={() => showModal(false)}
-          message={mutation.error.message}
+          success={false}
+          action={() => showErrorModal(false)}
+          message={errorMessage}
         />
+      )}
+
+      {logoutModal && (
+        <div className="w-full h-screen fixed top-0 left-0 bg-black/10 z-sticky2 flex items-center justify-center">
+          <div className="w-80 bg-white flex flex-col items-center justify-center text-sm p-6 rounded-lg gap-6">
+            <div className="w-full flex flex-row items-center justify-between">
+              <p className="text-[#1d2087] text-xs font-semibold">
+                Confirm Logout
+              </p>
+            </div>
+            <div className="w-full flex flex-col items-center justify-center gap-4">
+              <p className="text-center">
+                You have updated your own account. You will need to log in
+                again.
+              </p>
+              <div className="w-full flex flex-row gap-3 mt-2">
+                <button
+                  onClick={() => showLogoutModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex-1 px-4 py-2 bg-[#1d2087] hover:bg-[#3b3eac] text-white rounded-lg font-medium duration-300"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

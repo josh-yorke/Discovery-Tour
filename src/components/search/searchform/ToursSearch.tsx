@@ -1,4 +1,3 @@
-import type { UseFormRegisterReturn } from "react-hook-form";
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
@@ -6,36 +5,49 @@ import SearchInput from "../SearchInput";
 import Options from "../Options";
 
 interface FormProps {
-  search: UseFormRegisterReturn;
-  country: UseFormRegisterReturn;
-  // tourType: UseFormRegisterReturn;
-  action: () => void;
-  // types: string[];
+  searchValue: string;
+  countryValue: string;
+  onSearchChange: (value: string) => void;
+  onCountryChange: (value: string) => void;
+  onSearchSubmit: () => void;
   countries: string[];
 }
 
 const ToursSearch = ({
-  action,
-  search,
-  country,
-  // tourType,
-  // types,
+  searchValue,
+  countryValue,
+  onSearchChange,
+  onCountryChange,
+  onSearchSubmit,
   countries,
 }: FormProps) => {
   const navigate = useNavigate();
 
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onCountryChange(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSearchSubmit();
+    }
+  };
+
   return (
-    <form
-      className="relative w-full flex flex-col items-center justify-center gap-4"
-      onSubmit={action}
-    >
+    <div className="relative w-full flex flex-col items-center justify-center gap-4">
       <div className="">
         <p className="text-md font-semibold text-[#1d2087]">Manage Tours</p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput placeholder="search tours" {...search} />
+        <SearchInput
+          placeholder="search tours"
+          value={searchValue}
+          onChange={(e) => onSearchChange(e.target.value)}
+          onKeyDown={handleSearchKeyDown}
+        />
         <button
-          type="submit"
+          onClick={onSearchSubmit}
           className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
         >
           <RiSearchLine size={14} color="white" />
@@ -43,11 +55,12 @@ const ToursSearch = ({
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options options={countries} {...country} title="Country" />
-
-        {/* {types.length > 0 && (
-          <Options options={types} {...tourType} title="Tour Type" />
-        )} */}
+        <Options
+          options={countries}
+          value={countryValue}
+          onChange={handleCountryChange}
+          title="Country"
+        />
 
         <IconButton
           icon={<RiAddLine size={16} />}
@@ -56,7 +69,7 @@ const ToursSearch = ({
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>
-    </form>
+    </div>
   );
 };
 

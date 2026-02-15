@@ -30,7 +30,6 @@ const Login = () => {
       navigate("/visas/visa");
     },
     onError: (error) => {
-      reset();
       setError(error.message);
     },
   });

@@ -65,7 +65,7 @@ const Edit = ({
     mutationFn: (formData: FormData) => updateVehicle(vehicleId, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"], exact: false });
-      navigate("/transport/vehicles");
+      navigate(-1);
     },
   });
 
@@ -86,7 +86,6 @@ const Edit = ({
     mutation.mutate(formData);
   };
 
-  // Helper function to safely get error message
   const getErrorMessage = (fieldName: keyof addVehicleData): string => {
     const error = errors[fieldName];
     return error?.message?.toString() || "";

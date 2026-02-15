@@ -57,10 +57,10 @@ interface EditData {
 }
 
 interface FileData {
-  pricelist?: any[];
-  process?: any[];
-  term?: any[];
-  document?: any[];
+  pricelist: any[];
+  process: any[];
+  term: any[];
+  document: any[];
 }
 
 type FileFetchResult =
@@ -85,25 +85,27 @@ const FORM_TYPES: FormType[] = [
 
 const useEditData = (id: string | undefined) => {
   const [editData, setEditData] = useState<EditData>({});
-  const [fileData, setFileData] = useState<FileData>({});
+  const [fileData, setFileData] = useState<FileData>({
+    pricelist: [],
+    process: [],
+    term: [],
+    document: [],
+  });
   const [pricelistFileIds, setPricelistFileIds] = useState<string[][]>([]);
   const [processFileIds, setProcessFileIds] = useState<string[][]>([]);
   const [termFileIds, setTermFileIds] = useState<string[][]>([]);
   const [documentFileIds, setDocumentFileIds] = useState<string[][]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  const fetchRailPassFile = useCallback(
-    async (fileId: string): Promise<any> => {
-      if (!fileId) return null;
-      try {
-        return await getVisaFile(fileId);
-      } catch (error) {
-        console.error(`Error fetching file with ID ${fileId}:`, error);
-        return null;
-      }
-    },
-    [],
-  );
+  const fetchVisaFile = useCallback(async (fileId: string): Promise<any> => {
+    if (!fileId) return null;
+    try {
+      return await getVisaFile(fileId);
+    } catch (error) {
+      console.error(`Error fetching file with ID ${fileId}:`, error);
+      return null;
+    }
+  }, []);
 
   useEffect(() => {
     const fetchExistingData = async () => {
@@ -130,9 +132,16 @@ const useEditData = (id: string | undefined) => {
           getPassDocument(id),
         ]);
 
-        const pricelistArray = Array.isArray(pricelistData)
-          ? pricelistData
-          : [pricelistData].filter(Boolean);
+        // Map pricelist data to ensure currency is properly handled
+        const mappedPricelistData = (
+          Array.isArray(pricelistData)
+            ? pricelistData
+            : [pricelistData].filter(Boolean)
+        ).map((item) => ({
+          ...item,
+          priceCurrency: item.currency || item.priceCurrency || "USD",
+        }));
+
         const processArray = Array.isArray(processData)
           ? processData
           : [processData].filter(Boolean);
@@ -147,14 +156,15 @@ const useEditData = (id: string | undefined) => {
           : [paymentData].filter(Boolean);
 
         setEditData({
-          pricelist: pricelistArray,
+          pricelist: mappedPricelistData,
           process: processArray,
           payment: paymentArray,
           term: termArray,
           document: documentArray,
         });
 
-        const pricelistFileIdsArray = pricelistArray.map((pricelist) =>
+        // Set file IDs
+        const pricelistFileIdsArray = mappedPricelistData.map((pricelist) =>
           pricelist?.filesAssociated
             ? Array.isArray(pricelist.filesAssociated)
               ? pricelist.filesAssociated
@@ -190,15 +200,18 @@ const useEditData = (id: string | undefined) => {
         );
         setDocumentFileIds(documentFileIdsArray);
 
+        // Fetch actual file data
         const fileFetchPromises: Promise<FileFetchResult>[] = [];
 
-        pricelistArray.forEach((pricelist, index) => {
+        // Fetch pricelist files
+        mappedPricelistData.forEach((pricelist, index) => {
           if (pricelist?.filesAssociated) {
             const fileId = Array.isArray(pricelist.filesAssociated)
               ? pricelist.filesAssociated[0]
               : pricelist.filesAssociated;
+
             fileFetchPromises.push(
-              fetchRailPassFile(fileId).then((file) => ({
+              fetchVisaFile(fileId).then((file) => ({
                 type: "pricelist" as const,
                 data: file,
                 index,
@@ -207,13 +220,15 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
+        // Fetch process files
         processArray.forEach((processItem, index) => {
           if (processItem?.filesAssociated) {
             const fileId = Array.isArray(processItem.filesAssociated)
               ? processItem.filesAssociated[0]
               : processItem.filesAssociated;
+
             fileFetchPromises.push(
-              fetchRailPassFile(fileId).then((file) => ({
+              fetchVisaFile(fileId).then((file) => ({
                 type: "process" as const,
                 data: file,
                 index,
@@ -222,13 +237,15 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
+        // Fetch term files
         termArray.forEach((termItem, index) => {
           if (termItem?.filesAssociated) {
             const fileId = Array.isArray(termItem.filesAssociated)
               ? termItem.filesAssociated[0]
               : termItem.filesAssociated;
+
             fileFetchPromises.push(
-              fetchRailPassFile(fileId).then((file) => ({
+              fetchVisaFile(fileId).then((file) => ({
                 type: "term" as const,
                 data: file,
                 index,
@@ -237,13 +254,15 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
+        // Fetch document files
         documentArray.forEach((documentItem, index) => {
           if (documentItem?.filesAssociated) {
             const fileId = Array.isArray(documentItem.filesAssociated)
               ? documentItem.filesAssociated[0]
               : documentItem.filesAssociated;
+
             fileFetchPromises.push(
-              fetchRailPassFile(fileId).then((file) => ({
+              fetchVisaFile(fileId).then((file) => ({
                 type: "document" as const,
                 data: file,
                 index,
@@ -252,31 +271,36 @@ const useEditData = (id: string | undefined) => {
           }
         });
 
+        // Wait for all file fetches to complete
         const fileResults = await Promise.all(fileFetchPromises);
+
+        // Initialize file data arrays with the same length as edit data
         const organizedFileData: FileData = {
-          pricelist: [],
-          process: [],
-          term: [],
-          document: [],
+          pricelist: new Array(mappedPricelistData.length).fill(undefined),
+          process: new Array(processArray.length).fill(undefined),
+          term: new Array(termArray.length).fill(undefined),
+          document: new Array(documentArray.length).fill(undefined),
         };
 
+        // Organize file data by type and index
         fileResults.forEach((result) => {
-          if (result.type === "pricelist") {
-            if (!organizedFileData.pricelist) organizedFileData.pricelist = [];
-            organizedFileData.pricelist[result.index] = result.data;
-          } else if (result.type === "process") {
-            if (!organizedFileData.process) organizedFileData.process = [];
-            organizedFileData.process[result.index] = result.data;
-          } else if (result.type === "term") {
-            if (!organizedFileData.term) organizedFileData.term = [];
-            organizedFileData.term[result.index] = result.data;
-          } else if (result.type === "document") {
-            if (!organizedFileData.document) organizedFileData.document = [];
-            organizedFileData.document[result.index] = result.data;
+          if (result.data) {
+            if (result.type === "pricelist") {
+              organizedFileData.pricelist[result.index] = result.data;
+            } else if (result.type === "process") {
+              organizedFileData.process[result.index] = result.data;
+            } else if (result.type === "term") {
+              organizedFileData.term[result.index] = result.data;
+            } else if (result.type === "document") {
+              organizedFileData.document[result.index] = result.data;
+            }
           }
         });
 
         setFileData(organizedFileData);
+
+        // Debug log to verify file data
+        console.log("File data after fetch:", organizedFileData);
       } catch (error: any) {
         console.error("Error fetching edit data:", error);
         throw error;
@@ -286,7 +310,7 @@ const useEditData = (id: string | undefined) => {
     };
 
     fetchExistingData();
-  }, [id, fetchRailPassFile]);
+  }, [id, fetchVisaFile]);
 
   return {
     editData,
@@ -1150,10 +1174,18 @@ const Edit = () => {
           const pricelistFormDataToSubmit = new FormData();
           pricelistFormDataToSubmit.append("type", "price");
           pricelistFormDataToSubmit.append("plan", pricelistItem.plan || "");
-          pricelistFormDataToSubmit.append("fee", pricelistItem.fee || "");
+          pricelistFormDataToSubmit.append(
+            "fee",
+            pricelistItem.fee?.toString() || "",
+          );
           pricelistFormDataToSubmit.append(
             "description",
             pricelistItem.description || "",
+          );
+          // Add priceCurrency to FormData
+          pricelistFormDataToSubmit.append(
+            "priceCurrency",
+            pricelistItem.priceCurrency || "USD",
           );
           pricelistFormDataToSubmit.append("railpass", id);
 
@@ -1569,7 +1601,7 @@ const Edit = () => {
               message.type === "success" &&
               message.action === "addOrUpdate"
             ) {
-              navigate("/transport/rail-passes");
+              navigate(-1);
             }
           }}
         />

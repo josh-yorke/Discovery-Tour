@@ -34,7 +34,7 @@ const Add = () => {
     mutationFn: addPromotion,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["promotions"], exact: false });
-      navigate("/promotions");
+      navigate(-1);
       reset();
     },
   });

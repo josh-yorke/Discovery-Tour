@@ -1,16 +1,14 @@
-import { useNavigate } from "react-router";
-import IconButton from "../../button/IconButton";
-import ImageCard from "../../cards/ImageCard";
 import {
-  RiDeleteBin4Fill,
-  RiPencilFill,
+  RiArrowRightDownLine,
   RiMoneyDollarCircleFill,
   RiClockwiseFill,
-  RiArrowUpSLine,
-  RiArrowDownSLine,
+  RiDeleteBin4Fill,
+  RiPencilFill,
 } from "react-icons/ri";
+import IconButton from "../../button/IconButton";
+import ImageCard from "../../cards/ImageCard";
 import LinkText from "../../nav/LinkText";
-import { useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getVisaPricelists,
@@ -26,257 +24,184 @@ interface CardProps {
   onDelete: () => void;
 }
 
-interface ProcessItem {
-  processTitle: string;
-  process: string;
+interface PriceItem {
   _id: string;
-  [key: string]: any;
-}
-
-interface PricePlan {
   fee: number;
-  plan: string;
-  description: string;
+  priceCurrency?: string;
+  currency?: string;
 }
 
-interface PriceData {
-  lowestPrice: number;
-  plans: PricePlan[];
-}
-
-interface VisaData {
-  pricelists?: any[];
-  processes?: any[];
-}
-
-const CollapsibleSection = ({
-  title,
-  icon: Icon,
-  children,
-  isOpen,
-  onToggle,
-}: {
-  title: string;
-  icon: React.ComponentType<{ size: number; className?: string }>;
-  children: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-}) => {
-  return (
-    <div className="w-full border border-gray-200 rounded-xl overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <Icon size={16} className="text-[#1d2087]" />
-          <span className="text-sm font-semibold text-gray-800">{title}</span>
-        </div>
-        {isOpen ? (
-          <RiArrowUpSLine size={16} className="text-gray-500" />
-        ) : (
-          <RiArrowDownSLine size={16} className="text-gray-500" />
-        )}
-      </button>
-      {isOpen && <div className="p-3 bg-white">{children}</div>}
-    </div>
-  );
+const currencySymbols: Record<string, string> = {
+  USD: "$",
+  KRW: "₩",
+  JPY: "¥",
+  PHP: "₱",
+  EUR: "€",
+  GBP: "£",
 };
 
-const VisaCard = ({
-  onDelete,
-  mainDescription,
-  country,
-  type,
-  images,
-  id,
-}: CardProps) => {
-  const navigate = useNavigate();
-  const [openSection, setOpenSection] = useState<string | null>(null);
-
+const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
   const { data: priceData, isLoading: isPriceLoading } = useQuery({
     queryKey: ["visaPricelists", id],
     queryFn: () => getVisaPricelists(id),
-    select: (data: VisaData) => extractPriceData(data?.pricelists),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
   });
 
   const { data: processData, isLoading: isProcessLoading } = useQuery({
     queryKey: ["visaProcesses", id],
     queryFn: () => getVisaProcesses(id),
-    select: (data: VisaData) => extractProcessData(data?.processes),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
   });
 
-  const toggleSection = (section: string) => {
-    setOpenSection(openSection === section ? null : section);
-  };
-
-  const getProcessItems = (): ProcessItem[] => {
-    if (isProcessLoading || !processData) return [];
-    return processData;
-  };
-
-  const renderPriceContent = () => {
-    if (isPriceLoading) {
-      return (
-        <p className="text-sm text-gray-500">Loading price information...</p>
-      );
+  const { minPrice, currency, hasPriceData } = useMemo(() => {
+    if (isPriceLoading || !priceData) {
+      return { minPrice: null, currency: null, hasPriceData: false };
     }
 
-    if (!priceData || !priceData.plans || priceData.plans.length === 0) {
-      return (
-        <p className="text-sm text-gray-500">Contact us for pricing details</p>
+    if (
+      typeof priceData === "object" &&
+      priceData.pricelists &&
+      Array.isArray(priceData.pricelists)
+    ) {
+      // Filter valid price items
+      const validPriceItems = priceData.pricelists
+        .filter(
+          (item: PriceItem) =>
+            item?.fee && !isNaN(parseFloat(item.fee.toString())),
+        )
+        .filter((item: PriceItem) => parseFloat(item.fee.toString()) > 0.01);
+
+      if (validPriceItems.length === 0) {
+        return { minPrice: null, currency: null, hasPriceData: false };
+      }
+
+      // Get the minimum price item
+      const minPriceItem = validPriceItems.reduce(
+        (min: PriceItem, item: PriceItem) =>
+          parseFloat(item.fee.toString()) < parseFloat(min.fee.toString())
+            ? item
+            : min,
       );
+
+      const min = parseFloat(minPriceItem.fee.toString());
+
+      // Get currency from the price item (handle both priceCurrency and currency fields)
+      const currencyCode =
+        minPriceItem.priceCurrency || minPriceItem.currency || "USD";
+
+      return {
+        minPrice: min,
+        currency: currencyCode,
+        hasPriceData: true,
+      };
     }
 
-    return (
-      <div className="space-y-2">
-        {priceData.plans.map((plan: PricePlan, index: number) => (
-          <div
-            key={index}
-            className="flex justify-between items-center p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-          >
-            <span className="text-sm font-medium text-gray-800">
-              {plan.plan}
-            </span>
-            <span className="text-sm font-bold text-[#1d2087]">
-              ${plan.fee}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
+    return { minPrice: null, currency: null, hasPriceData: false };
+  }, [priceData, isPriceLoading]);
+
+  const { processCount, hasProcessData } = useMemo(() => {
+    if (isProcessLoading || !processData)
+      return { processCount: 0, hasProcessData: false };
+
+    if (
+      typeof processData === "object" &&
+      processData.processes &&
+      Array.isArray(processData.processes)
+    ) {
+      const count = processData.processes.length;
+      return { processCount: count, hasProcessData: count > 0 };
+    }
+
+    return { processCount: 0, hasProcessData: false };
+  }, [processData, isProcessLoading]);
+
+  const handleEditClick = () => {
+    window.location.href = `/visas/visa/edit/${id}`;
   };
 
-  const renderProcessContent = () => {
-    if (isProcessLoading) {
-      return (
-        <p className="text-sm text-gray-500">Loading process information...</p>
-      );
-    }
-
-    const processItems = getProcessItems();
-
-    if (processItems.length === 0) {
-      return (
-        <p className="text-sm text-gray-500">
-          No processes available for this visa type
-        </p>
-      );
-    }
-
-    return (
-      <div className="space-y-2">
-        {processItems.map((item: ProcessItem, index: number) => (
-          <div
-            key={item._id || index}
-            className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-          >
-            <div className="flex items-center justify-center w-6 h-6 bg-[#1d2087] text-white text-xs font-bold rounded-full shrink-0">
-              {index + 1}
-            </div>
-            <span className="text-sm font-medium text-gray-800">
-              {item.processTitle || "Untitled Process"}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
+  const handleViewClick = () => {
+    window.location.href = `/visas/visa/view/${id}`;
   };
+
+  // Format price display with currency symbol
+  const getPriceDisplay = () => {
+    if (!hasPriceData || !minPrice || !currency) {
+      return null;
+    }
+
+    const symbol = currencySymbols[currency] || currency;
+    return `from ${symbol}${minPrice.toLocaleString()}`;
+  };
+
+  const priceDisplay = getPriceDisplay();
 
   return (
-    <div className="w-full flex flex-col items-center justify-start bg-white rounded-3xl p-2 gap-2 overflow-hidden shadow-xl shadow-black/10">
-      <div className="relative w-full aspect-3/2 rounded-2xl overflow-hidden">
-        <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
+    <div className="w-full flex flex-col gap-4">
+      <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
+        <div className="absolute top-4 left-4 z-10 flex flex-row gap-2">
           <IconButton
-            action={() => navigate(`/visas/visa/edit/${id}`)}
+            action={handleEditClick}
             title=""
             icon={<RiPencilFill size={16} />}
-            style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
+            style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
           />
           <IconButton
             action={onDelete}
             title=""
             icon={<RiDeleteBin4Fill size={16} />}
-            style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
+            style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
           />
         </div>
-        <div className="absolute top-4 left-4 z-10 px-4 py-2 rounded-lg bg-black/30">
-          <span className="text-xs font-normal text-white">{type} Visa</span>
+
+        <div className="absolute top-4 right-4 z-10">
+          <div className="flex px-4 py-2 rounded-lg items-center justify-start text-white bg-black/30 backdrop-blur-sm">
+            <p className="text-xs font-normal">{type} Visa</p>
+          </div>
         </div>
+
         <ImageCard style="w-full h-full object-cover" url={images} />
       </div>
 
-      <div className="w-full flex flex-col items-start justify-center p-2 gap-2 flex-1">
-        <LinkText
-          title={country}
-          url={`/visas/visa/view/${id}`}
-          style="font-bold text-[#1d2087] hover:text-[#1d2087]"
-        />
-        <div className="w-full flex flex-col gap-2 flex-1">
-          <p className="text-xs font-normal line-clamp-2">{mainDescription}</p>
+      <div className="flex flex-row flex-1 items-center justify-between px-2">
+        <div className="w-3/4 flex flex-col gap-2 items-start justify-center">
+          <LinkText
+            title={country}
+            url={`/visas/visa/view/${id}`}
+            style="font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
+          />
+          <div className="w-full flex flex-row items-center justify-start gap-2">
+            <div className="max-w-1/2 flex items-center gap-1">
+              <RiClockwiseFill className="text-[#1d2087] shrink-0" size={16} />
+              <p className="text-xs font-normal truncate">
+                {hasProcessData ? `${processCount} processes` : "No process"}
+              </p>
+            </div>
+            <div className="border h-full border-l border-black/60"></div>
+            {hasPriceData && priceDisplay ? (
+              <div className="max-w-1/2 flex items-center gap-1">
+                <RiMoneyDollarCircleFill
+                  className="text-[#1d2087] shrink-0"
+                  size={16}
+                />
+                <p className="text-xs font-normal truncate">{priceDisplay}</p>
+              </div>
+            ) : (
+              <p className="text-xs font-normal text-gray-500">No price</p>
+            )}
+          </div>
         </div>
-        <div className="w-full border-t border-black/6 border-0 my-2" />
-
-        <div className="w-full space-y-3">
-          <CollapsibleSection
-            title="Price Information"
-            icon={RiMoneyDollarCircleFill}
-            isOpen={openSection === "price"}
-            onToggle={() => toggleSection("price")}
-          >
-            {renderPriceContent()}
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="Process Information"
-            icon={RiClockwiseFill}
-            isOpen={openSection === "process"}
-            onToggle={() => toggleSection("process")}
-          >
-            {renderProcessContent()}
-          </CollapsibleSection>
+        <div
+          className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
+          onClick={handleViewClick}
+        >
+          <RiArrowRightDownLine
+            className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
+            size={16}
+          />
         </div>
       </div>
     </div>
   );
 };
-
-function extractPriceData(data: any): PriceData | null {
-  if (!data || !Array.isArray(data)) return null;
-
-  const validPrices = data
-    .filter((item) => item?.fee && !isNaN(parseFloat(item.fee)))
-    .map((item) => ({
-      fee: parseFloat(item.fee),
-      plan: item.plan || "Standard",
-      description: item.description || "",
-    }));
-
-  if (validPrices.length === 0) return null;
-
-  return {
-    lowestPrice: Math.min(...validPrices.map((p) => p.fee)),
-    plans: validPrices,
-  };
-}
-
-function extractProcessData(data: any): ProcessItem[] {
-  if (!data || !Array.isArray(data)) return [];
-
-  return data
-    .filter(
-      (item) => item && typeof item === "object" && "processTitle" in item,
-    )
-    .map((item) => ({
-      processTitle: item.processTitle || "",
-      process: item.process || "",
-      _id: item._id || "",
-      ...item,
-    }));
-}
 
 export default VisaCard;

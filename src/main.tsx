@@ -69,6 +69,7 @@ import TypesCategories from "./pages/types-categories/TypesCategories";
 import AddTypesCategories from "./pages/types-categories/AddTypesCategories";
 import EditTypesCategories from "./pages/types-categories/EditTypesCategories";
 import PageNotFound from "./components/error/PageNotFound";
+import Bookings from "./pages/rail-pass/Bookings";
 
 const router = createBrowserRouter([
   {
@@ -545,6 +546,14 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <AddRental />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/booking",
+    element: (
+      <RouteProtection>
+        <Bookings />
       </RouteProtection>
     ),
   },

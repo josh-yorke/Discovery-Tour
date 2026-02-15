@@ -31,7 +31,7 @@ const Add = () => {
     mutationFn: addVehicle,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vehicles"], exact: false });
-      navigate("/transport/vehicles");
+      navigate(-1);
       reset();
     },
   });
@@ -43,9 +43,9 @@ const Add = () => {
     formData.append("vehicleType", data.vehicleType);
     formData.append("brand", data.brand);
     formData.append("model", data.model);
-    formData.append("year", data.year.toString()); // Convert number to string
-    formData.append("seatingCapacity", data.seatingCapacity.toString()); // Convert number to string
-    formData.append("luggageCapacity", data.luggageCapacity); // Already a string
+    formData.append("year", data.year.toString());
+    formData.append("seatingCapacity", data.seatingCapacity.toString());
+    formData.append("luggageCapacity", data.luggageCapacity);
     formData.append("fuelType", data.fuelType);
     formData.append("transmission", data.transmission);
     formData.append("isAvailable", data.isAvailable);

@@ -11,7 +11,7 @@ const Pagination = ({
 }: PaginationProps) => {
   const pagesToShow = Array.from(
     { length: totalPages },
-    (_, i) => i + 1
+    (_, i) => i + 1,
   ).filter((page) => page >= currentPage - 2 && page <= currentPage + 2);
 
   return (
@@ -21,8 +21,8 @@ const Pagination = ({
           key={page}
           className={`px-3 py-2 rounded text-xs font-normal cursor-pointer ${
             currentPage === page
-              ? "green-bg text-white"
-              : "bg-gray-100 text-black"
+              ? "bg-[#1d2087] text-white"
+              : "bg-white text-black"
           }`}
           onClick={() => onPageChange(page)}
         >

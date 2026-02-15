@@ -54,7 +54,7 @@ const EditInputs = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["news"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["news", id] });
-      navigate(`/news`);
+      navigate(-1);
       reset();
     },
   });

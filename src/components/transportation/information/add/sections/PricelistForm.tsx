@@ -1,15 +1,8 @@
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
-import {
-  addTransportPricelistSchema,
-  type addTransportPricelistData,
-} from "../../../../../types/pricelist/addPricelistTypes";
-import {
-  addVisaFileSchema,
-  type addVisaFileData,
-} from "../../../../../types/visafile/addVisaFileTypes";
+import { type addTransportPricelistData } from "../../../../../types/pricelist/addPricelistTypes";
+import { type addVisaFileData } from "../../../../../types/visafile/addVisaFileTypes";
 import Input from "../../../../input/Input";
 import FileInput from "../../../../input/FileInput";
 import IconButton from "../../../../button/IconButton";
@@ -17,6 +10,7 @@ import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import SearchableVehicleDropdown from "../../../../input/SearchableVehicleDropdown";
 import TextArea from "../../../../input/TextArea";
 import NumberInput from "../../../../input/NumberInput";
+import InputOption from "../../../../input/InputOption";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -27,26 +21,41 @@ export interface PricelistFormHandle {
 
 const hasPricelistContent = (pricelist: {
   plan?: string;
-  fee?: string;
+  fee?: string | number;
   description?: string;
   vehicle?: string;
   fileTitle?: string;
   file?: FileList;
+  priceCurrency?: string;
 }): boolean => {
   return (
     (pricelist.plan?.trim() ?? "").length > 0 ||
-    (pricelist.fee?.trim() ?? "").length > 0 ||
+    (typeof pricelist.fee === "string" && pricelist.fee.trim() !== "") ||
+    (typeof pricelist.fee === "number" && !isNaN(pricelist.fee)) ||
     (pricelist.description?.trim() ?? "").length > 0 ||
     (pricelist.vehicle?.trim() ?? "").length > 0 ||
+    (pricelist.priceCurrency?.trim() ?? "").length > 0 ||
     (pricelist.fileTitle?.trim() ?? "").length > 0 ||
     (pricelist.file?.length ?? 0) > 0
   );
 };
 
-const pricelistWithFileSchema = addTransportPricelistSchema
-  .extend({
-    file: addVisaFileSchema.shape.file.optional(),
+const mergedSchema = z
+  .object({
+    plan: z.string().min(1, "Plan name is required"),
+    fee: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((val) => {
+        if (typeof val === "string" && val.trim() === "") return undefined;
+        if (typeof val === "string") return parseFloat(val);
+        return val;
+      }),
+    description: z.string().min(1, "Description is required"),
+    vehicle: z.string().min(1, "Vehicle is required"),
+    priceCurrency: z.string().min(1, "Currency is required"),
     fileTitle: z.string().optional(),
+    file: z.any().optional(),
   })
   .refine(
     (data) => {
@@ -61,21 +70,26 @@ const pricelistWithFileSchema = addTransportPricelistSchema
     },
   );
 
-type PricelistWithFileData = z.infer<typeof pricelistWithFileSchema>;
+type MergedSchemaType = {
+  plan: string;
+  fee?: string | number;
+  description: string;
+  vehicle: string;
+  priceCurrency: string;
+  fileTitle?: string;
+  file?: FileList;
+};
 
-const formSchema = z.object({
-  pricelists: z.array(pricelistWithFileSchema),
-});
+type FormData = { pricelists: MergedSchemaType[] };
 
-type FormData = z.infer<typeof formSchema>;
-
-const DEFAULT_PRICELIST: PricelistWithFileData = {
+const DEFAULT_PRICELIST: MergedSchemaType = {
   plan: "",
   fee: "",
   description: "",
+  vehicle: "",
+  priceCurrency: "USD",
   fileTitle: "",
   file: undefined,
-  vehicle: "",
 };
 
 const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
@@ -89,9 +103,8 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     clearErrors,
     setError,
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { pricelists: [DEFAULT_PRICELIST] },
     mode: "onChange",
+    defaultValues: { pricelists: [DEFAULT_PRICELIST] },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -113,7 +126,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
       const hasContent = hasPricelistContent(pricelist);
 
       if (hasContent) {
-        const result = pricelistWithFileSchema.safeParse(pricelist);
+        const result = mergedSchema.safeParse(pricelist);
 
         if (!result.success) {
           isValid = false;
@@ -127,13 +140,18 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             }
           });
         } else {
-          pricelistData.push({
-            plan: pricelist.plan,
-            fee: pricelist.fee,
-            description: pricelist.description,
-            vehicle: pricelist.vehicle,
-          });
+          const pricelistItem: addTransportPricelistData = {
+            plan: result.data.plan,
+            description: result.data.description,
+            vehicle: result.data.vehicle,
+            priceCurrency: result.data.priceCurrency,
+          };
 
+          if (result.data.fee !== undefined) {
+            pricelistItem.fee = result.data.fee;
+          }
+
+          pricelistData.push(pricelistItem);
           pricelistFileData.push({
             fileTitle: pricelist.fileTitle || "",
             file: pricelist.file,
@@ -221,7 +239,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
           title="Pricelist File Title"
           placeholder="Enter pricelist file title"
           type="text"
-          {...register(`pricelists.${index}.fileTitle`)}
+          {...register(`pricelists.${index}.fileTitle` as const)}
         />
 
         <FileInput
@@ -270,6 +288,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     const feeError = errors.pricelists?.[index]?.fee?.message;
     const descriptionError = errors.pricelists?.[index]?.description?.message;
     const vehicleError = errors.pricelists?.[index]?.vehicle?.message;
+    const currencyError = errors.pricelists?.[index]?.priceCurrency?.message;
 
     return (
       <div
@@ -291,37 +310,55 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
               style="bg-white"
               disabled={false}
               error={hasContent && planError ? String(planError) : ""}
-              title="Plan Name"
+              title="Plan Name *"
               placeholder="Enter plan name (e.g., Standard, Express, Premium)"
               type="text"
-              {...register(`pricelists.${index}.plan`)}
+              {...register(`pricelists.${index}.plan` as const)}
             />
+            <div>
+              <SearchableVehicleDropdown
+                disabled={false}
+                title="Select Vehicle *"
+                value={watchPricelists?.[index]?.vehicle || ""}
+                onChange={(vehicleId: string) => {
+                  setValue(`pricelists.${index}.vehicle`, vehicleId);
+                  clearErrors(`pricelists.${index}.vehicle`);
+                }}
+                name={`pricelists.${index}.vehicle`}
+                placeholder="Search for a vehicle..."
+              />
+              {hasContent && vehicleError && (
+                <p className="text-red-500 text-xs mt-1">
+                  {String(vehicleError)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <InputOption
+                disabled={false}
+                style="bg-white w-full"
+                title="Displayed Currency *"
+                options={["USD", "KRW", "JPY", "PHP"]}
+                {...register(`pricelists.${index}.priceCurrency` as const)}
+              />
+              {hasContent && currencyError && (
+                <p className="text-red-500 text-xs mt-1">
+                  {String(currencyError)}
+                </p>
+              )}
+            </div>
             <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && feeError ? String(feeError) : ""}
               title="Fee Amount"
-              placeholder="Enter fee amount"
-              type="text"
-              {...register(`pricelists.${index}.fee`)}
+              placeholder="Enter fee amount (optional)"
+              type="number"
+              {...register(`pricelists.${index}.fee` as const)}
             />
-          </div>
-
-          <div>
-            <SearchableVehicleDropdown
-              disabled={false}
-              title="Select Vehicle"
-              value={watchPricelists?.[index]?.vehicle || ""}
-              onChange={(vehicleId: string) => {
-                setValue(`pricelists.${index}.vehicle`, vehicleId);
-                clearErrors(`pricelists.${index}.vehicle`);
-              }}
-              name={`pricelists.${index}.vehicle`}
-              placeholder="Search for a vehicle..."
-            />
-            {hasContent && vehicleError && (
-              <p className="text-xs text-red-500 mt-1">{vehicleError}</p>
-            )}
           </div>
 
           <TextArea
@@ -329,12 +366,19 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             error={
               hasContent && descriptionError ? String(descriptionError) : ""
             }
-            title="Plan Description"
+            title="Plan Description *"
             placeholder="Enter detailed description of what this plan includes"
-            {...register(`pricelists.${index}.description`)}
+            {...register(`pricelists.${index}.description` as const)}
           />
 
           {renderFileSection(index)}
+
+          <div className="text-xs text-gray-500">
+            <p>• Fields marked with * are required</p>
+            <p>
+              • Fee amount is optional - leave empty for plans with no fixed fee
+            </p>
+          </div>
         </div>
       </div>
     );

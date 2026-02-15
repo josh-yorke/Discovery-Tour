@@ -42,7 +42,7 @@ const Add = () => {
     mutationFn: addBlog,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blogs"], exact: false });
-      navigate("/blogs");
+      navigate(-1);
       reset();
     },
     onError: (error) => {

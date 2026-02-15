@@ -84,10 +84,6 @@ const Add = () => {
   };
 
   const hasFormData = (formData: any): boolean => {
-    if (formData === null) {
-      return false;
-    }
-
     if (!formData) return false;
 
     if (
@@ -147,32 +143,17 @@ const Add = () => {
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
 
-      // FIRST: Check if any form has validation errors (returns null)
-      const formResults = [
-        { data: pricelistFormData, type: "pricelist" },
-        { data: processFormData, type: "process" },
-        { data: paymentFormData, type: "payment" },
-        { data: termFormData, type: "term" },
-        { data: documentFormData, type: "document" },
-      ];
+      // Check if all forms are empty
+      const allFormsEmpty = [
+        pricelistFormData,
+        processFormData,
+        paymentFormData,
+        termFormData,
+        documentFormData,
+      ].every((formData) => !hasFormData(formData));
 
-      const validationErrors = formResults.filter(({ data }) => data === null);
-
-      if (validationErrors.length > 0) {
-        alert(
-          "Please complete all required fields in the forms before submitting.",
-        );
-        setIsSubmitting(false);
-        return;
-      }
-
-      // SECOND: Check if at least one form has valid data
-      const hasAtLeastOneValidForm = formResults.some(({ data }) =>
-        hasFormData(data),
-      );
-
-      if (!hasAtLeastOneValidForm) {
-        alert("Please fill at least one form completely before submitting.");
+      if (allFormsEmpty) {
+        alert("Please fill at least one form before submitting.");
         setIsSubmitting(false);
         return;
       }
@@ -213,7 +194,16 @@ const Add = () => {
           const pricelistFormDataToSubmit = new FormData();
           pricelistFormDataToSubmit.append("type", "price");
           pricelistFormDataToSubmit.append("plan", pricelistItem.plan);
-          pricelistFormDataToSubmit.append("fee", pricelistItem.fee);
+          pricelistFormDataToSubmit.append(
+            "priceCurrency",
+            pricelistItem.priceCurrency,
+          );
+          if (pricelistItem.fee !== undefined && pricelistItem.fee !== null) {
+            pricelistFormDataToSubmit.append(
+              "fee",
+              pricelistItem.fee.toString(),
+            );
+          }
           pricelistFormDataToSubmit.append(
             "description",
             pricelistItem.description,
@@ -428,7 +418,7 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
 
       alert("Rail pass information added successfully!");
-      navigate("/transport/rail-passes");
+      navigate(-1);
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");

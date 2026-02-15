@@ -71,6 +71,14 @@ const Payments = ({ visaId }: PaymentsProps) => {
 
   const payments = paymentsData?.payments || [];
 
+  // Don't render anything if no visaId is provided
+  if (!visaId) return null;
+
+  // Don't render anything if there are no payments (and not loading or in error state)
+  if (!isLoading && !isError && payments.length === 0) {
+    return null;
+  }
+
   if (isLoading) return <SectionLoader />;
   if (isError) return <SectionError error={error?.message} action={refetch} />;
 

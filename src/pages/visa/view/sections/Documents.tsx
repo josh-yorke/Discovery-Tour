@@ -93,15 +93,26 @@ const Documents = ({ visaId }: DocumentsProps) => {
     })),
   });
 
-  const filesMap = fileQueries.reduce((acc, query) => {
-    if (query.data?.file) acc[query.data.file._id] = query.data.file;
-    return acc;
-  }, {} as Record<string, FileData>);
+  const filesMap = fileQueries.reduce(
+    (acc, query) => {
+      if (query.data?.file) acc[query.data.file._id] = query.data.file;
+      return acc;
+    },
+    {} as Record<string, FileData>,
+  );
 
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
   const isLoading =
     isLoadingDocuments || (documents.length > 0 && isLoadingFiles);
+
+  // Don't render anything if no visaId is provided
+  if (!visaId) return null;
+
+  // Don't render anything if there are no documents (and not loading or in error state)
+  if (!isLoading && !isErrorDocuments && documents.length === 0) {
+    return null;
+  }
 
   if (isLoading) return <SectionLoader />;
   if (isErrorDocuments)
@@ -144,7 +155,7 @@ const Documents = ({ visaId }: DocumentsProps) => {
               .filter(Boolean);
 
             const documentFileQueries = fileQueries.filter((q) =>
-              document.filesAssociated.includes(q.data?.file?._id || "")
+              document.filesAssociated.includes(q.data?.file?._id || ""),
             );
 
             return (
@@ -200,7 +211,7 @@ const Documents = ({ visaId }: DocumentsProps) => {
                       <div className="space-y-2 sm:space-y-3">
                         {documentFiles.map((file) => {
                           const fileQuery = fileQueries.find(
-                            (q) => q.data?.file?._id === file._id
+                            (q) => q.data?.file?._id === file._id,
                           );
                           const isFileError = fileQuery?.isError;
                           const fileUrl = getFileUrl(file.file);

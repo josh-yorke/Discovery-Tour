@@ -45,7 +45,7 @@ const Add = () => {
     mutationFn: addUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"], exact: false });
-      navigate("/users");
+      navigate(-1);
       reset();
     },
   });
@@ -58,7 +58,7 @@ const Add = () => {
     <>
       <form
         onSubmit={handleSubmit(emailSubmit)}
-        className="w-full min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+        className="w-full min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
       >
         <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-center">
           <Input
@@ -95,20 +95,39 @@ const Add = () => {
             error={errors.password ? errors.password.message : ""}
             {...register("password")}
           />
-          <InputOption
-            disabled={false}
-            options={["admin", "user"]}
-            {...register("role")}
-            style="w-full bg-white"
-            title="Role"
-          />
-          <InputOption
-            disabled={false}
-            options={["active", "pending"]}
-            {...register("status")}
-            style="w-full bg-white"
-            title="Status"
-          />
+
+          {/* InputOption with error display */}
+          <div className="w-full">
+            <InputOption
+              disabled={false}
+              options={["superAdmin", "staff", "admin", "user"]}
+              {...register("role")}
+              style="w-full bg-white"
+              title="Role"
+            />
+            {errors.role && (
+              <p className="text-red-500 text-xs mt-1 ml-1">
+                {errors.role.message}
+              </p>
+            )}
+          </div>
+
+          {/* InputOption with error display */}
+          <div className="w-full">
+            <InputOption
+              disabled={false}
+              options={["active", "pending"]}
+              {...register("status")}
+              style="w-full bg-white"
+              title="Status"
+            />
+            {errors.status && (
+              <p className="text-red-500 text-xs mt-1 ml-1">
+                {errors.status.message}
+              </p>
+            )}
+          </div>
+
           <Button
             isLoading={emailMutation.isPending}
             title="Proceed"
@@ -127,7 +146,7 @@ const Add = () => {
       {emailMutation.isError && (
         <Modal
           success={!emailMutation.isError}
-          action={() => navigate("/users")}
+          action={() => navigate(-1)}
           message={emailMutation.error.message}
         />
       )}

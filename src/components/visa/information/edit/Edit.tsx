@@ -1150,11 +1150,24 @@ const Edit = () => {
           const pricelistFormDataToSubmit = new FormData();
           pricelistFormDataToSubmit.append("type", "price");
           pricelistFormDataToSubmit.append("plan", pricelistItem.plan || "");
-          pricelistFormDataToSubmit.append("fee", pricelistItem.fee || "");
+
+          if (pricelistItem.fee !== undefined && pricelistItem.fee !== null) {
+            pricelistFormDataToSubmit.append(
+              "fee",
+              pricelistItem.fee.toString(),
+            );
+          }
+
           pricelistFormDataToSubmit.append(
             "description",
             pricelistItem.description || "",
           );
+
+          pricelistFormDataToSubmit.append(
+            "priceCurrency",
+            pricelistItem.priceCurrency || "USD",
+          );
+
           pricelistFormDataToSubmit.append("visa", id);
 
           if (pricelistFileUploadIds[i]) {
@@ -1569,7 +1582,7 @@ const Edit = () => {
               message.type === "success" &&
               message.action === "addOrUpdate"
             ) {
-              navigate("/visas/visa");
+              navigate(-1);
             }
           }}
         />

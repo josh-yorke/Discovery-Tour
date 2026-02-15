@@ -30,8 +30,6 @@ interface EditInputsProps extends editVisaData {
   id: string;
 }
 
-type RedirectTarget = "visa" | "information";
-
 const Edit = ({
   id,
   country,
@@ -41,7 +39,9 @@ const Edit = ({
   images,
 }: EditInputsProps) => {
   const [message, setMessage] = useState<string | null>(null);
-  const [redirectTo, setRedirectTo] = useState<RedirectTarget>("visa");
+  const [redirectTo, setRedirectTo] = useState<"visa" | "information" | "back">(
+    "back",
+  );
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -63,7 +63,7 @@ const Edit = ({
     queryFn: getVisaCountries,
     select: (data) =>
       data?.countries?.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       ) || [],
   });
 
@@ -72,13 +72,13 @@ const Edit = ({
     queryFn: getVisaTypes,
     select: (data) =>
       data?.visaTypes?.filter(
-        (type): type is string => typeof type === "string"
+        (type): type is string => typeof type === "string",
       ) || [],
   });
 
   const countries = useMemo(
     () => countriesQuery.data || [],
-    [countriesQuery.data]
+    [countriesQuery.data],
   );
   const types = useMemo(() => visaTypesQuery.data || [], [visaTypesQuery.data]);
 
@@ -105,13 +105,6 @@ const Edit = ({
       setMessage(data);
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["visas", id] });
-
-      const redirectPath =
-        redirectTo === "information"
-          ? `/visas/information/edit/${id}`
-          : `/visas/visa`;
-
-      navigate(redirectPath);
     },
     onError: (error) => {
       setMessage(error.message);
@@ -132,10 +125,24 @@ const Edit = ({
     return formData;
   };
 
-  const handleSubmitAction = (data: editVisaData, target: RedirectTarget) => {
+  const handleSubmitAction = (
+    data: editVisaData,
+    target: "visa" | "information" | "back",
+  ) => {
     setRedirectTo(target);
     const formData = createFormData(data);
     updateMutation.mutate({ id, data: formData });
+  };
+
+  const handleModalAction = () => {
+    setMessage(null);
+    if (updateMutation.isSuccess) {
+      if (redirectTo === "information") {
+        navigate(`/visas/information/edit/${id}`);
+      } else {
+        navigate(-1);
+      }
+    }
   };
 
   const currentCountry = watch("country");
@@ -145,7 +152,7 @@ const Edit = ({
     <>
       <FormProvider {...methods}>
         <form
-          onSubmit={handleSubmit((data) => handleSubmitAction(data, "visa"))}
+          onSubmit={handleSubmit((data) => handleSubmitAction(data, "back"))}
           className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <div className="w-full lg:w-2xl grid grid-cols-1 gap-4 items-start justify-start">
@@ -205,7 +212,7 @@ const Edit = ({
 
               <ActionButton
                 action={handleSubmit((data) =>
-                  handleSubmitAction(data, "information")
+                  handleSubmitAction(data, "information"),
                 )}
                 isLoading={updateMutation.isPending}
                 title="Proceed to Visa Information"
@@ -220,7 +227,7 @@ const Edit = ({
         <Modal
           message={message}
           success={updateMutation.isSuccess}
-          action={() => setMessage(null)}
+          action={handleModalAction}
         />
       )}
     </>

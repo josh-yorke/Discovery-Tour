@@ -70,7 +70,7 @@ const Edit = ({
     queryFn: getVisaCountries,
     select: (data) =>
       data?.countries?.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       ) || [],
   });
 
@@ -97,12 +97,11 @@ const Edit = ({
       setMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ["tours"], exact: false });
 
-      const redirectPath =
-        redirectTo === "information"
-          ? `/tours/information/edit/${id}`
-          : `/tours`;
-
-      navigate(redirectPath);
+      if (redirectTo === "information") {
+        navigate(`/tours/information/edit/${id}`);
+      } else {
+        navigate(-1);
+      }
     },
     onError: (error) => {
       setMessage(error.message);
@@ -142,7 +141,7 @@ const Edit = ({
 
   const countries = useMemo(
     () => countriesQuery.data || [],
-    [countriesQuery.data]
+    [countriesQuery.data],
   );
   const types = useMemo(() => tourTypesQuery.data || [], [tourTypesQuery.data]);
 
@@ -259,7 +258,7 @@ const Edit = ({
 
               <ActionButton
                 action={handleSubmit((data) =>
-                  handleSubmitAction(data, "information")
+                  handleSubmitAction(data, "information"),
                 )}
                 isLoading={updateMutation.isPending}
                 title="Proceed to Tour Information"

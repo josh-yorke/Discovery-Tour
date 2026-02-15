@@ -6,6 +6,7 @@ import { type addPricelistData } from "../../types/pricelist/addPricelistTypes";
 import Input from "../input/Input";
 import TextArea from "../input/TextArea";
 import EditFileInput from "../input/EditFileInput";
+import InputOption from "../input/InputOption";
 import type { editPricelistData } from "../../types/pricelist/pricelistDataTypes";
 import type { visaFileData } from "../../types/visafile/visaFileDataTypes";
 import IconButton from "../button/IconButton";
@@ -29,10 +30,15 @@ interface PricelistFormProps {
   isDeletingPricelist?: boolean;
 }
 
+interface BackendPricelistData extends editPricelistData {
+  currency?: string;
+}
+
 const hasPricelistContent = (pricelist: {
   plan?: string;
   fee?: string;
   description?: string;
+  priceCurrency?: string;
   fileTitle?: string;
   file?: FileList;
 }): boolean => {
@@ -40,6 +46,7 @@ const hasPricelistContent = (pricelist: {
     (pricelist.plan?.trim() ?? "").length > 0 ||
     (pricelist.fee?.trim() ?? "").length > 0 ||
     (pricelist.description?.trim() ?? "").length > 0 ||
+    (pricelist.priceCurrency?.trim() ?? "").length > 0 ||
     (pricelist.fileTitle?.trim() ?? "").length > 0 ||
     (pricelist.file?.length ?? 0) > 0
   );
@@ -47,21 +54,22 @@ const hasPricelistContent = (pricelist: {
 
 const hasCompletePricelist = (pricelist: {
   plan?: string;
-  fee?: string;
   description?: string;
+  priceCurrency?: string;
 }): boolean => {
   return (
     (pricelist.plan?.trim() ?? "").length > 0 &&
-    (pricelist.fee?.trim() ?? "").length > 0 &&
-    (pricelist.description?.trim() ?? "").length > 0
+    (pricelist.description?.trim() ?? "").length > 0 &&
+    (pricelist.priceCurrency?.trim() ?? "").length > 0
   );
 };
 
 const mergedSchema = z
   .object({
     plan: z.string().min(1, "Plan name is required"),
-    fee: z.string().min(1, "Fee amount is required"),
+    fee: z.string().optional().or(z.literal("")),
     description: z.string().min(1, "Description is required"),
+    priceCurrency: z.string().min(1, "Currency is required"),
     fileTitle: z.string().optional(),
     file: z.any().optional(),
   })
@@ -80,8 +88,9 @@ const mergedSchema = z
 
 type MergedSchemaType = {
   plan: string;
-  fee: string;
+  fee?: string;
   description: string;
+  priceCurrency: string;
   fileTitle?: string;
   file?: FileList;
 };
@@ -92,6 +101,7 @@ const DEFAULT_PRICE_LIST: MergedSchemaType = {
   plan: "",
   fee: "",
   description: "",
+  priceCurrency: "USD",
   fileTitle: "",
   file: undefined,
 };
@@ -106,13 +116,17 @@ const mapEditDataToDefaultValues = (
 ): MergedSchemaType[] => {
   if (editData.length === 0) return [DEFAULT_PRICE_LIST];
 
-  return editData.map((data, index) => ({
-    plan: data?.plan || "",
-    fee: data?.fee?.toString() || "",
-    description: data?.description || "",
-    fileTitle: data?.fileTitle || fileData[index]?.fileTitle || "",
-    file: undefined,
-  }));
+  return editData.map((data, index) => {
+    const backendData = data as BackendPricelistData;
+    return {
+      plan: data?.plan || "",
+      fee: data?.fee?.toString() || "",
+      description: data?.description || "",
+      priceCurrency: backendData.currency || data?.priceCurrency || "USD",
+      fileTitle: data?.fileTitle || fileData[index]?.fileTitle || "",
+      file: undefined,
+    };
+  });
 };
 
 const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
@@ -145,7 +159,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       const pricelistData: addPricelistData[] = [];
       const pricelistFileData: addVisaFileData[] = [];
       let isValid = true;
-      let hasAnyCompleteData = false;
 
       clearErrors();
 
@@ -154,7 +167,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         const hasFile = (pricelist.file?.length ?? 0) > 0;
         const hasCompleteData = hasCompletePricelist(pricelist);
 
-        // If there's any content at all, validate it
         if (hasContent) {
           const result = mergedSchema.safeParse(pricelist);
 
@@ -171,32 +183,28 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             });
           }
 
-          // Only add to data arrays if it's complete
           if (hasCompleteData) {
-            hasAnyCompleteData = true;
-            pricelistData.push({
+            const pricelistItem: addPricelistData = {
               plan: pricelist.plan,
-              fee: pricelist.fee,
               description: pricelist.description,
-            });
+              priceCurrency: pricelist.priceCurrency,
+            };
 
+            if (pricelist.fee && pricelist.fee.trim() !== "") {
+              pricelistItem.fee = parseFloat(pricelist.fee);
+            }
+
+            pricelistData.push(pricelistItem);
             pricelistFileData.push({
               fileTitle: pricelist.fileTitle || "",
               file: pricelist.file,
             });
           } else if (hasContent && !hasCompleteData) {
-            // If there's content but it's incomplete, show validation errors
             isValid = false;
             if (!pricelist.plan?.trim()) {
               setError(`pricelists.${index}.plan` as any, {
                 type: "manual",
                 message: "Plan name is required",
-              });
-            }
-            if (!pricelist.fee?.trim()) {
-              setError(`pricelists.${index}.fee` as any, {
-                type: "manual",
-                message: "Fee amount is required",
               });
             }
             if (!pricelist.description?.trim()) {
@@ -205,20 +213,25 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
                 message: "Description is required",
               });
             }
+            if (!pricelist.priceCurrency?.trim()) {
+              setError(`pricelists.${index}.priceCurrency` as any, {
+                type: "manual",
+                message: "Currency is required",
+              });
+            }
           }
 
-          // Block submission if file exists without complete data
           if (hasFile && !hasCompleteData) {
             isValid = false;
             setError(`pricelists.${index}.plan` as any, {
               type: "manual",
-              message: "Complete all fields before uploading a file",
+              message: "Complete all required fields before uploading a file",
             });
           }
         }
       });
 
-      return { isValid, pricelistData, pricelistFileData, hasAnyCompleteData };
+      return { isValid, pricelistData, pricelistFileData };
     }, [getValues, setError, clearErrors]);
 
     const addPricelist = useCallback(() => {
@@ -252,7 +265,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         if (!hasCompletePricelist(currentPricelist)) {
           setError(`pricelists.${index}.plan` as any, {
             type: "manual",
-            message: "Complete all fields before uploading a file",
+            message: "Complete all required fields before uploading a file",
           });
           return;
         }
@@ -286,12 +299,14 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         const { isValid, pricelistData, pricelistFileData } =
           validateAndGetFormData();
 
-        // Only return null if there are validation errors
         if (!isValid) {
           return null;
         }
 
-        // Return data even if arrays are empty (form is valid but has no complete data)
+        if (pricelistData.length === 0) {
+          return { pricelistData: [], pricelistFileData: [] };
+        }
+
         return { pricelistData, pricelistFileData };
       },
       removePricelistField: (index: number) => {
@@ -378,12 +393,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               </button>
             </div>
           )}
-
-          <div className="text-xs text-gray-500">
-            <p>• Complete all fields before uploading a file</p>
-            <p>• File title is required if you upload a file</p>
-            <p>• If you upload a new file, it will replace the existing one</p>
-          </div>
         </div>
       );
     };
@@ -415,19 +424,29 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               disabled={false}
               error={hasContent && planError ? String(planError) : ""}
               title="Plan Name *"
-              placeholder="Enter visa plan name (e.g., Standard, Express, Premium)"
+              placeholder="Enter visa plan name"
               type="text"
               {...register(`pricelists.${index}.plan` as const)}
             />
+
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Displayed Currency *"
+              options={["USD", "KRW", "JPY", "PHP"]}
+              {...register(`pricelists.${index}.priceCurrency` as const)}
+            />
+
             <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && feeError ? String(feeError) : ""}
-              title="Fee Amount *"
-              placeholder="Enter fee amount"
+              title="Fee Amount"
+              placeholder="Enter fee amount (optional)"
               type="text"
               {...register(`pricelists.${index}.fee` as const)}
             />
+
             <TextArea
               disabled={false}
               error={

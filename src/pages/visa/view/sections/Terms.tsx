@@ -121,14 +121,25 @@ const Terms = ({ visaId }: TermsProps) => {
     })),
   });
 
-  const filesMap = fileQueries.reduce((acc, query) => {
-    if (query.data?.file) acc[query.data.file._id] = query.data.file;
-    return acc;
-  }, {} as Record<string, FileData>);
+  const filesMap = fileQueries.reduce(
+    (acc, query) => {
+      if (query.data?.file) acc[query.data.file._id] = query.data.file;
+      return acc;
+    },
+    {} as Record<string, FileData>,
+  );
 
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
   const isLoading = isLoadingTerms || (terms.length > 0 && isLoadingFiles);
+
+  // Don't render anything if no visaId is provided
+  if (!visaId) return null;
+
+  // Don't render anything if there are no terms (and not loading or in error state)
+  if (!isLoading && !isErrorTerms && terms.length === 0) {
+    return null;
+  }
 
   if (isLoading) return <SectionLoader />;
   if (isErrorTerms)
@@ -169,7 +180,7 @@ const Terms = ({ visaId }: TermsProps) => {
               .filter(Boolean);
 
             const termFileQueries = fileQueries.filter((q) =>
-              term.filesAssociated.includes(q.data?.file?._id || "")
+              term.filesAssociated.includes(q.data?.file?._id || ""),
             );
 
             return (
@@ -239,7 +250,7 @@ const Terms = ({ visaId }: TermsProps) => {
                       <div className="space-y-2 sm:space-y-3">
                         {termFiles.map((file) => {
                           const fileQuery = fileQueries.find(
-                            (q) => q.data?.file?._id === file._id
+                            (q) => q.data?.file?._id === file._id,
                           );
                           const isFileError = fileQuery?.isError;
                           const fileUrl = getFileUrl(file.file);

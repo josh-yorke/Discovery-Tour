@@ -146,15 +146,26 @@ const TourItinerary = ({ tourId }: TourItineraryProps) => {
     enabled: !!tourId,
   });
 
-  const sortedItineraries = [...(itineraries || [])].sort(
-    (a, b) => a.dayOrder - b.dayOrder
-  );
+  // Don't render anything if no tourId is provided
+  if (!tourId) return null;
 
+  // Show loader if main query is loading
   if (isLoadingItinerary) return <SectionLoader />;
+
+  // Show error if main query failed
   if (isErrorItinerary)
     return (
       <SectionError error={itineraryError?.message} action={refetchItinerary} />
     );
+
+  const sortedItineraries = [...(itineraries || [])].sort(
+    (a, b) => a.dayOrder - b.dayOrder,
+  );
+
+  // After loading and error checks, if no data, return null
+  if (sortedItineraries.length === 0) {
+    return null;
+  }
 
   const primaryGradient = "bg-gradient-to-r from-[#1d2087] to-[#393ca3]";
   const activityGradient = "bg-gradient-to-r from-blue-500 to-blue-600";
@@ -190,138 +201,130 @@ const TourItinerary = ({ tourId }: TourItineraryProps) => {
           <>
             <div className="border-b border-gray-200 my-6" />
 
-            {sortedItineraries.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-sm">
-                  No itinerary available for this tour.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {sortedItineraries.map((itinerary, index) => {
-                  const isLastDay = index === sortedItineraries.length - 1;
-                  const activities = itinerary.activities || [];
-                  const meals = itinerary.meals || [];
+            <div className="space-y-8">
+              {sortedItineraries.map((itinerary, index) => {
+                const isLastDay = index === sortedItineraries.length - 1;
+                const activities = itinerary.activities || [];
+                const meals = itinerary.meals || [];
 
-                  return (
-                    <div key={itinerary._id} className="flex group">
-                      <div className="flex flex-col items-center mr-4 sm:mr-6 relative">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center ${primaryGradient} shadow-md`}
-                        >
-                          {getDayIcon(index)}
-                        </div>
-                        {!isLastDay && (
-                          <div
-                            className={`w-0.5 flex-1 mt-2 ${primaryGradient} opacity-60`}
-                          />
-                        )}
+                return (
+                  <div key={itinerary._id} className="flex group">
+                    <div className="flex flex-col items-center mr-4 sm:mr-6 relative">
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${primaryGradient} shadow-md`}
+                      >
+                        {getDayIcon(index)}
                       </div>
+                      {!isLastDay && (
+                        <div
+                          className={`w-0.5 flex-1 mt-2 ${primaryGradient} opacity-60`}
+                        />
+                      )}
+                    </div>
 
-                      <div className="flex-1 pb-6">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-base font-semibold text-[#1d2087] group-hover:text-[#393ca3] transition-colors">
-                              {itinerary.title}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
-                              <RiMapPinLine
-                                className="text-[#1d2087]"
-                                size={16}
-                              />
-                              <span className="text-sm font-semibold text-[#1d2087]">
-                                {itinerary.location}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="mt-2 sm:mt-0">
-                            <span className="inline-block px-3 py-1 bg-[#1d2087] text-white text-sm font-bold rounded-full">
-                              {formatDayNumber(itinerary.dayOrder)}
+                    <div className="flex-1 pb-6">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-base font-semibold text-[#1d2087] group-hover:text-[#393ca3] transition-colors">
+                            {itinerary.title}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
+                            <RiMapPinLine
+                              className="text-[#1d2087]"
+                              size={16}
+                            />
+                            <span className="text-sm font-semibold text-[#1d2087]">
+                              {itinerary.location}
                             </span>
                           </div>
                         </div>
-
-                        {activities.length > 0 && (
-                          <div className="mb-6">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                              <h4 className="text-sm font-semibold text-gray-800">
-                                Activities
-                              </h4>
-                            </div>
-                            <div className="space-y-4">
-                              {activities.map((activity, activityIndex) => (
-                                <div
-                                  key={activity._id}
-                                  className="flex items-start group/activity"
-                                >
-                                  <div className="flex flex-col items-center mr-3 sm:mr-4">
-                                    <div
-                                      className={`w-7 h-7 rounded-full flex items-center justify-center ${activityGradient} shadow-sm group-hover/activity:shadow-md transition-shadow`}
-                                    >
-                                      {getActivityIcon(activity.activityType)}
-                                    </div>
-                                    {activityIndex < activities.length - 1 && (
-                                      <div
-                                        className={`w-0.5 flex-1 mt-1 ${activityGradient} opacity-60`}
-                                      />
-                                    )}
-                                  </div>
-                                  <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
-                                    {activity.information}
-                                  </pre>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {meals.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                              <h4 className="text-sm font-semibold text-gray-800">
-                                Meals Included
-                              </h4>
-                            </div>
-                            <div className="space-y-4">
-                              {meals.map((meal, mealIndex) => (
-                                <div
-                                  key={meal._id}
-                                  className="flex items-start group/meal"
-                                >
-                                  <div className="flex flex-col items-center mr-3 sm:mr-4">
-                                    <div
-                                      className={`w-7 h-7 rounded-full flex items-center justify-center ${mealGradient} shadow-sm group-hover/meal:shadow-md transition-shadow`}
-                                    >
-                                      {getMealIcon(meal.mealType)}
-                                    </div>
-                                    {mealIndex < meals.length - 1 && (
-                                      <div
-                                        className={`w-0.5 flex-1 mt-1 ${mealGradient} opacity-60`}
-                                      />
-                                    )}
-                                  </div>
-                                  <div className="pt-0.5">
-                                    <span className="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 text-sm font-semibold rounded mb-1">
-                                      {formatMealType(meal.mealType)}
-                                    </span>
-                                    <p className="text-sm text-gray-600 mt-1">
-                                      {meal.description} ({meal.mealCount}{" "}
-                                      {meal.mealUnit})
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        <div className="mt-2 sm:mt-0">
+                          <span className="inline-block px-3 py-1 bg-[#1d2087] text-white text-sm font-bold rounded-full">
+                            {formatDayNumber(itinerary.dayOrder)}
+                          </span>
+                        </div>
                       </div>
+
+                      {activities.length > 0 && (
+                        <div className="mb-6">
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <h4 className="text-sm font-semibold text-gray-800">
+                              Activities
+                            </h4>
+                          </div>
+                          <div className="space-y-4">
+                            {activities.map((activity, activityIndex) => (
+                              <div
+                                key={activity._id}
+                                className="flex items-start group/activity"
+                              >
+                                <div className="flex flex-col items-center mr-3 sm:mr-4">
+                                  <div
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center ${activityGradient} shadow-sm group-hover/activity:shadow-md transition-shadow`}
+                                  >
+                                    {getActivityIcon(activity.activityType)}
+                                  </div>
+                                  {activityIndex < activities.length - 1 && (
+                                    <div
+                                      className={`w-0.5 flex-1 mt-1 ${activityGradient} opacity-60`}
+                                    />
+                                  )}
+                                </div>
+                                <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
+                                  {activity.information}
+                                </pre>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {meals.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                            <h4 className="text-sm font-semibold text-gray-800">
+                              Meals Included
+                            </h4>
+                          </div>
+                          <div className="space-y-4">
+                            {meals.map((meal, mealIndex) => (
+                              <div
+                                key={meal._id}
+                                className="flex items-start group/meal"
+                              >
+                                <div className="flex flex-col items-center mr-3 sm:mr-4">
+                                  <div
+                                    className={`w-7 h-7 rounded-full flex items-center justify-center ${mealGradient} shadow-sm group-hover/meal:shadow-md transition-shadow`}
+                                  >
+                                    {getMealIcon(meal.mealType)}
+                                  </div>
+                                  {mealIndex < meals.length - 1 && (
+                                    <div
+                                      className={`w-0.5 flex-1 mt-1 ${mealGradient} opacity-60`}
+                                    />
+                                  )}
+                                </div>
+                                <div className="pt-0.5">
+                                  <span className="inline-block px-2.5 py-1 bg-amber-100 text-amber-800 text-sm font-semibold rounded mb-1">
+                                    {formatMealType(meal.mealType)}
+                                  </span>
+                                  <p className="text-sm text-gray-600 mt-1">
+                                    {meal.description} ({meal.mealCount}{" "}
+                                    {meal.mealUnit})
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  </div>
+                );
+              })}
+            </div>
           </>
         )}
       </div>

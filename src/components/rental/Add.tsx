@@ -40,7 +40,7 @@ const AddRental = () => {
       addRental(emailCustomer, emailAdmin, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rentals"], exact: false });
-      navigate("/transport/rental");
+      navigate(-1);
       reset();
     },
   });

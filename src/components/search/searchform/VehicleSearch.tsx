@@ -1,4 +1,3 @@
-import type { UseFormRegisterReturn } from "react-hook-form";
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
@@ -6,36 +5,61 @@ import SearchInput from "../SearchInput";
 import Options from "../Options";
 
 interface FormProps {
-  status: UseFormRegisterReturn;
-  isAvailable: UseFormRegisterReturn;
-  search: UseFormRegisterReturn;
-  action: () => void;
+  searchValue: string;
+  statusValue: string;
+  availabilityValue: string;
+  onSearchChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
+  onAvailabilityChange: (value: string) => void;
+  onSearchSubmit: () => void;
   statuses: string[];
   availability: string[];
 }
 
 const VehicleSearch = ({
-  action,
-  search,
-  isAvailable,
-  status,
+  searchValue,
+  statusValue,
+  availabilityValue,
+  onSearchChange,
+  onStatusChange,
+  onAvailabilityChange,
+  onSearchSubmit,
   statuses,
   availability,
 }: FormProps) => {
   const navigate = useNavigate();
 
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onStatusChange(e.target.value);
+  };
+
+  const handleAvailabilityChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
+    onAvailabilityChange(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onSearchSubmit();
+    }
+  };
+
   return (
-    <form
-      className="relative w-full flex flex-col items-center justify-center gap-4"
-      onSubmit={action}
-    >
+    <div className="relative w-full flex flex-col items-center justify-center gap-4">
       <div className="">
         <p className="text-md font-semibold text-[#1d2087]">Manage Vehicles</p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput placeholder="search vehicles" {...search} />
+        <SearchInput
+          placeholder="search vehicles"
+          value={searchValue}
+          onChange={(e) => onSearchChange(e.target.value)}
+          onKeyDown={handleSearchKeyDown}
+        />
         <button
-          type="submit"
+          onClick={onSearchSubmit}
           className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
         >
           <RiSearchLine size={14} color="white" />
@@ -43,8 +67,18 @@ const VehicleSearch = ({
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options options={availability} {...isAvailable} title="isAvailable?" />
-        <Options options={statuses} {...status} title="Status" />
+        <Options
+          options={availability}
+          value={availabilityValue}
+          onChange={handleAvailabilityChange}
+          title="isAvailable?"
+        />
+        <Options
+          options={statuses}
+          value={statusValue}
+          onChange={handleStatusChange}
+          title="Status"
+        />
 
         <IconButton
           icon={<RiAddLine size={16} />}
@@ -53,7 +87,7 @@ const VehicleSearch = ({
           style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
         />
       </div>
-    </form>
+    </div>
   );
 };
 

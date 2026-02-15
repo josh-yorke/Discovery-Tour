@@ -56,7 +56,7 @@ const Edit = ({
     queryFn: getVisaCountries,
     select: (data) =>
       data?.countries?.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       ) || [],
   });
 
@@ -70,7 +70,7 @@ const Edit = ({
 
   const countries = useMemo(
     () => countriesQuery.data || [],
-    [countriesQuery.data]
+    [countriesQuery.data],
   );
   const types = useMemo(() => typesQuery.data || [], [typesQuery.data]);
 
@@ -92,12 +92,11 @@ const Edit = ({
       queryClient.invalidateQueries({ queryKey: ["transports"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["transports", id] });
 
-      const redirectPath =
-        redirectTo === "information"
-          ? `/transport/transportation/information/edit/${id}`
-          : `/transport/transportation`;
-
-      navigate(redirectPath);
+      if (redirectTo === "information") {
+        navigate(`/transport/transportation/information/edit/${id}`);
+      } else {
+        navigate(-1);
+      }
     },
     onError: (error) => {
       setMessage(error.message);
@@ -120,7 +119,7 @@ const Edit = ({
 
   const handleSubmitAction = (
     data: addTransportationData,
-    target: RedirectTarget
+    target: RedirectTarget,
   ) => {
     setRedirectTo(target);
     const formData = createFormData(data);
@@ -135,7 +134,7 @@ const Edit = ({
       <FormProvider {...methods}>
         <form
           onSubmit={handleSubmit((data) =>
-            handleSubmitAction(data, "transportation")
+            handleSubmitAction(data, "transportation"),
           )}
           className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
@@ -198,7 +197,7 @@ const Edit = ({
 
               <ActionButton
                 action={handleSubmit((data) =>
-                  handleSubmitAction(data, "information")
+                  handleSubmitAction(data, "information"),
                 )}
                 isLoading={updateMutation.isPending}
                 title="Proceed to Information"

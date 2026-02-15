@@ -1,20 +1,15 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { z } from "zod";
-import {
-  addVisaFileSchema,
-  type addVisaFileData,
-} from "../../types/visafile/addVisaFileTypes";
-import {
-  addPricelistSchema,
-  type addPricelistData,
-} from "../../types/pricelist/addPricelistTypes";
+import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
+import { type addPricelistData } from "../../types/pricelist/addPricelistTypes";
 import Input from "../input/Input";
 import TextArea from "../input/TextArea";
 import FileInput from "../input/FileInput";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import NumberInput from "../input/NumberInput";
+import InputOption from "../input/InputOption";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -25,27 +20,39 @@ export interface PricelistFormHandle {
 
 const hasPricelistContent = (pricelist: {
   plan?: string;
-  fee?: string;
+  fee?: string | number;
   description?: string;
   fileTitle?: string;
   file?: FileList;
+  priceCurrency?: string;
 }): boolean => {
   return (
     (pricelist.plan?.trim() ?? "").length > 0 ||
-    (pricelist.fee?.trim() ?? "").length > 0 ||
+    (typeof pricelist.fee === "string" && pricelist.fee.trim() !== "") ||
+    (typeof pricelist.fee === "number" && !isNaN(pricelist.fee)) ||
     (pricelist.description?.trim() ?? "").length > 0 ||
+    (pricelist.priceCurrency?.trim() ?? "").length > 0 ||
     (pricelist.fileTitle?.trim() ?? "").length > 0 ||
     (pricelist.file?.length ?? 0) > 0
   );
 };
 
-const mergedSchema = addPricelistSchema
-  .merge(
-    addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
-      file: addVisaFileSchema.shape.file.optional(),
-      fileTitle: z.string().optional(),
-    }),
-  )
+const mergedSchema = z
+  .object({
+    plan: z.string().min(1, "Plan name is required"),
+    fee: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((val) => {
+        if (typeof val === "string" && val.trim() === "") return undefined;
+        if (typeof val === "string") return parseFloat(val);
+        return val;
+      }),
+    description: z.string().min(1, "Description is required"),
+    priceCurrency: z.string().min(1, "Currency is required"),
+    fileTitle: z.string().optional(),
+    file: z.any().optional(),
+  })
   .refine(
     (data) => {
       if (data.file && data.file.length > 0) {
@@ -59,13 +66,22 @@ const mergedSchema = addPricelistSchema
     },
   );
 
-type MergedSchemaType = z.infer<typeof mergedSchema>;
+type MergedSchemaType = {
+  plan: string;
+  fee?: string | number;
+  description: string;
+  priceCurrency: string;
+  fileTitle?: string;
+  file?: FileList;
+};
+
 type FormData = { pricelists: MergedSchemaType[] };
 
 const DEFAULT_PRICELIST: MergedSchemaType = {
   plan: "",
   fee: "",
   description: "",
+  priceCurrency: "USD",
   fileTitle: "",
   file: undefined,
 };
@@ -118,12 +134,17 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             }
           });
         } else {
-          pricelistData.push({
-            plan: pricelist.plan,
-            fee: pricelist.fee,
-            description: pricelist.description,
-          });
+          const pricelistItem: addPricelistData = {
+            plan: result.data.plan,
+            description: result.data.description,
+            priceCurrency: result.data.priceCurrency,
+          };
 
+          if (result.data.fee !== undefined) {
+            pricelistItem.fee = result.data.fee;
+          }
+
+          pricelistData.push(pricelistItem);
           pricelistFileData.push({
             fileTitle: pricelist.fileTitle || "",
             file: pricelist.file,
@@ -259,6 +280,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     const planError = errors.pricelists?.[index]?.plan?.message;
     const feeError = errors.pricelists?.[index]?.fee?.message;
     const descriptionError = errors.pricelists?.[index]?.description?.message;
+    const currencyError = errors.pricelists?.[index]?.priceCurrency?.message;
 
     return (
       <div
@@ -280,17 +302,31 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
               style="bg-white"
               disabled={false}
               error={hasContent && planError ? String(planError) : ""}
-              title="Plan Name"
+              title="Plan Name *"
               placeholder="Enter plan name (e.g., Standard, Express, Premium)"
               type="text"
               {...register(`pricelists.${index}.plan` as const)}
             />
+            <div>
+              <InputOption
+                disabled={false}
+                style="bg-white w-full"
+                title="Displayed Currency *"
+                options={["USD", "KRW", "JPY", "PHP"]}
+                {...register(`pricelists.${index}.priceCurrency` as const)}
+              />
+              {hasContent && currencyError && (
+                <p className="text-red-500 text-xs mt-1">
+                  {String(currencyError)}
+                </p>
+              )}
+            </div>
             <NumberInput
               style="bg-white"
               disabled={false}
               error={hasContent && feeError ? String(feeError) : ""}
               title="Fee Amount"
-              placeholder="Enter fee amount"
+              placeholder="Enter fee amount (optional)"
               type="number"
               {...register(`pricelists.${index}.fee` as const)}
             />
@@ -301,12 +337,19 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             error={
               hasContent && descriptionError ? String(descriptionError) : ""
             }
-            title="Plan Description"
+            title="Plan Description *"
             placeholder="Enter detailed description of what this plan includes"
             {...register(`pricelists.${index}.description` as const)}
           />
 
           {renderFileSection(index)}
+
+          <div className="text-xs text-gray-500">
+            <p>• Fields marked with * are required</p>
+            <p>
+              • Fee amount is optional - leave empty for plans with no fixed fee
+            </p>
+          </div>
         </div>
       </div>
     );

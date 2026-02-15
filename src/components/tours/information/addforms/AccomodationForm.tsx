@@ -15,6 +15,7 @@ import StarInput from "../../../input/StarInput";
 export interface AccommodationFormHandle {
   getFormData: () => Promise<{
     accommodationData: addAccomodationData[];
+    isValid?: boolean;
   } | null>;
 }
 
@@ -95,15 +96,17 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
               });
             }
           });
-        } else {
-          accommodationData.push({
-            accommodationName: accommodation.accommodationName,
-            accommodationDescription: accommodation.accommodationDescription,
-            accommodationStar: accommodation.accommodationStar,
-            accommodationWebsite: accommodation.accommodationWebsite,
-            images: accommodation.images,
-          });
         }
+
+        // Always push the data, even if validation fails
+        accommodationData.push({
+          accommodationName: accommodation.accommodationName || "",
+          accommodationDescription:
+            accommodation.accommodationDescription || "",
+          accommodationStar: accommodation.accommodationStar || "",
+          accommodationWebsite: accommodation.accommodationWebsite || "",
+          images: accommodation.images,
+        });
       }
     });
 
@@ -134,11 +137,11 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
     getFormData: async () => {
       const { isValid, accommodationData } = validateAndGetFormData();
 
-      if (!isValid || accommodationData.length === 0) {
+      if (accommodationData.length === 0) {
         return null;
       }
 
-      return { accommodationData };
+      return { accommodationData, isValid };
     },
   }));
 
@@ -183,7 +186,7 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
         )}
 
         <div className="text-xs text-gray-500">
-          <p>• At least one image is required for each accommodation</p>
+          <p>• Upload images of the accommodation (optional)</p>
           <p>• Supported formats: JPG, PNG, WebP, GIF</p>
           <p>• Recommended size: 1920x1080 pixels</p>
         </div>
@@ -192,8 +195,6 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
   };
 
   const renderAccommodationForm = (field: { id: string }, index: number) => {
-    const currentAccommodation = watchAccommodations?.[index];
-    const hasContent = hasAccommodationContent(currentAccommodation);
     const nameError =
       errors.accommodations?.[index]?.accommodationName?.message;
     const starError =
@@ -222,10 +223,11 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
             <Input
               style="bg-white"
               disabled={false}
-              error={hasContent && nameError ? String(nameError) : ""}
-              title="Accommodation Name"
+              error={nameError ? String(nameError) : ""}
+              title="Accommodation Name *"
               placeholder="Enter accommodation name (e.g., Luxury Hotel, Beach Resort)"
               type="text"
+              required
               {...register(
                 `accommodations.${index}.accommodationName` as const,
               )}
@@ -233,7 +235,7 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
             <StarInput
               style="bg-white"
               disabled={false}
-              error={hasContent && starError ? String(starError) : ""}
+              error={starError ? String(starError) : ""}
               title="Star Rating"
               placeholder="Enter star rating (e.g., 5-star, 4-star, Budget)"
               type="number"
@@ -246,7 +248,7 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
           <Input
             style="bg-white"
             disabled={false}
-            error={hasContent && websiteError ? String(websiteError) : ""}
+            error={websiteError ? String(websiteError) : ""}
             title="Website URL"
             placeholder="Enter accommodation website URL"
             type="url"
@@ -257,11 +259,10 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
 
           <TextArea
             disabled={false}
-            error={
-              hasContent && descriptionError ? String(descriptionError) : ""
-            }
-            title="Accommodation Description"
+            error={descriptionError ? String(descriptionError) : ""}
+            title="Accommodation Description *"
             placeholder="Enter detailed description of the accommodation including amenities, location, and features"
+            required
             {...register(
               `accommodations.${index}.accommodationDescription` as const,
             )}

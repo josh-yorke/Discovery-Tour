@@ -5,7 +5,6 @@ export const railSearchSchema = z.object({
   search: z.string().nullable(),
   country: z.string().nullable(),
   category: z.string().nullable(),
-  type: z.string().nullable(),
   // type: z.string().nullable(),
 });
 

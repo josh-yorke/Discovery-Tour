@@ -2,25 +2,20 @@ import z from "zod";
 
 export const addAccomodationSchema = z.object({
   accommodationName: z.string().min(1, "Accommodation name is required"),
-  accommodationStar: z.string().min(1, "Star rating is required"),
   accommodationDescription: z.string().min(1, "Description is required"),
-  accommodationWebsite: z.string().min(2, "website is required"),
-  images: z
-    .any()
-    .refine(
-      (value) => value instanceof FileList && value.length > 0,
-      "At least one image is required"
-    ),
+  accommodationStar: z.string().optional(),
+  accommodationWebsite: z.string().url().optional().or(z.literal("")),
+  images: z.any().optional(),
 });
 
 export const editAccommodationSchema = z.object({
   _id: z.string(),
   tour: z.string(),
   accommodationName: z.string(),
-  accommodationStar: z.number(),
+  accommodationStar: z.number().optional(),
   accommodationDescription: z.string(),
-  accommodationWebsite: z.string(),
-  accommodationImages: z.array(z.string()),
+  accommodationWebsite: z.string().optional(),
+  accommodationImages: z.array(z.string()).optional(),
   dateAdded: z.string().optional(),
   __v: z.number().optional(),
 });

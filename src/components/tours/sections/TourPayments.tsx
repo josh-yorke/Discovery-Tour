@@ -73,8 +73,19 @@ const TourPayments = ({ tourId }: TourPaymentsProps) => {
     enabled: !!tourId,
   });
 
+  // Don't render anything if no tourId is provided
+  if (!tourId) return null;
+
+  // Show loader if main query is loading
   if (isLoading) return <SectionLoader />;
+
+  // Show error if main query failed
   if (isError) return <SectionError error={error?.message} action={refetch} />;
+
+  // After loading and error checks, if no data, return null
+  if (!payments || payments.length === 0) {
+    return null;
+  }
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -106,82 +117,74 @@ const TourPayments = ({ tourId }: TourPaymentsProps) => {
           <>
             <div className="w-full border-b border-black/6" />
 
-            {(payments || []).length === 0 ? (
-              <div className="w-full text-center py-6 sm:py-8">
-                <p className="text-gray-500 text-sm sm:text-base">
-                  No payment information available for this tour.
-                </p>
-              </div>
-            ) : (
-              <div className="w-full space-y-4 sm:space-y-6">
-                {payments!.map((payment, index) => (
-                  <div key={payment._id} className="space-y-3 sm:space-y-4">
-                    <div className="flex items-start gap-3 sm:gap-4">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 text-white bg-[#1d2087]">
-                        {getStepIcon(index)}
+            <div className="w-full space-y-4 sm:space-y-6">
+              {payments.map((payment, index) => (
+                <div key={payment._id} className="space-y-3 sm:space-y-4">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 text-white bg-[#1d2087]">
+                      {getStepIcon(index)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2">
+                        <p className="text-base font-semibold text-[#1d2087]">
+                          {payment.type}
+                        </p>
+                        <span className="text-xs font-semibold text-gray-500 px-2 py-1 bg-gray-100 rounded-2xl">
+                          {payment.currency}
+                        </span>
                       </div>
-                      <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2">
-                          <p className="text-base font-semibold text-[#1d2087]">
-                            {payment.type}
-                          </p>
-                          <span className="text-xs font-semibold text-gray-500 px-2 py-1 bg-gray-100 rounded-2xl">
-                            {payment.currency}
-                          </span>
-                        </div>
 
-                        <div className="mt-4 space-y-3 sm:space-y-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                            <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase">
-                                Account Name
-                              </p>
-                              <p className="text-sm font-normal text-gray-800 mt-1">
-                                {payment.accountName}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase">
-                                Bank Name
-                              </p>
-                              <p className="text-sm font-normal text-gray-800 mt-1">
-                                {payment.bankName}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase">
-                                Account Number
-                              </p>
-                              <p className="text-sm font-normal text-gray-800 mt-1 font-mono">
-                                {payment.accountNo}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium text-gray-500 uppercase">
-                                SWIFT Code
-                              </p>
-                              <p className="text-sm font-normal text-gray-800 mt-1 font-mono">
-                                {payment.swiftCode}
-                              </p>
-                            </div>
-                          </div>
-
+                      <div className="mt-4 space-y-3 sm:space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div>
                             <p className="text-xs font-medium text-gray-500 uppercase">
-                              Bank Address
+                              Account Name
                             </p>
-                            <p className="text-sm font-normal text-gray-800 mt-1 whitespace-pre-line">
-                              {payment.bankAddress}
+                            <p className="text-sm font-normal text-gray-800 mt-1">
+                              {payment.accountName}
                             </p>
                           </div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 uppercase">
+                              Bank Name
+                            </p>
+                            <p className="text-sm font-normal text-gray-800 mt-1">
+                              {payment.bankName}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 uppercase">
+                              Account Number
+                            </p>
+                            <p className="text-sm font-normal text-gray-800 mt-1 font-mono">
+                              {payment.accountNo}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 uppercase">
+                              SWIFT Code
+                            </p>
+                            <p className="text-sm font-normal text-gray-800 mt-1 font-mono">
+                              {payment.swiftCode}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs font-medium text-gray-500 uppercase">
+                            Bank Address
+                          </p>
+                          <p className="text-sm font-normal text-gray-800 mt-1 whitespace-pre-line">
+                            {payment.bankAddress}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    <div className="w-full border-b border-black/6" />
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="w-full border-b border-black/6" />
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>

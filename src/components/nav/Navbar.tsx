@@ -22,7 +22,7 @@ import {
   RiUser4Fill,
   RiUser4Line,
 } from "react-icons/ri";
-import { NavLink, useLocation } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import LogoutButton from "../button/LogoutButton";
 import DropdownLink from "./DropdownLink";
 import HoverLink from "./HoverLink";
@@ -30,15 +30,28 @@ import LinkButton from "./LinkButton";
 
 const Navbar = () => {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [nav, showNav] = useState(false);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    // If we're already on the home page, reload the page
+    if (pathname === "/") {
+      window.location.reload();
+    } else {
+      // Otherwise navigate to home
+      navigate("/");
+    }
+  };
 
   return (
     <>
       <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
         <div className=" w-full lg:w-7xl flex flex-row items-center justify-between px-6 lg:px-2 py-4  bg-white ">
-          <NavLink to={"/visas/visa"}>
+          <div onClick={handleLogoClick} className="cursor-pointer">
             <img src="/Logov2.svg" alt="/" width={200} />
-          </NavLink>
+          </div>
           <div className="hidden lg:flex flex-row items-center justify-center gap-6">
             <LinkButton
               to="/visas/visa"
@@ -75,7 +88,13 @@ const Navbar = () => {
             />
 
             <HoverLink
-              options={["rail-passes", "vehicles", "transportation", "rental"]}
+              options={[
+                "rail-passes",
+                "vehicles",
+                "transportation",
+                "rental",
+                "booking",
+              ]}
               to="/transport"
               style={`${
                 pathname.startsWith("/transport")
@@ -224,12 +243,12 @@ const Navbar = () => {
           } fixed top-0 h-screen bg-white w-full z-20 duration-300`}
         >
           <div className="relative w-full h-full flex flex-col items-center justify-center gap-4 py-12">
-            <NavLink to={"/dashboard"} className="pb-6">
+            <div onClick={handleLogoClick} className="pb-6 cursor-pointer">
               <img src="/logo.png" alt="/" />
-            </NavLink>
+            </div>
             <div className="flex flex-col items-center justify-center gap-4">
               <LinkButton
-                to="/visas"
+                to="/visas/visa"
                 style={`${
                   pathname.startsWith("/visas/visa")
                     ? "font-semibold text-[#1d2087]"
@@ -263,7 +282,12 @@ const Navbar = () => {
               />
 
               <DropdownLink
-                options={["rail-passes", "vehicles", "transport"]}
+                options={[
+                  "rail-passes",
+                  "vehicles",
+                  "transportation",
+                  "rental",
+                ]}
                 to="/transport"
                 style={`${
                   pathname.startsWith("/transport")

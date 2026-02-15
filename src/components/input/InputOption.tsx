@@ -1,7 +1,9 @@
-interface OptionProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "style"> {
+interface OptionProps extends Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  "style"
+> {
   options: string[];
-  style: string; // This is for CSS classes, not inline styles
+  style: string;
   title: string;
   disabled: boolean;
 }

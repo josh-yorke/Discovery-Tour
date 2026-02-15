@@ -1,51 +1,44 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import type z from "zod";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
+import { getTours } from "../../hooks/tours/getTours";
 import Navbar from "../../components/nav/Navbar";
 import Pagination from "../../components/pagination/Pagination";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
-import { getTours } from "../../hooks/tours/getTours";
-import {
-  tourSearchSchema,
-  type tourSearchData,
-} from "../../types/tours/tourSearchTypes";
 import ToursSearch from "../../components/search/searchform/ToursSearch";
 import ToursParent from "../../components/tours/ToursParent";
+import { useSearchParams } from "react-router-dom";
 
 const Tours = () => {
-  const { register, handleSubmit, setValue, getValues } = useForm<
-    z.input<typeof tourSearchSchema>
-  >({
-    resolver: zodResolver(tourSearchSchema),
-    defaultValues: {
-      page: 1,
-      search: "",
-      country: "",
-      // type: "",
-    },
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchParams, setSearchParams] = useState<tourSearchData>({
-    page: 1,
-    search: "",
-    country: "",
-    // type: "",
-  });
+  const [search, setSearch] = useState("");
+  const [country, setCountry] = useState("");
+  const [page, setPage] = useState(1);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // const { data: tourTypesData } = useQuery({
-  //   queryKey: ["tourTypes"],
-  //   queryFn: getTourTypes,
-  //   select: (data) => {
-  //     if (!data?.tourTypes) return [];
-  //     return data.tourTypes.filter(
-  //       (type): type is string => typeof type === "string"
-  //     );
-  //   },
-  // });
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get("page") || "1");
+    const urlSearch = searchParams.get("search") || "";
+    const urlCountry = searchParams.get("country") || "";
+
+    setPage(urlPage);
+    setSearch(urlSearch);
+    setCountry(urlCountry);
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const params = new URLSearchParams();
+    if (page !== 1) params.set("page", page.toString());
+    if (search) params.set("search", search);
+    if (country) params.set("country", country);
+
+    setSearchParams(params, { replace: true });
+  }, [page, search, country, setSearchParams, isInitialized]);
 
   const { data: countriesData } = useQuery({
     queryKey: ["visaCountries"],
@@ -53,49 +46,51 @@ const Tours = () => {
     select: (data) => {
       if (!data?.countries) return [];
       return data.countries.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       );
     },
   });
 
-  const onSubmit = (data: z.input<typeof tourSearchSchema>) => {
-    setSearchParams({ ...data, page: 1 });
-    setValue("page", 1);
-  };
-
-  const fetchTours = useCallback(async () => {
-    return await getTours(searchParams);
-  }, [searchParams]);
-
   const { data, isLoading, refetch, isError, error } = useQuery({
-    queryKey: ["tours", searchParams],
-    queryFn: fetchTours,
-    enabled: true,
+    queryKey: ["tours", { page, search, country }],
+    queryFn: () => getTours({ page, search, country }),
+    enabled: isInitialized,
   });
 
-  const handlePageChange = (page: number) => {
-    const values = getValues();
-    setValue("page", page);
-    setSearchParams({
-      ...values,
-      page,
-    });
+  const handleCountryChange = (value: string) => {
+    setCountry(value);
+    setPage(1);
   };
 
-  // const types = useMemo(() => tourTypesData || [], [tourTypesData]);
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
   const countries = useMemo(() => countriesData || [], [countriesData]);
+
+  if (!isInitialized) {
+    return <SectionLoader />;
+  }
 
   return (
     <>
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <ToursSearch
-          // tourType={register("type")}
-          country={register("country")}
-          search={register("search")}
-          action={handleSubmit(onSubmit)}
+          searchValue={search}
+          countryValue={country}
+          onSearchChange={handleSearchChange}
+          onCountryChange={handleCountryChange}
+          onSearchSubmit={handleSearchSubmit}
           countries={countries}
-          // types={types}
         />
         {isError ? (
           <SectionError action={refetch} error={error?.message} />
@@ -106,7 +101,7 @@ const Tours = () => {
             {data && <ToursParent tours={data.tours} isLoading={isLoading} />}
             {data?.totalPages > 1 && (
               <Pagination
-                currentPage={searchParams.page ?? 1}
+                currentPage={page}
                 totalPages={data?.totalPages}
                 onPageChange={handlePageChange}
               />

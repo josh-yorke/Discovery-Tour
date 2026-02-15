@@ -36,7 +36,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.countries) return [];
       return data.countries.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       );
     },
   });
@@ -68,10 +68,8 @@ const Add = () => {
       if (redirectTo === "information") {
         navigate(`/tours/information/add`);
       } else {
-        navigate(`/tours`);
+        navigate(-1);
       }
-
-      reset();
 
       reset();
     },
@@ -234,9 +232,6 @@ const Add = () => {
           success={mutation.isSuccess}
           action={() => {
             showMessage(null);
-            if (mutation.isSuccess) {
-              navigate("/tours/information/add");
-            }
           }}
         />
       )}

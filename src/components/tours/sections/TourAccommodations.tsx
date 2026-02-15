@@ -86,14 +86,25 @@ const TourAccommodation = ({ tourId }: TourAccommodationProps) => {
     enabled: !!tourId,
   });
 
+  // Don't render anything if no tourId is provided
+  if (!tourId) return null;
+
+  // Show loader if main query is loading
+  if (isLoading) return <SectionLoader />;
+
+  // Show error if main query failed
+  if (isError) return <SectionError error={error?.message} action={refetch} />;
+
   const sortedAccommodations = [...(accommodations || [])].sort(
-    (a, b) => new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime()
+    (a, b) => new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime(),
   );
 
-  const primaryGradient = "bg-gradient-to-r from-[#1d2087] to-[#393ca3]";
+  // After loading and error checks, if no data, return null
+  if (sortedAccommodations.length === 0) {
+    return null;
+  }
 
-  if (isLoading) return <SectionLoader />;
-  if (isError) return <SectionError error={error?.message} action={refetch} />;
+  const primaryGradient = "bg-gradient-to-r from-[#1d2087] to-[#393ca3]";
 
   return (
     <div className="w-full">
@@ -128,113 +139,103 @@ const TourAccommodation = ({ tourId }: TourAccommodationProps) => {
             <div className="border-t border-gray-200 mx-6" />
 
             <div className="p-6 pt-0">
-              {sortedAccommodations.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500 text-sm">
-                    No accommodation information available for this tour.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-8 mt-6">
-                  {sortedAccommodations.map((accommodation, index) => {
-                    const isLastAccommodation =
-                      index === sortedAccommodations.length - 1;
+              <div className="space-y-8 mt-6">
+                {sortedAccommodations.map((accommodation, index) => {
+                  const isLastAccommodation =
+                    index === sortedAccommodations.length - 1;
 
-                    return (
-                      <div
-                        key={accommodation._id}
-                        className="flex flex-col md:flex-row gap-4 md:gap-6"
-                      >
-                        <div className="shrink-0 flex flex-col items-center relative">
+                  return (
+                    <div
+                      key={accommodation._id}
+                      className="flex flex-col md:flex-row gap-4 md:gap-6"
+                    >
+                      <div className="shrink-0 flex flex-col items-center relative">
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${primaryGradient} shadow-md`}
+                        >
+                          {getAccommodationIcon(index)}
+                        </div>
+                        {!isLastAccommodation && (
                           <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center ${primaryGradient} shadow-md`}
-                          >
-                            {getAccommodationIcon(index)}
-                          </div>
-                          {!isLastAccommodation && (
-                            <div
-                              className={`w-0.5 flex-1 mt-2 ${primaryGradient} opacity-60`}
-                            />
-                          )}
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-4">
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-base font-semibold text-[#1d2087] line-clamp-1 wrap-break-word">
-                                {accommodation.accommodationName}
-                              </h3>
-
-                              <div className="flex flex-wrap items-center gap-3 mt-2">
-                                <div className="flex items-center gap-2 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
-                                  <div className="flex items-center">
-                                    {renderStars(
-                                      accommodation.accommodationStar
-                                    )}
-                                  </div>
-                                  <span className="text-sm font-semibold text-emerald-800 whitespace-nowrap">
-                                    {accommodation.accommodationStar} Star
-                                  </span>
-                                </div>
-
-                                {accommodation.accommodationWebsite && (
-                                  <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
-                                    <RiGlobalLine
-                                      className="text-[#1d2087] shrink-0"
-                                      size={14}
-                                    />
-                                    <a
-                                      href={accommodation.accommodationWebsite}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-sm font-semibold text-[#1d2087] hover:underline"
-                                    >
-                                      Website
-                                    </a>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {accommodation.accommodationDescription && (
-                            <div className="mb-6">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                <h4 className="text-sm font-semibold text-gray-800">
-                                  Description
-                                </h4>
-                              </div>
-                              <p className="text-sm text-gray-700 whitespace-pre-line">
-                                {accommodation.accommodationDescription}
-                              </p>
-                            </div>
-                          )}
-
-                          {accommodation.accommodationImages?.length > 0 && (
-                            <div>
-                              <div className="flex items-center gap-2 mb-4">
-                                <RiImageLine
-                                  className="text-emerald-600"
-                                  size={16}
-                                />
-                                <h4 className="text-sm font-semibold text-gray-800">
-                                  Gallery
-                                </h4>
-                              </div>
-                              <div className="w-full overflow-hidden rounded-xl">
-                                <InfiniteCarousel
-                                  images={accommodation.accommodationImages}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                            className={`w-0.5 flex-1 mt-2 ${primaryGradient} opacity-60`}
+                          />
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-3 mb-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-base font-semibold text-[#1d2087] line-clamp-1 wrap-break-word">
+                              {accommodation.accommodationName}
+                            </h3>
+
+                            <div className="flex flex-wrap items-center gap-3 mt-2">
+                              <div className="flex items-center gap-2 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
+                                <div className="flex items-center">
+                                  {renderStars(accommodation.accommodationStar)}
+                                </div>
+                                <span className="text-sm font-semibold text-emerald-800 whitespace-nowrap">
+                                  {accommodation.accommodationStar} Star
+                                </span>
+                              </div>
+
+                              {accommodation.accommodationWebsite && (
+                                <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-100">
+                                  <RiGlobalLine
+                                    className="text-[#1d2087] shrink-0"
+                                    size={14}
+                                  />
+                                  <a
+                                    href={accommodation.accommodationWebsite}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm font-semibold text-[#1d2087] hover:underline"
+                                  >
+                                    Website
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {accommodation.accommodationDescription && (
+                          <div className="mb-6">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <h4 className="text-sm font-semibold text-gray-800">
+                                Description
+                              </h4>
+                            </div>
+                            <p className="text-sm text-gray-700 whitespace-pre-line">
+                              {accommodation.accommodationDescription}
+                            </p>
+                          </div>
+                        )}
+
+                        {accommodation.accommodationImages?.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 mb-4">
+                              <RiImageLine
+                                className="text-emerald-600"
+                                size={16}
+                              />
+                              <h4 className="text-sm font-semibold text-gray-800">
+                                Gallery
+                              </h4>
+                            </div>
+                            <div className="w-full overflow-hidden rounded-xl">
+                              <InfiniteCarousel
+                                images={accommodation.accommodationImages}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}

@@ -7,12 +7,12 @@ export const addActivitySchema = z.object({
   information: z.string().min(1, "Information is required"),
 });
 
-// Meal schema
+// Meal schema - all fields optional but if any is filled, all must be filled
 export const addMealSchema = z.object({
-  mealType: z.string().min(1, "Meal type is required"),
-  mealCount: z.string().min(1, "Meal count is required").or(z.number()),
-  mealUnit: z.string().min(1, "Meal unit is required"),
-  description: z.string().min(1, "Description is required"),
+  mealType: z.string().optional(),
+  mealCount: z.string().or(z.number()).optional(),
+  mealUnit: z.string().optional(),
+  description: z.string().optional(),
 });
 
 // Main itinerary schema
@@ -23,7 +23,7 @@ export const addItinerarySchema = z.object({
   activities: z
     .array(addActivitySchema)
     .min(1, "At least one activity is required"),
-  meals: z.array(addMealSchema).min(1, "At least one meal is required"),
+  meals: z.array(addMealSchema).optional(), // Make meals optional
 });
 
 export const editItinerarySchema = z.object({
@@ -32,7 +32,7 @@ export const editItinerarySchema = z.object({
   location: z.string(),
   dayOrder: z.string(),
   activities: z.array(addActivitySchema),
-  meals: z.array(addMealSchema),
+  meals: z.array(addMealSchema).optional(),
 });
 
 export type addActivityData = z.infer<typeof addActivitySchema>;

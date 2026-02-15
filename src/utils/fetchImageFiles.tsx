@@ -11,7 +11,7 @@ async function generateFileHash(file: Blob): Promise<string> {
 }
 
 export const fetchImageFiles = async (
-  imageNames: string[]
+  imageNames: string[],
 ): Promise<File[]> => {
   if (!imageNames?.length) return [];
 
@@ -27,7 +27,7 @@ export const fetchImageFiles = async (
       const shortName = `${contentHash}.${fileExtension}`;
 
       return new File([blob], shortName, { type: contentType });
-    })
+    }),
   );
   return files;
 };

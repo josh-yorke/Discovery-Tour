@@ -4,6 +4,7 @@ export const pricelistDataSchema = z.object({
   _id: z.string(),
   plan: z.string(),
   fee: z.string(),
+  priceCurrency: z.string(),
   description: z.string(),
   visa: z.string(),
   filesAssociated: z.string().optional(),
@@ -12,18 +13,19 @@ export const pricelistDataSchema = z.object({
 export const editPricelistSchema = z.object({
   _id: z.string(),
   plan: z.string(),
-  fee: z.number(),
+  fee: z.number().optional(),
   description: z.string(),
   visa: z.string(),
   fileTitle: z.string().optional(),
   file: z.string().optional(),
   filesAssociated: z.string().optional(),
+  priceCurrency: z.string(),
 });
 
 export const editTransportPricelistSchema = z.object({
   _id: z.string(),
   plan: z.string(),
-  fee: z.number(),
+  fee: z.number().optional(),
   description: z.string(),
   visa: z.string(),
   vehicle: z.object({
@@ -32,6 +34,7 @@ export const editTransportPricelistSchema = z.object({
   fileTitle: z.string().optional(),
   file: z.string().optional(),
   filesAssociated: z.string().optional(),
+  priceCurrency: z.string(),
 });
 
 export type pricelistData = z.infer<typeof pricelistDataSchema>;

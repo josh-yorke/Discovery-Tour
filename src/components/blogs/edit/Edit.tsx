@@ -61,7 +61,7 @@ const EditInputs = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blogs"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["blogs", id] });
-      navigate(`/blogs`);
+      navigate(-1);
       reset();
     },
   });
@@ -121,7 +121,7 @@ const EditInputs = ({
           onSubmit={handleSubmit(onSubmit, (err) => {
             console.log(err);
           })}
-          className="w-full lg:w-2xl min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+          className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
           <Input
             style="bg-white"

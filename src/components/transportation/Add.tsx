@@ -33,7 +33,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.countries) return [];
       return data.countries.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       );
     },
   });
@@ -44,7 +44,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.types) return [];
       return data.types.filter(
-        (type): type is string => typeof type === "string"
+        (type): type is string => typeof type === "string",
       );
     },
   });
@@ -71,7 +71,7 @@ const Add = () => {
       if (redirectTo === "information") {
         navigate(`/transport/transportation/information/add`);
       } else {
-        navigate(`/transport/transportation`);
+        navigate(-1);
       }
 
       reset();

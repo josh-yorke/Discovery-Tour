@@ -13,10 +13,17 @@ import InputOption from "../../../components/input/InputOption";
 import TextArea from "../../../components/input/TextArea";
 import ImageInput from "../../input/ImageInput";
 import Button from "../../button/Button";
+import Modal from "../../modal/Modal"; // Import Modal component
+import { useState } from "react";
 
 const Add = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const [modal, setModal] = useState<{
+    message: string;
+    isSuccess: boolean;
+  } | null>(null);
+
   const methods = useForm<addNewsData>({
     resolver: zodResolver(addNewsSchema),
     defaultValues: {
@@ -34,12 +41,28 @@ const Add = () => {
 
   const mutation = useMutation<string, Error, FormData>({
     mutationFn: addNews,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setModal({
+        message: data || "News added successfully!",
+        isSuccess: true,
+      });
       queryClient.invalidateQueries({ queryKey: ["news"], exact: false });
-      navigate("/news");
       reset();
     },
+    onError: (error) => {
+      setModal({
+        message: error.message || "Failed to add news",
+        isSuccess: false,
+      });
+    },
   });
+
+  const handleModalClose = () => {
+    setModal(null);
+    if (modal?.isSuccess) {
+      navigate(-1);
+    }
+  };
 
   const onSubmit = (data: addNewsData) => {
     const formData = new FormData();
@@ -59,7 +82,10 @@ const Add = () => {
     const user = localStorage.getItem("user");
 
     if (!user) {
-      console.error("o user found in localStorage. Cannot append author.");
+      setModal({
+        message: "No user found in localStorage. Cannot append author.",
+        isSuccess: false,
+      });
       return;
     }
 
@@ -67,13 +93,19 @@ const Add = () => {
       const parsed = JSON.parse(user);
 
       if (!parsed._id) {
-        console.error(" User object has no _id. Cannot append author.");
+        setModal({
+          message: "User object has no _id. Cannot append author.",
+          isSuccess: false,
+        });
         return;
       }
 
       formData.append("author", parsed._id);
     } catch (err) {
-      console.error("Failed to parse user from localStorage", err);
+      setModal({
+        message: "Failed to parse user from localStorage",
+        isSuccess: false,
+      });
       return;
     }
 
@@ -99,6 +131,23 @@ const Add = () => {
               type="text"
               {...register("title")}
             />
+
+            {/* Status InputOption with error display */}
+            <div className="w-full">
+              <InputOption
+                disabled={false}
+                style="bg-white w-full"
+                title="Status"
+                options={["published", "draft"]}
+                {...register("status")}
+              />
+              {errors.status && (
+                <p className="text-red-500 text-xs mt-1 ml-1">
+                  {errors.status.message}
+                </p>
+              )}
+            </div>
+
             <TextArea
               disabled={false}
               error={errors.contents?.message || ""}
@@ -106,17 +155,12 @@ const Add = () => {
               placeholder="news contents"
               {...register("contents")}
             />
-            <InputOption
-              disabled={false}
-              style="bg-white w-full"
-              title="Status"
-              options={["published", "draft"]}
-              {...register("status")}
-            />
+
             <TagsInput
               error={errors.tags?.[0]?.message || ""}
               disabled={false}
             />
+
             <ImageInput
               title="Images"
               disabled={false}
@@ -128,6 +172,7 @@ const Add = () => {
                   : ""
               }
             />
+
             <Button
               isLoading={mutation.isPending}
               title="Add news"
@@ -136,6 +181,14 @@ const Add = () => {
           </div>
         </form>
       </FormProvider>
+
+      {modal && (
+        <Modal
+          message={modal.message}
+          success={modal.isSuccess}
+          action={handleModalClose}
+        />
+      )}
     </>
   );
 };

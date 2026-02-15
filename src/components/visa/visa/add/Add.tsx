@@ -34,7 +34,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.countries) return [];
       return data.countries.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       );
     },
   });
@@ -45,7 +45,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.visaTypes) return [];
       return data.visaTypes.filter(
-        (type): type is string => typeof type === "string"
+        (type): type is string => typeof type === "string",
       );
     },
   });
@@ -68,15 +68,6 @@ const Add = () => {
       localStorage.setItem("visaId", data.id);
       showMessage(data.message);
       queryClient.invalidateQueries({ queryKey: ["visas"], exact: false });
-
-      if (redirectTo === "information") {
-        navigate(`/visas/information/add`);
-      } else {
-        navigate(`/visas/visa`);
-      }
-
-      reset();
-
       reset();
     },
     onError: (error) => {
@@ -102,6 +93,17 @@ const Add = () => {
   const handleProceedToInformation = (data: addVisaData) => {
     setRedirectTo("information");
     onSubmit(data);
+  };
+
+  const handleModalAction = () => {
+    showMessage(null);
+    if (mutation.isSuccess) {
+      if (redirectTo === "information") {
+        navigate(`/visas/information/add`);
+      } else {
+        navigate(-1); // Go back to previous page
+      }
+    }
   };
 
   const countries = useMemo(() => countriesData || [], [countriesData]);
@@ -180,12 +182,7 @@ const Add = () => {
         <Modal
           message={message}
           success={mutation.isSuccess}
-          action={() => {
-            showMessage(null);
-            if (mutation.isSuccess) {
-              navigate("/visas/information/add");
-            }
-          }}
+          action={handleModalAction}
         />
       )}
     </>

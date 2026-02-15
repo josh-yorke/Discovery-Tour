@@ -59,7 +59,7 @@ const Edit = ({
     queryFn: getVisaCountries,
     select: (data) =>
       data?.countries?.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       ) || [],
   });
 
@@ -68,7 +68,7 @@ const Edit = ({
     queryFn: getPassCategory,
     select: (data) =>
       data?.categories?.filter(
-        (category): category is string => typeof category === "string"
+        (category): category is string => typeof category === "string",
       ) || [],
   });
 
@@ -78,21 +78,21 @@ const Edit = ({
     queryFn: getAllPassTypes,
     select: (data) =>
       data?.passTypes?.filter(
-        (type): type is string => typeof type === "string"
+        (type): type is string => typeof type === "string",
       ) || [],
   });
 
   const countries = useMemo(
     () => countriesQuery.data || [],
-    [countriesQuery.data]
+    [countriesQuery.data],
   );
   const categories = useMemo(
     () => categoriesQuery.data || [],
-    [categoriesQuery.data]
+    [categoriesQuery.data],
   );
   const passTypes = useMemo(
     () => passTypesQuery.data || [],
-    [passTypesQuery.data]
+    [passTypesQuery.data],
   );
 
   const {
@@ -113,12 +113,11 @@ const Edit = ({
       queryClient.invalidateQueries({ queryKey: ["railPass"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["railPass", id] });
 
-      const redirectPath =
-        redirectTo === "information"
-          ? `/transport/rail-passes/information/edit/${id}`
-          : `/transport/rail-passes`;
-
-      navigate(redirectPath);
+      if (redirectTo === "information") {
+        navigate(`/transport/rail-passes/information/edit/${id}`);
+      } else {
+        navigate(-1);
+      }
     },
     onError: (error) => {
       setMessage(error.message);
@@ -142,7 +141,7 @@ const Edit = ({
 
   const handleSubmitAction = (
     data: addRailPassData,
-    target: RedirectTarget
+    target: RedirectTarget,
   ) => {
     setRedirectTo(target);
     const formData = createFormData(data);
@@ -158,7 +157,7 @@ const Edit = ({
       <FormProvider {...methods}>
         <form
           onSubmit={handleSubmit((data) =>
-            handleSubmitAction(data, "rail-pass")
+            handleSubmitAction(data, "rail-pass"),
           )}
           className="w-full min-h-screen flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
         >
@@ -234,7 +233,7 @@ const Edit = ({
 
               <ActionButton
                 action={handleSubmit((data) =>
-                  handleSubmitAction(data, "information")
+                  handleSubmitAction(data, "information"),
                 )}
                 isLoading={updateMutation.isPending}
                 title="Proceed to Pass Information"

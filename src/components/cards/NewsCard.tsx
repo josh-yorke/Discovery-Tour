@@ -1,10 +1,16 @@
-import { RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
+import {
+  RiAddLine,
+  RiArrowRightDownLine,
+  RiHashtag,
+  RiWindow2Fill,
+  RiDeleteBin4Fill,
+  RiPencilFill,
+} from "react-icons/ri";
 import IconButton from "../button/IconButton";
 import ImageCard from "./ImageCard";
-import { useNavigate } from "react-router";
 import LinkText from "../nav/LinkText";
-import StatusText from "./StatusText";
-import MutedTag from "../button/MutedTag";
+import GlassTag from "../tags/GlassTag";
+import { useEffect, useMemo, useState } from "react";
 
 interface CardProps {
   id: string;
@@ -21,60 +27,137 @@ interface CardProps {
 const NewsCard = ({
   id,
   title,
-  contents,
   images,
-  status,
   onDelete,
-  tags,
+  tags = [],
+  slug,
   savedAt,
 }: CardProps) => {
-  const navigate = useNavigate();
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024,
+  );
+
+  const displayTags = useMemo(() => {
+    if (!tags.length) return { visibleTags: [], overflowCount: 0 };
+
+    let maxVisibleTags = 2;
+
+    if (windowWidth >= 1024) {
+      maxVisibleTags = 3;
+    } else if (windowWidth >= 640) {
+      maxVisibleTags = 2;
+    }
+
+    const visibleTags = tags.slice(0, maxVisibleTags);
+    const overflowCount = Math.max(0, tags.length - maxVisibleTags);
+
+    return { visibleTags, overflowCount };
+  }, [tags, windowWidth]);
+
+  const truncateTag = (tag: string) => {
+    return tag.length <= 10 ? tag : tag.substring(0, 10) + "...";
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleEditClick = () => {
+    window.location.href = `/news/edit/${id}`;
+  };
+
+  const handleViewClick = () => {
+    window.location.href = `/news/view/${id}`;
+  };
 
   return (
-    <div className="w-full flex flex-col items-center justify-start bg-white rounded-3xl p-2 gap-2 overflow-hidden shadow-xl shadow-black/10">
-      <div className="relative w-full aspect-3/2 rounded-2xl overflow-hidden">
-        <div className="absolute right-4 top-4 z-10 flex flex-row gap-2">
+    <div className="w-full flex flex-col gap-4">
+      <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
+        <div className="absolute top-4 left-4 z-10 flex flex-row gap-2">
           <IconButton
-            action={() => navigate(`/news/edit/${id}`)}
+            action={handleEditClick}
             title=""
             icon={<RiPencilFill size={16} />}
-            style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
+            style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
           />
           <IconButton
             action={onDelete}
             title=""
             icon={<RiDeleteBin4Fill size={16} />}
-            style="bg-white/80 text-[#1d2087] rounded-full p-3 hover:scale-120"
+            style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
           />
         </div>
-        <div className="absolute top-4 left-4 z-10">
-          <div className="flex px-4 py-2 rounded-lg items-center justify-start text-white bg-black/30">
-            <p className="text-xs font-normal">
-              {new Date(savedAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </div>
+
+        <div className="absolute top-4 right-4 z-10">
+          <GlassTag
+            text={new Date(savedAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+            style=""
+            icon
+          />
         </div>
+
         <ImageCard style="w-full h-full object-cover" url={images} />
+
+        {tags.length > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 z-10">
+            <div className="w-full flex flex-row gap-2 flex-wrap">
+              {displayTags.visibleTags.map((tag: string, index: number) => (
+                <GlassTag
+                  key={`${tag}-${index}`}
+                  icon={
+                    <RiHashtag size={12} color="white" className="shrink-0" />
+                  }
+                  text={truncateTag(tag)}
+                  style="flex flex-row gap-1 items-center justify-center"
+                />
+              ))}
+
+              {displayTags.overflowCount > 0 && (
+                <GlassTag
+                  icon={<RiAddLine size={12} color="white" />}
+                  text={displayTags.overflowCount.toString()}
+                  style="flex flex-row items-center justify-center"
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="w-full flex flex-col items-start justify-center p-2 gap-2 flex-1">
-        <StatusText status={status} style="" textStyle="font-semibold" />
-        <LinkText
-          title={title}
-          url={`/news/view/${id}`}
-          style="font-bold text-[#1d2087] hover:text-[#393ca3]"
-        />
-        <p className="text-xs font-normal line-clamp-2">{`${contents}`}</p>
-        <div className="w-full border-t border-black/6 border-0 my-2" />
+      <div className="flex flex-row flex-1 items-center justify-between px-2">
+        <div className="w-3/4 flex flex-col gap-2 items-start justify-center">
+          <LinkText
+            title={title}
+            url={`/news/view/${id}`}
+            style="w-full font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
+          />
+          <div className="w-full flex items-center gap-1">
+            <RiWindow2Fill className="text-[#1d2087] shrink-0" size={16} />
+            <p className="text-xs font-normal truncate">{slug}</p>
+          </div>
+        </div>
 
-        <div className="w-full flex flex-row items-center justify-star gap-2">
-          {tags.map((tag: string, id) => (
-            <MutedTag color="text-[#1d2087]" key={id} tag={tag} />
-          ))}
+        <div
+          className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
+          onClick={handleViewClick}
+        >
+          <RiArrowRightDownLine
+            className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
+            size={16}
+          />
         </div>
       </div>
     </div>

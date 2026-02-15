@@ -1,43 +1,52 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import type z from "zod";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
+import { getRailPasses } from "../../hooks/rail-passes/getRailPasses";
+import { getPassCategory } from "../../hooks/category/category";
 import Navbar from "../../components/nav/Navbar";
 import Pagination from "../../components/pagination/Pagination";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
-
-import {
-  railSearchSchema,
-  type railSearchData,
-} from "../../types/rail-pass/railSearchTypes";
-import { getRailPasses } from "../../hooks/rail-passes/getRailPasses";
 import RailPassSearch from "../../components/search/searchform/RailPassSearch";
 import RailPassParent from "../../components/rail-pass/RailPassParent";
-import { getPassCategory } from "../../hooks/category/category";
+import { useSearchParams } from "react-router-dom";
 
-const Tours = () => {
-  const { register, handleSubmit, setValue, getValues } = useForm<
-    z.input<typeof railSearchSchema>
-  >({
-    resolver: zodResolver(railSearchSchema),
-    defaultValues: {
-      page: 1,
-      search: "",
-      country: "",
-      type: "",
-    },
-  });
+const RailPasses = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [searchParams, setSearchParams] = useState<railSearchData>({
-    page: 1,
-    search: "",
-    country: "",
-    category: "",
-    type: "",
-  });
+  // Initialize state from URL
+  const [search, setSearch] = useState("");
+  const [country, setCountry] = useState("");
+  const [category, setCategory] = useState("");
+  const [page, setPage] = useState(1);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize from URL - runs once on mount
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get("page") || "1");
+    const urlSearch = searchParams.get("search") || "";
+    const urlCountry = searchParams.get("country") || "";
+    const urlCategory = searchParams.get("category") || "";
+
+    setPage(urlPage);
+    setSearch(urlSearch);
+    setCountry(urlCountry);
+    setCategory(urlCategory);
+    setIsInitialized(true);
+  }, []);
+
+  // Update URL when state changes (but not on initial mount)
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const params = new URLSearchParams();
+    if (page !== 1) params.set("page", page.toString());
+    if (search) params.set("search", search);
+    if (country) params.set("country", country);
+    if (category) params.set("category", category);
+
+    setSearchParams(params, { replace: true });
+  }, [page, search, country, category, setSearchParams, isInitialized]);
 
   const { data: countriesData } = useQuery({
     queryKey: ["visaCountries"],
@@ -45,7 +54,7 @@ const Tours = () => {
     select: (data) => {
       if (!data?.countries) return [];
       return data.countries.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       );
     },
   });
@@ -56,49 +65,67 @@ const Tours = () => {
     select: (data) => {
       if (!data?.categories) return [];
       return data.categories.filter(
-        (category): category is string => typeof category === "string"
+        (category): category is string => typeof category === "string",
       );
     },
   });
 
-  const onSubmit = (data: z.input<typeof railSearchSchema>) => {
-    setSearchParams({ ...data, page: 1 });
-    setValue("page", 1);
-  };
-
-  const fetchRailPasses = useCallback(async () => {
-    return await getRailPasses(searchParams);
-  }, [searchParams]);
-
   const { data, isLoading, refetch, isError, error } = useQuery({
-    queryKey: ["railPasses", searchParams],
-    queryFn: fetchRailPasses,
-    enabled: true,
+    queryKey: ["railPasses", { page, search, country, category }],
+    queryFn: () =>
+      getRailPasses({
+        page,
+        search,
+        country,
+        category,
+      }),
+    enabled: isInitialized,
   });
 
-  const handlePageChange = (page: number) => {
-    const values = getValues();
-    setValue("page", page);
-    setSearchParams({
-      ...values,
-      page,
-    });
+  const handleCountryChange = (value: string) => {
+    setCountry(value);
+    setPage(1);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setCategory(value);
+    setPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+  };
+
+  const handleSearchSubmit = () => {
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
   const countries = useMemo(() => countriesData || [], [countriesData]);
   const categories = useMemo(() => categoriesData || [], [categoriesData]);
+
+  // Don't render until initialized
+  if (!isInitialized) {
+    return <SectionLoader />;
+  }
 
   return (
     <>
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <RailPassSearch
-          categories={categories}
-          category={register("category")}
-          country={register("country")}
-          search={register("search")}
-          action={handleSubmit(onSubmit)}
+          searchValue={search}
+          countryValue={country}
+          categoryValue={category}
+          onSearchChange={handleSearchChange}
+          onCountryChange={handleCountryChange}
+          onCategoryChange={handleCategoryChange}
+          onSearchSubmit={handleSearchSubmit}
           countries={countries}
+          categories={categories}
         />
         {isError ? (
           <SectionError action={refetch} error={error?.message} />
@@ -114,7 +141,7 @@ const Tours = () => {
             )}
             {data?.totalPages > 1 && (
               <Pagination
-                currentPage={searchParams.page ?? 1}
+                currentPage={page}
                 totalPages={data?.totalPages}
                 onPageChange={handlePageChange}
               />
@@ -126,4 +153,4 @@ const Tours = () => {
   );
 };
 
-export default Tours;
+export default RailPasses;

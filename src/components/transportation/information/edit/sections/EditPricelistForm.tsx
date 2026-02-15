@@ -14,6 +14,7 @@ import TextArea from "../../../../input/TextArea";
 import SearchableVehicleDropdown from "../../../../input/SearchableVehicleDropdown";
 import EditFileInput from "../../../../input/EditFileInput";
 import NumberInput from "../../../../input/NumberInput";
+import InputOption from "../../../../input/InputOption";
 
 export interface PricelistFormHandle {
   getFormData: () => Promise<{
@@ -32,12 +33,16 @@ interface PricelistFormProps {
   isDeletingPricelist?: boolean;
 }
 
-// Helper Functions
+interface BackendTransportPricelistData extends editTransportPricelistData {
+  currency?: string;
+}
+
 const hasPricelistContent = (pricelist: {
   plan?: string;
   fee?: string;
   description?: string;
   vehicle?: string;
+  priceCurrency?: string;
   fileTitle?: string;
   file?: FileList;
 }): boolean => {
@@ -46,6 +51,7 @@ const hasPricelistContent = (pricelist: {
     (pricelist.fee?.trim() ?? "").length > 0 ||
     (pricelist.description?.trim() ?? "").length > 0 ||
     (pricelist.vehicle?.trim() ?? "").length > 0 ||
+    (pricelist.priceCurrency?.trim() ?? "").length > 0 ||
     (pricelist.fileTitle?.trim() ?? "").length > 0 ||
     (pricelist.file?.length ?? 0) > 0
   );
@@ -53,16 +59,61 @@ const hasPricelistContent = (pricelist: {
 
 const hasCompletePricelist = (pricelist: {
   plan?: string;
-  fee?: string;
   description?: string;
   vehicle?: string;
+  priceCurrency?: string;
 }): boolean => {
   return (
     (pricelist.plan?.trim() ?? "").length > 0 &&
-    (pricelist.fee?.trim() ?? "").length > 0 &&
     (pricelist.description?.trim() ?? "").length > 0 &&
-    (pricelist.vehicle?.trim() ?? "").length > 0
+    (pricelist.vehicle?.trim() ?? "").length > 0 &&
+    (pricelist.priceCurrency?.trim() ?? "").length > 0
   );
+};
+
+const mergedSchema = z
+  .object({
+    plan: z.string().min(1, "Plan name is required"),
+    fee: z.string().optional().or(z.literal("")),
+    description: z.string().min(1, "Description is required"),
+    vehicle: z.string().min(1, "Vehicle is required"),
+    priceCurrency: z.string().min(1, "Currency is required"),
+    fileTitle: z.string().optional(),
+    file: z.any().optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.file && data.file.length > 0) {
+        return !!data.fileTitle?.trim();
+      }
+      return true;
+    },
+    {
+      message: "File title is required when a file is uploaded",
+      path: ["fileTitle"],
+    },
+  );
+
+type MergedSchemaType = {
+  plan: string;
+  fee?: string;
+  description: string;
+  vehicle: string;
+  priceCurrency: string;
+  fileTitle?: string;
+  file?: FileList;
+};
+
+type FormData = { pricelists: MergedSchemaType[] };
+
+const DEFAULT_PRICE_LIST: MergedSchemaType = {
+  plan: "",
+  fee: "",
+  description: "",
+  vehicle: "",
+  priceCurrency: "USD",
+  fileTitle: "",
+  file: undefined,
 };
 
 const getCleanFileTitle = (title: string): string => {
@@ -83,102 +134,26 @@ const extractVehicleId = (vehicle: any): string => {
   return "";
 };
 
-// Schema Definitions
-const pricelistWithFileSchema = z
-  .object({
-    plan: z.string().min(1, "Plan name is required"),
-    fee: z.string().min(1, "Fee amount is required"),
-    description: z.string().min(1, "Description is required"),
-    vehicle: z.string().min(1, "Vehicle is required"),
-    fileTitle: z.string().optional(),
-    file: z.any().optional(),
-  })
-  .refine((data) => !(data.file?.length > 0) || !!data.fileTitle?.trim(), {
-    message: "File title is required when a file is uploaded",
-    path: ["fileTitle"],
-  });
-
-type PricelistWithFileData = {
-  plan: string;
-  fee: string;
-  description: string;
-  vehicle: string;
-  fileTitle?: string;
-  file?: FileList;
-};
-
-type FormData = { pricelists: PricelistWithFileData[] };
-
-const DEFAULT_PRICE_LIST: PricelistWithFileData = {
-  plan: "",
-  fee: "",
-  description: "",
-  vehicle: "",
-  fileTitle: "",
-  file: undefined,
-};
-
 const mapEditDataToDefaultValues = (
   editData: editTransportPricelistData[],
   fileData: visaFileData[],
-): PricelistWithFileData[] => {
+): MergedSchemaType[] => {
   if (editData.length === 0) return [DEFAULT_PRICE_LIST];
 
-  return editData.map((data, index) => ({
-    plan: data?.plan || "",
-    fee: data?.fee?.toString() || "",
-    description: data?.description || "",
-    vehicle: extractVehicleId(data?.vehicle),
-    fileTitle: data?.fileTitle || fileData[index]?.fileTitle || "",
-    file: undefined,
-  }));
+  return editData.map((data, index) => {
+    const backendData = data as BackendTransportPricelistData;
+    return {
+      plan: data?.plan || "",
+      fee: data?.fee?.toString() || "",
+      description: data?.description || "",
+      vehicle: extractVehicleId(data?.vehicle),
+      priceCurrency: backendData.currency || data?.priceCurrency || "USD",
+      fileTitle: data?.fileTitle || fileData[index]?.fileTitle || "",
+      file: undefined,
+    };
+  });
 };
 
-// Sub-Components
-const ExistingFileDisplay: React.FC<{
-  fileData: visaFileData;
-  onDelete: () => void;
-}> = ({ fileData, onDelete }) => (
-  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-    <div className="flex flex-row items-center justify-between">
-      <div className="flex-1">
-        <p className="text-sm font-medium text-red-900">Current File:</p>
-        <p className="text-sm text-red-700 mt-1">
-          {getCleanFileTitle(fileData.fileTitle)}
-        </p>
-      </div>
-      <IconButton
-        action={onDelete}
-        style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
-        icon={<RiDeleteBin4Fill size={16} />}
-        title=""
-      />
-    </div>
-  </div>
-);
-
-const NewFileDisplay: React.FC<{
-  fileName: string;
-  onClear: () => void;
-}> = ({ fileName, onClear }) => (
-  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-    <p className="text-sm text-green-700 font-medium">
-      New file selected: {fileName}
-    </p>
-    <p className="text-xs text-green-600 mt-1">
-      This will be uploaded as a new file.
-    </p>
-    <button
-      type="button"
-      onClick={onClear}
-      className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-    >
-      Clear selection
-    </button>
-  </div>
-);
-
-// Main Component
 const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
   ({ editData = [], fileData = [], onDeleteFile, onDeletePricelist }, ref) => {
     const {
@@ -191,10 +166,10 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       clearErrors,
       setError,
     } = useForm<FormData>({
+      mode: "onChange",
       defaultValues: {
         pricelists: mapEditDataToDefaultValues(editData, fileData),
       },
-      mode: "onChange",
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -209,7 +184,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       const pricelistData: addTransportPricelistData[] = [];
       const pricelistFileData: addVisaFileData[] = [];
       let isValid = true;
-      let hasAnyCompleteData = false;
 
       clearErrors();
 
@@ -218,9 +192,8 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         const hasFile = (pricelist.file?.length ?? 0) > 0;
         const hasCompleteData = hasCompletePricelist(pricelist);
 
-        // If there's any content at all, validate it
         if (hasContent) {
-          const result = pricelistWithFileSchema.safeParse(pricelist);
+          const result = mergedSchema.safeParse(pricelist);
 
           if (!result.success) {
             isValid = false;
@@ -235,33 +208,29 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             });
           }
 
-          // Only add to data arrays if it's complete
           if (hasCompleteData) {
-            hasAnyCompleteData = true;
-            pricelistData.push({
+            const pricelistItem: addTransportPricelistData = {
               plan: pricelist.plan,
-              fee: pricelist.fee,
               description: pricelist.description,
               vehicle: pricelist.vehicle,
-            });
+              priceCurrency: pricelist.priceCurrency,
+            };
 
+            if (pricelist.fee && pricelist.fee.trim() !== "") {
+              pricelistItem.fee = parseFloat(pricelist.fee);
+            }
+
+            pricelistData.push(pricelistItem);
             pricelistFileData.push({
               fileTitle: pricelist.fileTitle || "",
               file: pricelist.file,
             });
           } else if (hasContent && !hasCompleteData) {
-            // If there's content but it's incomplete, show validation errors
             isValid = false;
             if (!pricelist.plan?.trim()) {
               setError(`pricelists.${index}.plan` as any, {
                 type: "manual",
                 message: "Plan name is required",
-              });
-            }
-            if (!pricelist.fee?.trim()) {
-              setError(`pricelists.${index}.fee` as any, {
-                type: "manual",
-                message: "Fee amount is required",
               });
             }
             if (!pricelist.description?.trim()) {
@@ -276,23 +245,27 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
                 message: "Vehicle is required",
               });
             }
+            if (!pricelist.priceCurrency?.trim()) {
+              setError(`pricelists.${index}.priceCurrency` as any, {
+                type: "manual",
+                message: "Currency is required",
+              });
+            }
           }
 
-          // Block submission if file exists without complete data
           if (hasFile && !hasCompleteData) {
             isValid = false;
             setError(`pricelists.${index}.plan` as any, {
               type: "manual",
-              message: "Complete all fields before uploading a file",
+              message: "Complete all required fields before uploading a file",
             });
           }
         }
       });
 
-      return { isValid, pricelistData, pricelistFileData, hasAnyCompleteData };
+      return { isValid, pricelistData, pricelistFileData };
     }, [getValues, setError, clearErrors]);
 
-    // Event Handlers
     const addPricelist = useCallback(() => {
       append(DEFAULT_PRICE_LIST);
     }, [append]);
@@ -324,7 +297,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         if (!hasCompletePricelist(currentPricelist)) {
           setError(`pricelists.${index}.plan` as any, {
             type: "manual",
-            message: "Complete all fields before uploading a file",
+            message: "Complete all required fields before uploading a file",
           });
           return;
         }
@@ -353,18 +326,19 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       [setValue, clearErrors],
     );
 
-    // Form Methods exposed via ref
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
         const { isValid, pricelistData, pricelistFileData } =
           validateAndGetFormData();
 
-        // Only return null if there are validation errors
         if (!isValid) {
           return null;
         }
 
-        // Return data even if arrays are empty (form is valid but has no complete data)
+        if (pricelistData.length === 0) {
+          return { pricelistData: [], pricelistFileData: [] };
+        }
+
         return { pricelistData, pricelistFileData };
       },
       removePricelistField: (index: number) => {
@@ -372,7 +346,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       },
     }));
 
-    // Render Functions
     const renderFileSection = (index: number) => {
       const hasExistingFile =
         fileData[index]?._id && !watchPricelists?.[index]?.file;
@@ -415,24 +388,43 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
           />
 
           {hasExistingFile && currentFileData && (
-            <ExistingFileDisplay
-              fileData={currentFileData}
-              onDelete={() => onDeleteFile?.(index, currentFileData._id!)}
-            />
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-900">
+                    Current File:
+                  </p>
+                  <p className="text-sm text-red-700 mt-1">
+                    {getCleanFileTitle(currentFileData.fileTitle)}
+                  </p>
+                </div>
+                <IconButton
+                  action={() => onDeleteFile?.(index, currentFileData._id!)}
+                  style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
+                  title=""
+                  icon={<RiDeleteBin4Fill size={16} />}
+                />
+              </div>
+            </div>
           )}
 
           {hasNewFile && watchPricelists[index]?.file && (
-            <NewFileDisplay
-              fileName={watchPricelists[index].file![0].name}
-              onClear={() => handleClearFile(index)}
-            />
+            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+              <p className="text-sm text-green-700 font-medium">
+                New file selected: {watchPricelists[index].file![0].name}
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                This will be uploaded as a new file.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleClearFile(index)}
+                className="text-xs text-green-700 hover:text-green-900 underline mt-2"
+              >
+                Clear selection
+              </button>
+            </div>
           )}
-
-          <div className="text-xs text-gray-500">
-            <p>• Complete all fields before uploading a file</p>
-            <p>• File title is required if you upload a file</p>
-            <p>• If you upload a new file, it will replace the existing one</p>
-          </div>
         </div>
       );
     };
@@ -460,26 +452,15 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
           )}
 
           <div className="w-full flex flex-col gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                style="bg-white"
-                disabled={false}
-                error={hasContent && planError ? String(planError) : ""}
-                title="Plan Name *"
-                placeholder="Enter visa plan name (e.g., Standard, Express, Premium)"
-                type="text"
-                {...register(`pricelists.${index}.plan` as const)}
-              />
-              <NumberInput
-                style="bg-white"
-                disabled={false}
-                error={hasContent && feeError ? String(feeError) : ""}
-                title="Fee Amount *"
-                placeholder="Enter fee amount"
-                type="text"
-                {...register(`pricelists.${index}.fee` as const)}
-              />
-            </div>
+            <Input
+              style="bg-white"
+              disabled={false}
+              error={hasContent && planError ? String(planError) : ""}
+              title="Plan Name *"
+              placeholder="Enter visa plan name"
+              type="text"
+              {...register(`pricelists.${index}.plan` as const)}
+            />
 
             <div>
               <SearchableVehicleDropdown
@@ -497,6 +478,24 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
                 <p className="text-xs text-red-500 mt-1">{vehicleError}</p>
               )}
             </div>
+
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Displayed Currency *"
+              options={["USD", "KRW", "JPY", "PHP"]}
+              {...register(`pricelists.${index}.priceCurrency` as const)}
+            />
+
+            <NumberInput
+              style="bg-white"
+              disabled={false}
+              error={hasContent && feeError ? String(feeError) : ""}
+              title="Fee Amount"
+              placeholder="Enter fee amount (optional)"
+              type="text"
+              {...register(`pricelists.${index}.fee` as const)}
+            />
 
             <TextArea
               disabled={false}
@@ -516,8 +515,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
 
     return (
       <div className="w-full flex flex-col items-center justify-center gap-6">
-        {fields.map(renderPricelistForm)}
-
         <div className="w-full flex justify-center">
           <IconButton
             action={addPricelist}
@@ -526,6 +523,8 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
             icon={<RiAddFill size={16} />}
           />
         </div>
+
+        {fields.map(renderPricelistForm)}
       </div>
     );
   },

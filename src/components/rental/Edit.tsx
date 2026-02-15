@@ -77,11 +77,11 @@ const Edit = ({
     if (rental) {
       setValue(
         "rental.pickUpDate",
-        formatDateForInput(rental.pickUpDate || "")
+        formatDateForInput(rental.pickUpDate || ""),
       );
       setValue(
         "rental.dropOffDate",
-        formatDateForInput(rental.dropOffDate || "")
+        formatDateForInput(rental.dropOffDate || ""),
       );
     }
   }, [rental, setValue]);
@@ -90,7 +90,7 @@ const Edit = ({
     mutationFn: (data: addRentalData) => updateRental(rentalId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rentals"], exact: false });
-      navigate("/transport/rental");
+      navigate(-1);
     },
   });
 
@@ -102,13 +102,13 @@ const Edit = ({
   const planValue = watch("plan") || "";
 
   const getCustomerError = (
-    field: keyof NonNullable<addRentalData["customer"]>
+    field: keyof NonNullable<addRentalData["customer"]>,
   ): string => {
     return errors.customer?.[field]?.message?.toString() || "";
   };
 
   const getRentalError = (
-    field: keyof NonNullable<addRentalData["rental"]>
+    field: keyof NonNullable<addRentalData["rental"]>,
   ): string => {
     return errors.rental?.[field]?.message?.toString() || "";
   };

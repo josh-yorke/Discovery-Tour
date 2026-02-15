@@ -191,7 +191,16 @@ const Add = () => {
           const pricelistFormDataToSubmit = new FormData();
           pricelistFormDataToSubmit.append("type", "price");
           pricelistFormDataToSubmit.append("plan", pricelistItem.plan);
-          pricelistFormDataToSubmit.append("fee", pricelistItem.fee);
+          if (pricelistItem.fee !== undefined && pricelistItem.fee !== null) {
+            pricelistFormDataToSubmit.append(
+              "fee",
+              pricelistItem.fee.toString(),
+            );
+          }
+          pricelistFormDataToSubmit.append(
+            "priceCurrency",
+            pricelistItem.priceCurrency,
+          );
           pricelistFormDataToSubmit.append(
             "description",
             pricelistItem.description,
@@ -406,7 +415,7 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
 
       alert("Visa information added successfully!");
-      navigate("/visas/visa");
+      navigate(-1);
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");

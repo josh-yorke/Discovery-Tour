@@ -130,9 +130,16 @@ const useEditData = (id: string | undefined) => {
           getTransportDocument(id),
         ]);
 
-        const pricelistArray = Array.isArray(pricelistData)
-          ? pricelistData
-          : [pricelistData].filter(Boolean);
+        // Map pricelist data to handle currency field
+        const mappedPricelistData = (
+          Array.isArray(pricelistData)
+            ? pricelistData
+            : [pricelistData].filter(Boolean)
+        ).map((item) => ({
+          ...item,
+          priceCurrency: item.currency || item.priceCurrency || "USD",
+        }));
+
         const processArray = Array.isArray(processData)
           ? processData
           : [processData].filter(Boolean);
@@ -147,14 +154,14 @@ const useEditData = (id: string | undefined) => {
           : [paymentData].filter(Boolean);
 
         setEditData({
-          pricelist: pricelistArray,
+          pricelist: mappedPricelistData,
           process: processArray,
           payment: paymentArray,
           term: termArray,
           document: documentArray,
         });
 
-        const pricelistFileIdsArray = pricelistArray.map((pricelist) =>
+        const pricelistFileIdsArray = mappedPricelistData.map((pricelist) =>
           pricelist?.filesAssociated
             ? Array.isArray(pricelist.filesAssociated)
               ? pricelist.filesAssociated
@@ -192,7 +199,7 @@ const useEditData = (id: string | undefined) => {
 
         const fileFetchPromises: Promise<FileFetchResult>[] = [];
 
-        pricelistArray.forEach((pricelist, index) => {
+        mappedPricelistData.forEach((pricelist, index) => {
           if (pricelist?.filesAssociated) {
             const fileId = Array.isArray(pricelist.filesAssociated)
               ? pricelist.filesAssociated[0]
@@ -1150,7 +1157,10 @@ const Edit = () => {
           const pricelistFormDataToSubmit = new FormData();
           pricelistFormDataToSubmit.append("type", "price");
           pricelistFormDataToSubmit.append("plan", pricelistItem.plan || "");
-          pricelistFormDataToSubmit.append("fee", pricelistItem.fee || "");
+          pricelistFormDataToSubmit.append(
+            "fee",
+            pricelistItem.fee?.toString() || "",
+          );
           pricelistFormDataToSubmit.append(
             "description",
             pricelistItem.description || "",
@@ -1158,6 +1168,11 @@ const Edit = () => {
           pricelistFormDataToSubmit.append(
             "vehicle",
             pricelistItem.vehicle || "",
+          );
+          // Add priceCurrency to FormData
+          pricelistFormDataToSubmit.append(
+            "priceCurrency",
+            pricelistItem.priceCurrency || "USD",
           );
           pricelistFormDataToSubmit.append("transport", id);
 
@@ -1573,7 +1588,7 @@ const Edit = () => {
               message.type === "success" &&
               message.action === "addOrUpdate"
             ) {
-              navigate("/transport/transportation");
+              navigate(-1);
             }
           }}
         />

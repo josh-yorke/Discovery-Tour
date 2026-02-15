@@ -34,7 +34,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.countries) return [];
       return data.countries.filter(
-        (country): country is string => typeof country === "string"
+        (country): country is string => typeof country === "string",
       );
     },
   });
@@ -45,7 +45,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.categories) return [];
       return data.categories.filter(
-        (category): category is string => typeof category === "string"
+        (category): category is string => typeof category === "string",
       );
     },
   });
@@ -56,7 +56,7 @@ const Add = () => {
     select: (data) => {
       if (!data?.passTypes) return [];
       return data.passTypes.filter(
-        (type): type is string => typeof type === "string"
+        (type): type is string => typeof type === "string",
       );
     },
   });
@@ -83,7 +83,7 @@ const Add = () => {
       if (redirectTo === "information") {
         navigate(`/transport/rail-passes/information/add`);
       } else {
-        navigate(`/transport/rail-passes`);
+        navigate(-1);
       }
 
       reset();

@@ -827,44 +827,77 @@ const Edit = () => {
     setFileIds: React.Dispatch<React.SetStateAction<string[][]>>,
     editDataArray: any[],
   ) => {
-    if (!formData || !hasFormData(formData)) return [];
+    if (!formData) return [];
 
-    const { [`${formType}Data`]: data, [`${formType}FileData`]: fileData } =
-      formData;
-    const safeFileData = Array.isArray(fileData) ? fileData : [fileData];
-    const safeData = Array.isArray(data) ? data : [data];
+    // Check if there's any data to submit
+    const dataField = `${formType}Data`;
+    const fileField = `${formType}FileData`;
 
-    const fileUploadPromises: Promise<string>[] = safeFileData.map(
-      (fileDataItem, i) => {
-        const existingFileId = fileIds[i]?.[0] || "";
-        if (fileDataItem?.file && fileDataItem.file.length > 0) {
-          return handleFile(
+    const data = formData[dataField];
+    const fileData = formData[fileField];
+
+    // Return empty array if no data
+    if (!data || (Array.isArray(data) && data.length === 0)) {
+      return [];
+    }
+
+    const safeFileData = Array.isArray(fileData)
+      ? fileData
+      : fileData
+        ? [fileData]
+        : [];
+    const safeData = Array.isArray(data) ? data : data ? [data] : [];
+
+    const fileUploadPromises: Promise<string>[] = safeData.map(async (_, i) => {
+      const fileDataItem = safeFileData[i];
+      const existingFileId = fileIds[i]?.[0] || "";
+
+      if (fileDataItem?.file && fileDataItem.file.length > 0) {
+        try {
+          return await handleFile(
             fileDataItem.file,
             fileDataItem.fileTitle,
             existingFileId,
           );
+        } catch (error) {
+          console.error(`Error uploading file for ${formType}:`, error);
+          return existingFileId;
         }
-        return Promise.resolve(existingFileId);
-      },
-    );
+      }
+      return existingFileId;
+    });
 
     const uploadedFileIds = await Promise.all(fileUploadPromises);
-    setFileIds(uploadedFileIds.map((fileId) => [fileId]));
+
+    // Only update fileIds if we have new uploads
+    if (
+      uploadedFileIds.some((id) => id !== fileIds.map((f) => f[0]).join(""))
+    ) {
+      setFileIds(uploadedFileIds.map((fileId) => [fileId]));
+    }
 
     const submissions = [];
     const editArray = Array.isArray(editDataArray)
       ? editDataArray
-      : [editDataArray].filter(Boolean);
+      : editDataArray
+        ? [editDataArray]
+        : [];
 
     for (let i = 0; i < safeData.length; i++) {
       const item = safeData[i];
+      if (!item) continue;
+
       const formDataToSubmit = new FormData();
+      formDataToSubmit.append("tour", id!);
 
       if (formType === "pricelist") {
         formDataToSubmit.append("type", "price");
         formDataToSubmit.append("plan", item.plan || "");
-        formDataToSubmit.append("fee", item.fee || "");
+        if (item.fee) {
+          formDataToSubmit.append("fee", item.fee.toString());
+        }
         formDataToSubmit.append("description", item.description || "");
+        formDataToSubmit.append("priceCurrency", item.priceCurrency || "USD");
       } else if (formType === "process") {
         formDataToSubmit.append("type", "process");
         formDataToSubmit.append("processTitle", item.processTitle || "");
@@ -879,8 +912,6 @@ const Edit = () => {
         formDataToSubmit.append("docDescription", item.docDescription || "");
       }
 
-      formDataToSubmit.append("tour", id!);
-
       if (uploadedFileIds[i]) {
         formDataToSubmit.append("filesAssociated", uploadedFileIds[i]);
       }
@@ -891,15 +922,19 @@ const Edit = () => {
         hasExistingData,
       );
 
-      if (hasExistingData) {
-        submissions.push(
-          (mutation as any).mutateAsync({
-            id: editArray[i]._id,
-            data: formDataToSubmit,
-          }),
-        );
-      } else {
-        submissions.push((mutation as any).mutateAsync(formDataToSubmit));
+      try {
+        if (hasExistingData) {
+          submissions.push(
+            (mutation as any).mutateAsync({
+              id: editArray[i]._id,
+              data: formDataToSubmit,
+            }),
+          );
+        } else {
+          submissions.push((mutation as any).mutateAsync(formDataToSubmit));
+        }
+      } catch (error) {
+        console.error(`Error creating submission for ${formType}:`, error);
       }
     }
 
@@ -924,34 +959,31 @@ const Edit = () => {
       const item = safeData[i];
 
       if (formType === "itinerary") {
-        // Special handling for itinerary
-        const itineraryPayload: AddItineraryPayload = {
-          type: "tour-itinerary",
-          tour: id!,
+        // Handle itinerary submission
+        const itineraryData = {
+          type: "tour-itinerary", // Add this required field
           title: item.title || "",
           location: item.location || "",
-          dayOrder: parseInt(item.dayOrder) || 0,
-          activities: Array.isArray(item.activities) ? item.activities : [],
-          meals: Array.isArray(item.meals)
-            ? item.meals.map((meal: any) => ({
-                ...meal,
-                mealCount: String(meal.mealCount || ""),
-              }))
-            : [],
+          dayOrder: item.dayOrder || "",
+          activities: item.activities || [],
+          meals: item.meals || [],
+          tour: id!,
         };
 
+        console.log("Submitting itinerary data:", itineraryData);
+
         const hasExistingData = !!editArray[i]?._id;
-        const mutation = getMutationFunction("itinerary", hasExistingData);
+        const mutation = getMutationFunction(formType, hasExistingData);
 
         if (hasExistingData) {
           submissions.push(
             (mutation as any).mutateAsync({
               id: editArray[i]._id,
-              data: itineraryPayload,
+              data: itineraryData,
             }),
           );
         } else {
-          submissions.push((mutation as any).mutateAsync(itineraryPayload));
+          submissions.push((mutation as any).mutateAsync(itineraryData));
         }
       } else {
         const formDataToSubmit = new FormData();
@@ -960,6 +992,14 @@ const Edit = () => {
 
         switch (formType) {
           case "accommodation":
+            // Only require name and description
+            if (!item.accommodationName?.trim()) {
+              throw new Error("Accommodation name is required");
+            }
+            if (!item.accommodationDescription?.trim()) {
+              throw new Error("Accommodation description is required");
+            }
+
             formDataToSubmit.append(
               "accommodationName",
               item.accommodationName || "",
@@ -976,15 +1016,25 @@ const Edit = () => {
               "accommodationWebsite",
               item.accommodationWebsite || "",
             );
+
+            // Handle images
             if (item.images) {
-              if (item.images instanceof FileList) {
-                Array.from(item.images).forEach((file: any) => {
-                  if (file instanceof File)
+              if (Array.isArray(item.images)) {
+                item.images.forEach((file: File) => {
+                  if (file instanceof File) {
                     formDataToSubmit.append("accommodationImages", file);
+                  }
+                });
+              } else if (item.images instanceof FileList) {
+                Array.from(item.images).forEach((file: any) => {
+                  if (file instanceof File) {
+                    formDataToSubmit.append("accommodationImages", file);
+                  }
                 });
               }
             }
             break;
+
           case "city":
             formDataToSubmit.append("city", item.city || "");
             break;
@@ -1165,7 +1215,7 @@ const Edit = () => {
       });
 
       setTimeout(() => {
-        navigate("/tours");
+        navigate(-1);
       }, 2000);
     } catch (error: any) {
       console.error("Update error:", error);
