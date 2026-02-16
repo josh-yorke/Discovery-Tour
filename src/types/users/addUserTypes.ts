@@ -5,7 +5,7 @@ export const addUserSchema = z.object({
   lastName: z.string().min(2, "last name is required"),
   email: z.string().email(),
   password: z.string().min(2, "Password must be at least 2 characters long"),
-  role: z.enum(["admin", "user"]),
+  role: z.enum(["admin", "staff", "user"]),
   status: z.string(),
 });
 

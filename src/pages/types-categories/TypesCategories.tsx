@@ -15,6 +15,7 @@ import {
   type typesCategoriesSearchData,
 } from "../../types/types-categories/typesCategoriesSearchTypes";
 import { useLocation } from "react-router";
+import Pagination from "../../components/pagination/Pagination";
 
 const TypesCategories = () => {
   const location = useLocation();
@@ -24,21 +25,33 @@ const TypesCategories = () => {
   const type =
     rawType && TYPES_CATEGORIES_OPTIONS.includes(rawType) ? rawType : null;
 
-  const { register, handleSubmit } = useForm<
+  const { register, handleSubmit, setValue, getValues } = useForm<
     z.input<typeof typesCategoriesSearchSchema>
   >({
     resolver: zodResolver(typesCategoriesSearchSchema),
     defaultValues: {
       service: type || "visa",
+      page: 1,
     },
   });
 
   const [searchParams, setSearchParams] = useState<typesCategoriesSearchData>({
     service: type || "visa",
+    page: 1,
   });
 
   const onSubmit = (data: z.input<typeof typesCategoriesSearchSchema>) => {
-    setSearchParams({ ...data });
+    setSearchParams({ ...data, page: 1 });
+    setValue("page", 1);
+  };
+
+  const handlePageChange = (page: number) => {
+    const values = getValues();
+    setValue("page", page);
+    setSearchParams({
+      ...values,
+      page,
+    });
   };
 
   const fetchTypesCategories = useCallback(async () => {
@@ -71,6 +84,13 @@ const TypesCategories = () => {
               typeCategories={data?.typesCategories}
               isLoading={isLoading}
             />
+            {data?.totalPages > 1 && (
+              <Pagination
+                currentPage={searchParams.page ?? 1}
+                totalPages={data?.totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
           </>
         )}
       </div>

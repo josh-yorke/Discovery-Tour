@@ -65,10 +65,13 @@ export const updateTypesCategories = async (
 export const getTypesCategories = async (data: typesCategoriesSearchData) => {
   try {
     let typeArgs = getFormattedTypeCategory(data.service);
-    const res = await api.get(`/categories-available?type=${typeArgs}`);
+    const res = await api.get(
+      `/categories-available?type=${typeArgs}&enablePagination=true&page=${data.page}&limit=9`,
+    );
     console.log(res.data.data);
     return {
       typesCategories: res.data.data,
+      totalPages: res.data.meta.totalPages,
     };
   } catch (error: any) {
     const message = error.response.data.message || error;
