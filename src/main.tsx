@@ -70,6 +70,10 @@ import AddTypesCategories from "./pages/types-categories/AddTypesCategories";
 import EditTypesCategories from "./pages/types-categories/EditTypesCategories";
 import PageNotFound from "./components/error/PageNotFound";
 import Bookings from "./pages/rail-pass/Bookings";
+import EditBooking from "./pages/rail-pass/EditBooking";
+import AddBooking from "./pages/rail-pass/AddBooking";
+import ViewBooking from "./pages/rail-pass/ViewBooking";
+import ViewRental from "./pages/rental/ViewRental";
 
 const router = createBrowserRouter([
   {
@@ -542,10 +546,26 @@ const router = createBrowserRouter([
     ),
   },
   {
+    path: "/transport/rental/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewRental />
+      </RouteProtection>
+    ),
+  },
+  {
     path: "/transport/rental/add",
     element: (
       <RouteProtection>
         <AddRental />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/rental/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditRental />
       </RouteProtection>
     ),
   },
@@ -558,10 +578,26 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/rental/edit/:id",
+    path: "/transport/booking/view/:id",
     element: (
       <RouteProtection>
-        <EditRental />
+        <ViewBooking />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/booking/add",
+    element: (
+      <RouteProtection>
+        <AddBooking />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/transport/booking/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditBooking />
       </RouteProtection>
     ),
   },

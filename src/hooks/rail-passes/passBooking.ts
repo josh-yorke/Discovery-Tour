@@ -1,6 +1,5 @@
 import type { addRailBookingData } from "../../types/rail-pass/addBookingTypes";
 import type { bookingSearchData } from "../../types/rail-pass/bookingSearchTypes";
-import type { addRentalData } from "../../types/rental/addRentalTypes";
 import api from "../axios/axios";
 
 export const addPassBooking = async (
@@ -35,7 +34,7 @@ export const deleteBooking = async (id: string) => {
   }
 };
 
-export const updateBooking = async (id: string, data: addRentalData) => {
+export const updateBooking = async (id: string, data: addRailBookingData) => {
   try {
     const res = await api.put(`/railpass-bookings/${id}`, data);
     console.log(res.data.message);

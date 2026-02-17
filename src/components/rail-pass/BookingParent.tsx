@@ -40,21 +40,13 @@ const BookingParent = ({ bookings, isLoading }: ParentProps) => {
   return (
     <>
       {bookings && bookings.length > 0 ? (
-        <div className="w-full lg:w-7xl flex flex-wrap gap-6">
+        <div className="w-full max-w-4xl mx-auto flex flex-col gap-6">
           {bookings.map((booking: bookingData) => (
-            <div
-              key={booking._id}
-              className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
-            >
+            <div key={booking._id} className="w-full">
               <BookingCard
                 onDelete={() => handleDelete(booking._id)}
-                key={booking._id}
                 _id={booking._id}
-                railpass={booking.railpass}
-                plan={booking.plan}
                 customer={booking.customer}
-                travel={booking.travel}
-                remarks={booking.remarks}
                 status={booking.status}
                 dateAdded={booking.dateAdded}
               />

@@ -40,20 +40,13 @@ const RentalParent = ({ rentals, isLoading }: ParentProps) => {
   return (
     <>
       {rentals && rentals.length > 0 ? (
-        <div className="w-full lg:w-7xl flex flex-wrap gap-6">
+        <div className="w-full lg:w-4xl flex flex-wrap gap-6">
           {rentals.map((rental: rentalData) => (
-            <div
-              key={rental._id}
-              className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
-            >
+            <div key={rental._id} className="w-full">
               <RentalCard
                 onDelete={() => handleDelete(rental._id)}
                 key={rental._id}
                 _id={rental._id}
-                rental={rental.rental}
-                transport={rental.transport}
-                vehicle={rental.vehicle}
-                plan={rental.plan}
                 status={rental.status}
                 customer={rental.customer}
                 dateAdded={rental.dateAdded}
