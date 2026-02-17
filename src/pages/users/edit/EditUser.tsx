@@ -35,6 +35,7 @@ const EditUser = () => {
             id={data._id}
             role={data.role}
             status={data.status}
+            allowedActions={data.allowedActions}
           />
         </div>
       )}

@@ -14,6 +14,7 @@ import {
 import { updateUser } from "../../../hooks/users/updateUser";
 import Modal from "../../modal/Modal";
 import { useState } from "react";
+import AllowedActionsInputs from "../AllowedActions";
 
 interface EditInputsProps extends editUserData {
   id: string;
@@ -27,6 +28,7 @@ const Edit = ({
   role,
   status,
   id,
+  allowedActions,
 }: EditInputsProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -41,6 +43,7 @@ const Edit = ({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<editUserData>({
     resolver: zodResolver(editUserSchema),
@@ -51,6 +54,7 @@ const Edit = ({
       password: password,
       email: email,
       role: role,
+      allowedActions: allowedActions,
     },
   });
 
@@ -155,6 +159,13 @@ const Edit = ({
               </p>
             )}
           </div>
+
+          {/* ALLOWED ACTIONS */}
+          <AllowedActionsInputs
+            register={register}
+            watch={watch}
+            reset={reset}
+          />
 
           {/* InputOption with error display */}
           <div className="w-full">

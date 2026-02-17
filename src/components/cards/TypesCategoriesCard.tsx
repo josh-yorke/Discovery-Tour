@@ -1,7 +1,4 @@
-import {
-  RiDeleteBin4Fill,
-  RiPencilFill
-} from "react-icons/ri";
+import { RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../button/IconButton";
 
@@ -43,8 +40,8 @@ const TypesCategoriesCard = ({
   return (
     <div className="w-full flex flex-col items-center justify-start bg-white rounded-3xl p-4 gap-4 shadow-xl shadow-black/10">
       <div className="w-full flex items-center justify-between">
-        <div className="w-full">
-          <p className="font-bold text-[#1d2087] text-lg truncate">
+        <div className="w-full min-w-0">
+          <p className="font-bold text-[#1d2087] text-lg line-clamp-1 wrap-break-word overflow-hidden">
             {visaType}
             {tourType}
             {transportType}
