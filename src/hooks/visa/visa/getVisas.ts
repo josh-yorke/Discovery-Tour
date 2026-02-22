@@ -4,7 +4,7 @@ import api from "../../axios/axios";
 export const getVisas = async (data: visaSearchData) => {
   try {
     const res = await api.get(
-      `/visas?page=${data.page}&limit=12&search=${data.search}&country=${data.country}&type=${data.type}`
+      `/visas?page=${data.page}&limit=12&search=${data.search}&country=${data.country}&type=${data.type}`,
     );
     console.log(res);
     return {

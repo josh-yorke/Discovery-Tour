@@ -43,3 +43,14 @@ export const getTransportTerm = async (id?: string) => {
     throw new Error(message);
   }
 };
+
+export const getInsuranceTerm = async (id?: string) => {
+  try {
+    const res = await api.get(`/shared-fields/?insuranceId=${id}&type=terms`);
+    console.log(res);
+    return res.data.data;
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};

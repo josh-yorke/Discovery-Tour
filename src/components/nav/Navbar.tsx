@@ -14,13 +14,11 @@ import {
   RiGlobeLine,
   RiLandscapeAiFill,
   RiLandscapeAiLine,
-  RiMailOpenFill,
-  RiMailOpenLine,
   RiMenuFill,
-  RiMoneyDollarCircleFill,
-  RiMoneyDollarCircleLine,
   RiUser4Fill,
   RiUser4Line,
+  RiBankCardFill,
+  RiBankCardLine,
 } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router";
 import LogoutButton from "../button/LogoutButton";
@@ -111,55 +109,40 @@ const Navbar = () => {
               title="Transport"
             />
 
-            <LinkButton
-              to="/promotions"
+            <HoverLink
+              options={["partners", "insurances"]}
+              to="/insurance"
               style={`${
-                pathname.startsWith("/promotions")
+                pathname.startsWith("/insurance")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
-                pathname.startsWith("/promotions") ? (
-                  <RiMoneyDollarCircleFill size={16} />
+                pathname.startsWith("/insurance") ? (
+                  <RiBankCardFill size={16} />
                 ) : (
-                  <RiMoneyDollarCircleLine size={16} />
+                  <RiBankCardLine size={16} />
                 )
               }
-              title="Promotions"
+              title="Insurance"
             />
 
-            <LinkButton
-              to="/news"
+            <HoverLink
+              options={["news", "blogs", "promotions"]}
+              to="/articles"
               style={`${
-                pathname.startsWith("/news")
+                pathname.startsWith("/articles")
                   ? "font-semibold text-[#1d2087]"
                   : "font-normal"
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
-                pathname.startsWith("/news") ? (
-                  <RiMailOpenFill size={16} />
-                ) : (
-                  <RiMailOpenLine size={16} />
-                )
-              }
-              title="News"
-            />
-
-            <LinkButton
-              to="/blogs"
-              style={`${
-                pathname.startsWith("/blogs")
-                  ? "font-semibold text-[#1d2087]"
-                  : "font-normal"
-              } flex flex-row items-center justify-center text-sm  gap-2`}
-              icon={
-                pathname.startsWith("/blogs") ? (
+                pathname.startsWith("/articles") ? (
                   <RiCameraAiFill size={16} />
                 ) : (
                   <RiCameraAiLine size={16} />
                 )
               }
-              title="Blogs"
+              title="Articles"
             />
 
             <LinkButton
@@ -176,7 +159,7 @@ const Navbar = () => {
                   <RiGridLine size={16} />
                 )
               }
-              title="Types And Categories"
+              title="Categories"
             />
 
             <HoverLink
@@ -304,55 +287,40 @@ const Navbar = () => {
                 title="Transport"
               />
 
-              <LinkButton
-                to="/promotions"
+              <DropdownLink
+                options={["insurances", "partners"]}
+                to="/insurance"
                 style={`${
-                  pathname.startsWith("/promotions")
+                  pathname.startsWith("/insurance")
                     ? "font-semibold text-[#1d2087]"
                     : "font-normal"
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
-                  pathname.startsWith("/promotions") ? (
-                    <RiMoneyDollarCircleFill size={16} />
+                  pathname.startsWith("/insurance") ? (
+                    <RiCarFill size={16} />
                   ) : (
-                    <RiMoneyDollarCircleLine size={16} />
+                    <RiCarLine size={16} />
                   )
                 }
-                title="Promotions"
+                title="Insurance"
               />
 
-              <LinkButton
-                to="/news"
+              <DropdownLink
+                options={["blogs", "news", "promotions"]}
+                to="/articles"
                 style={`${
-                  pathname.startsWith("/news")
+                  pathname.startsWith("/articles")
                     ? "font-semibold text-[#1d2087]"
                     : "font-normal"
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
-                  pathname.startsWith("/news") ? (
-                    <RiMailOpenFill size={16} />
-                  ) : (
-                    <RiMailOpenLine size={16} />
-                  )
-                }
-                title="News"
-              />
-
-              <LinkButton
-                to="/blogs"
-                style={`${
-                  pathname.startsWith("/blogs")
-                    ? "font-semibold text-[#1d2087]"
-                    : "font-normal"
-                } flex flex-row items-center justify-center text-sm  gap-2`}
-                icon={
-                  pathname.startsWith("/blogs") ? (
+                  pathname.startsWith("/articles") ? (
                     <RiCameraAiFill size={16} />
                   ) : (
                     <RiCameraAiLine size={16} />
                   )
                 }
-                title="Blogs"
+                title="Articles"
               />
 
               <DropdownLink

@@ -8,7 +8,7 @@ interface Props {
   initialFile?: File | null;
   disabled: boolean;
   title: string;
-  onChange?: (files: FileList | null) => void; // ADD THIS
+  onChange?: (files: FileList | null) => void;
 }
 
 const FileInput = ({
@@ -17,7 +17,7 @@ const FileInput = ({
   setValue,
   error,
   initialFile = null,
-  onChange, // ADD THIS
+  onChange,
 }: Props) => {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -39,19 +39,7 @@ const FileInput = ({
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const fileName = file.name;
-    const baseName =
-      fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
-    const allowedPattern = /^[a-zA-Z0-9._-]+$/;
 
-    if (!allowedPattern.test(baseName)) {
-      alert(
-        `The file "${fileName}" was not added because it contains special characters.\n\nOnly letters, numbers, underscores (_), hyphens (-), and dots (.) are allowed.`
-      );
-      return;
-    }
-
-    // Clean up previous URL if exists
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -64,14 +52,12 @@ const FileInput = ({
     dataTransfer.items.add(file);
     setValue("file", dataTransfer.files);
 
-    // CALL THE ONCHANGE PROP IF PROVIDED
     if (onChange) {
       onChange(files);
     }
   };
 
   const handleRemove = () => {
-    // Clean up URL
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -79,11 +65,9 @@ const FileInput = ({
     setPreviewFile(null);
     setPreviewUrl("");
 
-    // Clear the file input
     const dataTransfer = new DataTransfer();
     setValue("file", dataTransfer.files);
 
-    // CALL THE ONCHANGE PROP IF PROVIDED
     if (onChange) {
       onChange(null);
     }
@@ -107,10 +91,10 @@ const FileInput = ({
               <img
                 src={previewUrl}
                 alt="preview"
-                className="w-[200px] h-[200px] object-cover object-center rounded-2xl"
+                className="w-50 h-50 object-cover object-center rounded-2xl"
               />
             ) : (
-              <div className="w-[200px] h-[200px] bg-gray-100 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-gray-300">
+              <div className="w-50 h-50 bg-gray-100 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-gray-300">
                 <div className="text-4xl mb-2">📄</div>
                 <p className="text-xs text-center px-2 break-all">
                   {previewFile.name}

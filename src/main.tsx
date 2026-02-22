@@ -74,6 +74,16 @@ import EditBooking from "./pages/rail-pass/EditBooking";
 import AddBooking from "./pages/rail-pass/AddBooking";
 import ViewBooking from "./pages/rail-pass/ViewBooking";
 import ViewRental from "./pages/rental/ViewRental";
+import Partners from "./pages/partners/Partners";
+import AddPartner from "./pages/partners/add/AddPartner";
+import EditPartner from "./pages/partners/edit/EditPartner";
+import ViewPartner from "./pages/partners/view/ViewPartner";
+import Insurances from "./pages/insurances/Insurances";
+import AddInsurance from "./pages/insurances/AddInsurance";
+import EditInsurance from "./pages/insurances/EditInsurance";
+import AddInsuranceInformation from "./pages/insurances/AddInsuranceInformation";
+import EditInsuranceInformation from "./pages/insurances/EditInsuranceInformation";
+import ViewInsurance from "./pages/insurances/ViewInsurance";
 
 const router = createBrowserRouter([
   {
@@ -122,7 +132,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/news",
+    path: "/articles/news",
     element: (
       <RouteProtection>
         <News />
@@ -154,7 +164,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/promotions",
+    path: "/articles/promotions",
     element: (
       <RouteProtection>
         <Promotions />
@@ -182,6 +192,86 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <ViewPromotion />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/partners",
+    element: (
+      <RouteProtection>
+        <Partners />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/partners/add",
+    element: (
+      <RouteProtection>
+        <AddPartner />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/partners/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditPartner />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/partners/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewPartner />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/insurances",
+    element: (
+      <RouteProtection>
+        <Insurances />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/add",
+    element: (
+      <RouteProtection>
+        <AddInsurance />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditInsurance />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/information/add",
+    element: (
+      <RouteProtection>
+        <AddInsuranceInformation />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/information/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditInsuranceInformation />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewInsurance />
       </RouteProtection>
     ),
   },
@@ -338,7 +428,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/blogs",
+    path: "/articles/blogs",
     element: (
       <RouteProtection>
         <Blogs />
