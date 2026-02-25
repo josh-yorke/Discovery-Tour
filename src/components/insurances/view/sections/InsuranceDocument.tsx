@@ -5,7 +5,7 @@ import SectionError from "../../../error/SectionError";
 import SectionLoader from "../../../loader/SectionLoader";
 import api from "../../../../hooks/axios/axios";
 import { getInsuranceDocument } from "../../../../hooks/visa/document/getDocument";
-import { getVisaFile } from "../../../../hooks/visa/file/getVisaFile";
+import { getVisaFile } from "../../../../hooks/visa/visa/getVisa";
 
 interface FileData {
   _id: string;
@@ -16,8 +16,8 @@ interface FileData {
 
 interface DocumentData {
   _id: string;
-  title: string; // Note: API returns "title" not "docTitle"
-  description: string; // Note: API returns "description" not "docDescription"
+  title: string;
+  description: string;
   filesAssociated: string[];
   insuranceId: string;
   __v: number;

@@ -17,8 +17,8 @@ import { useState } from "react";
 import api from "../../../../hooks/axios/axios";
 import SectionLoader from "../../../loader/SectionLoader";
 import SectionError from "../../../error/SectionError";
-import { getVisaFile } from "../../../../hooks/visa/file/getVisaFile";
 import { getInsuranceTerm } from "../../../../hooks/visa/terms/getTerm";
+import { getVisaFile } from "../../../../hooks/visa/visa/getVisa";
 
 interface FileData {
   _id: string;

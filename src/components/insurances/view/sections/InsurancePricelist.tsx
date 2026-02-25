@@ -17,8 +17,10 @@ import {
 import api from "../../../../hooks/axios/axios";
 import SectionLoader from "../../../loader/SectionLoader";
 import SectionError from "../../../error/SectionError";
-import { getInsurancePricelists } from "../../../../hooks/visa/visa/getVisa";
-import { getVisaFile } from "../../../../hooks/visa/file/getVisaFile";
+import {
+  getInsurancePricelists,
+  getVisaFile,
+} from "../../../../hooks/visa/visa/getVisa";
 
 interface FileData {
   _id: string;
