@@ -110,7 +110,7 @@ const Navbar = () => {
             />
 
             <HoverLink
-              options={["partners", "insurances"]}
+              options={["partners", "insurances", "bookings"]}
               to="/insurance"
               style={`${
                 pathname.startsWith("/insurance")
@@ -288,7 +288,7 @@ const Navbar = () => {
               />
 
               <DropdownLink
-                options={["insurances", "partners"]}
+                options={["insurances", "partners", "bookings"]}
                 to="/insurance"
                 style={`${
                   pathname.startsWith("/insurance")

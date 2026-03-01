@@ -1,10 +1,22 @@
-import type { insuranceSearchData } from "../../types/insurances/insuranceSearchTypes";
 import api from "../axios/axios";
 
-export const getInsurances = async (data: insuranceSearchData) => {
+export const getAllInsurances = async () => {
+  try {
+    const res = await api.get(`/insurances`);
+    console.log(res);
+    return {
+      insurances: res.data.data,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
+export const getInsurances = async (page: number, search: string) => {
   try {
     const res = await api.get(
-      `/insurances?page=${data.page}&limit=9&search=${data.search}`,
+      `/insurances?page=${page}&limit=9&search=${search}`,
     );
     console.log(res);
     return {

@@ -84,6 +84,9 @@ import EditInsurance from "./pages/insurances/EditInsurance";
 import AddInsuranceInformation from "./pages/insurances/AddInsuranceInformation";
 import EditInsuranceInformation from "./pages/insurances/EditInsuranceInformation";
 import ViewInsurance from "./pages/insurances/ViewInsurance";
+import InsuranceBookings from "./pages/insurances/bookings/InsuranceBookings";
+import EditInsuranceBooking from "./pages/insurances/bookings/EditInsuranceBooking";
+import AddInsuranceBooking from "./pages/insurances/bookings/AddInsuranceBooking";
 
 const router = createBrowserRouter([
   {
@@ -272,6 +275,30 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <ViewInsurance />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/bookings",
+    element: (
+      <RouteProtection>
+        <InsuranceBookings />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/bookings/add",
+    element: (
+      <RouteProtection>
+        <AddInsuranceBooking />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/insurance/bookings/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditInsuranceBooking />
       </RouteProtection>
     ),
   },

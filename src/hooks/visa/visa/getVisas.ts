@@ -33,6 +33,17 @@ export const getVisaCountries = async () => {
   }
 };
 
+export const getVisaCountriesId = async () => {
+  try {
+    const res = await api.get(`/categories-available?type=country`);
+
+    return res.data.data;
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};
+
 export const getVisaTypes = async () => {
   try {
     const res = await api.get(`/categories-available?type=visa-type`);

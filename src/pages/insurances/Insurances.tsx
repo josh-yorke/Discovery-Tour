@@ -41,7 +41,7 @@ const Insurance = () => {
 
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["insurances", { page, search, status }],
-    queryFn: () => getInsurances({ page, search }),
+    queryFn: () => getInsurances(page, search),
     enabled: isInitialized,
   });
 
