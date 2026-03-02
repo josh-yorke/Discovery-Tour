@@ -687,7 +687,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/booking",
+    path: "/transport/bookings",
     element: (
       <RouteProtection>
         <Bookings />
@@ -695,7 +695,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/booking/view/:id",
+    path: "/transport/bookings/view/:id",
     element: (
       <RouteProtection>
         <ViewBooking />
@@ -703,7 +703,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/booking/add",
+    path: "/transport/bookings/add",
     element: (
       <RouteProtection>
         <AddBooking />
@@ -711,7 +711,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/booking/edit/:id",
+    path: "/transport/bookings/edit/:id",
     element: (
       <RouteProtection>
         <EditBooking />

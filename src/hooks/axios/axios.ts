@@ -11,7 +11,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // * skip interceptor for refresh request itself
     if (originalRequest._isRefreshRequest) {
       return Promise.reject(error);
     }
@@ -26,7 +25,6 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // * mark this request so it doesn't go through interceptor again
         const res = await api.post("/users/refresh", null, {
           _isRefreshRequest: true,
         });
@@ -38,7 +36,6 @@ api.interceptors.response.use(
           return Promise.reject(new Error("No refresh token"));
         }
 
-        // * retry the original request
         return api(originalRequest);
       } catch (refreshError) {
         console.log("Refresh failed", refreshError);
@@ -50,7 +47,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

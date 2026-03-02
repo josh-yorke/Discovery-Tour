@@ -87,11 +87,11 @@ const Navbar = () => {
 
             <HoverLink
               options={[
-                "rail-passes",
                 "vehicles",
                 "transportation",
                 "rental",
-                "booking",
+                "rail-passes",
+                "bookings",
               ]}
               to="/transport"
               style={`${

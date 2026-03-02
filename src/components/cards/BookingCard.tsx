@@ -55,13 +55,13 @@ const BookingCard = ({
 
         <div className="flex items-center gap-2">
           <IconButton
-            action={() => navigate(`/transport/booking/view/${_id}`)}
+            action={() => navigate(`/transport/bookings/view/${_id}`)}
             title=""
             icon={<RiEyeFill size={16} />}
             style="bg-gray-100 text-[#1d2087] rounded-full p-3 hover:bg-gray-200"
           />
           <IconButton
-            action={() => navigate(`/transport/booking/edit/${_id}`)}
+            action={() => navigate(`/transport/bookings/edit/${_id}`)}
             title=""
             icon={<RiPencilFill size={16} />}
             style="bg-gray-100 text-[#1d2087] rounded-full p-3 hover:bg-gray-200"
