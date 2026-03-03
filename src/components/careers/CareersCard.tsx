@@ -1,0 +1,211 @@
+import {
+  RiHashtag,
+  RiAddLine,
+  RiArrowRightDownLine,
+  RiDeleteBin4Fill,
+  RiPencilFill,
+  RiBuildingLine,
+  RiBriefcaseLine,
+  RiCalendarLine,
+} from "react-icons/ri";
+import IconButton from "../button/IconButton";
+import LinkText from "../nav/LinkText";
+import { useEffect, useMemo, useState } from "react";
+import GlassTag from "../tags/GlassTag";
+import ImageCard from "../cards/ImageCard";
+
+interface CardProps {
+  id: string;
+  title: string;
+  description: string;
+  branch: string;
+  employmentType: string;
+  department: string;
+  status: string;
+  images: string[];
+  createdAt: string;
+  onDelete: () => void;
+}
+
+const CareersCard = ({
+  id,
+  title,
+  description,
+  employmentType,
+  department,
+  status,
+  images,
+  createdAt,
+  onDelete,
+}: CardProps) => {
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024,
+  );
+
+  const tags = useMemo(() => {
+    const tagArray = [];
+    if (employmentType) tagArray.push(employmentType);
+    if (department) tagArray.push(department);
+    if (createdAt)
+      tagArray.push(
+        new Date(createdAt).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      );
+    return tagArray;
+  }, [employmentType, department, createdAt]);
+
+  const displayTags = useMemo(() => {
+    if (!tags.length) return { visibleTags: [], overflowCount: 0 };
+
+    let maxVisibleTags = 2;
+
+    if (windowWidth >= 1024) {
+      maxVisibleTags = 3;
+    } else if (windowWidth >= 640) {
+      maxVisibleTags = 2;
+    }
+
+    const visibleTags = tags.slice(0, maxVisibleTags);
+    const overflowCount = Math.max(0, tags.length - maxVisibleTags);
+
+    return { visibleTags, overflowCount };
+  }, [tags, windowWidth]);
+
+  const truncateTag = (tag: string) => {
+    return tag.length <= 10 ? tag : tag.substring(0, 10) + "...";
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleEditClick = () => {
+    window.location.href = `/careers/edit/${id}`;
+  };
+
+  const handleViewClick = () => {
+    window.location.href = `/careers/view/${id}`;
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-4">
+      <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
+        <div className="absolute top-4 left-4 z-10 flex flex-row gap-2">
+          <IconButton
+            action={handleEditClick}
+            title=""
+            icon={<RiPencilFill size={16} />}
+            style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
+          />
+          <IconButton
+            action={onDelete}
+            title=""
+            icon={<RiDeleteBin4Fill size={16} />}
+            style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
+          />
+        </div>
+
+        <div className="absolute top-4 right-4 z-10">
+          <GlassTag
+            text={status}
+            style="flex flex-row gap-1 items-center justify-center"
+            icon
+          />
+        </div>
+
+        <ImageCard style="w-full h-full object-cover" url={images} />
+
+        {tags.length > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 z-10">
+            <div className="w-full flex flex-row gap-2 flex-wrap">
+              {displayTags.visibleTags.map((tag: string, index: number) => {
+                let icon = (
+                  <RiHashtag size={12} color="white" className="shrink-0" />
+                );
+                if (tag === employmentType) {
+                  icon = (
+                    <RiBriefcaseLine
+                      size={12}
+                      color="white"
+                      className="shrink-0"
+                    />
+                  );
+                } else if (tag === department) {
+                  icon = (
+                    <RiBuildingLine
+                      size={12}
+                      color="white"
+                      className="shrink-0"
+                    />
+                  );
+                } else if (tag === createdAt) {
+                  icon = (
+                    <RiCalendarLine
+                      size={12}
+                      color="white"
+                      className="shrink-0"
+                    />
+                  );
+                }
+
+                return (
+                  <GlassTag
+                    key={`${tag}-${index}`}
+                    icon={icon}
+                    text={truncateTag(tag)}
+                    style="flex flex-row gap-1 items-center justify-center"
+                  />
+                );
+              })}
+
+              {displayTags.overflowCount > 0 && (
+                <GlassTag
+                  icon={<RiAddLine size={12} color="white" />}
+                  text={displayTags.overflowCount.toString()}
+                  style="flex flex-row items-center justify-center"
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-row flex-1 items-center justify-between px-2">
+        <div className="w-3/4 flex flex-col gap-1 items-start justify-center">
+          <LinkText
+            title={title}
+            url={`/careers/view/${id}`}
+            style="w-full font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
+          />
+          <div className="w-full flex flex-col gap-1">
+            <p className="text-xs text-gray-600 line-clamp-2">{description}</p>
+          </div>
+        </div>
+
+        <div
+          className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
+          onClick={handleViewClick}
+        >
+          <RiArrowRightDownLine
+            className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
+            size={16}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CareersCard;

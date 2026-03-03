@@ -87,6 +87,7 @@ import ViewInsurance from "./pages/insurances/ViewInsurance";
 import InsuranceBookings from "./pages/insurances/bookings/InsuranceBookings";
 import EditInsuranceBooking from "./pages/insurances/bookings/EditInsuranceBooking";
 import AddInsuranceBooking from "./pages/insurances/bookings/AddInsuranceBooking";
+import Careers from "./pages/careers/Careers";
 
 const router = createBrowserRouter([
   {
@@ -227,6 +228,14 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <ViewPartner />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/careers",
+    element: (
+      <RouteProtection>
+        <Careers />
       </RouteProtection>
     ),
   },

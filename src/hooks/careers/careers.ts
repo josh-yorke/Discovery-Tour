@@ -16,9 +16,9 @@ export const addCareer = async (data: addCareerData) => {
 
 export const deleteCareer = async (id: string) => {
   try {
-    const res = await api.delete(id);
+    const res = await api.delete(`/careers/${id}`);
 
-    return res.data.data.message;
+    return res.data.message;
   } catch (error: any) {
     const message = error.response.data.message;
     throw new Error(message);
@@ -32,7 +32,7 @@ export const updateCareer = async (id: string, data: addCareerData) => {
     console.log(res.data.data);
     return res.data.data.message;
   } catch (error: any) {
-    const message = error.res.data.data.message;
+    const message = error.res.data.message;
     throw new Error(message);
   }
 };
@@ -53,12 +53,12 @@ export const getCareer = async (id: string) => {
 export const getAllCareers = async (data: careerSearchData) => {
   try {
     const res = await api.get(
-      `careers?page=${data.page}&limit=${data.limit}&status=${data.status}&search=${data.search}&employmentType=${data.employmentType}&branch=${data.branch}`,
+      `careers?page=${data.page}&limit=9&status=${data.status}&search=${data.search}&employmentType=${data.employmentType}&branch=${data.branch}`,
     );
     console.log(res.data.data);
     return res.data.data;
   } catch (error: any) {
-    const message = error.res.data.data.message;
+    const message = error.res.data.message;
     throw new Error(message);
   }
 };

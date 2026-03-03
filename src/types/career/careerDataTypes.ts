@@ -15,6 +15,7 @@ export const careerSchema = z.object({
   department: z.string(),
   status: z.enum(["open", "closed", "draft"]),
   images: z.array(z.string()),
+  createdAt: z.string(),
 });
 
 export type careerData = z.infer<typeof careerSchema>;

@@ -19,6 +19,8 @@ import {
   RiUser4Line,
   RiBankCardFill,
   RiBankCardLine,
+  RiBriefcase2Line,
+  RiBriefcase2Fill,
 } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router";
 import LogoutButton from "../button/LogoutButton";
@@ -125,6 +127,23 @@ const Navbar = () => {
                 )
               }
               title="Insurance"
+            />
+
+            <LinkButton
+              to="/careers"
+              style={`${
+                pathname.startsWith("/careers")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/careers") ? (
+                  <RiBriefcase2Fill size={16} />
+                ) : (
+                  <RiBriefcase2Line size={16} />
+                )
+              }
+              title="Careers"
             />
 
             <HoverLink
@@ -303,6 +322,23 @@ const Navbar = () => {
                   )
                 }
                 title="Insurance"
+              />
+
+              <LinkButton
+                to="/careers"
+                style={`${
+                  pathname.startsWith("/careers")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/careers") ? (
+                    <RiBriefcase2Fill size={16} />
+                  ) : (
+                    <RiBriefcase2Line size={16} />
+                  )
+                }
+                title="Careers"
               />
 
               <DropdownLink
