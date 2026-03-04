@@ -11,7 +11,12 @@ export const addCareerSchema = z.object({
     "Internship",
     "Temporary",
   ]),
-  images: z.array(z.string()).min(1, "atleast one image is required"),
+  images: z
+    .any()
+    .refine(
+      (value) => value instanceof FileList && value.length > 0,
+      "At least one image is required",
+    ),
   department: z.string().min(1, "career department is required"),
   branch: z.string().min(1, "branch is required"),
 });

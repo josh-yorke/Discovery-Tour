@@ -1,13 +1,14 @@
-import type { addCareerData } from "../../types/career/addCareerTypes";
 import type { careerSearchData } from "../../types/career/careerSearchTypes";
 import api from "../axios/axios";
 
-export const addCareer = async (data: addCareerData) => {
+export const addCareer = async (data: FormData) => {
   try {
     const res = await api.post("/careers", data);
-    console.log(res.data.data);
 
-    return res.data.data.message;
+    return {
+      id: res.data.data._id,
+      message: res.data.message,
+    };
   } catch (error: any) {
     const message = error.response.data.message;
     throw new Error(message);
@@ -25,21 +26,24 @@ export const deleteCareer = async (id: string) => {
   }
 };
 
-export const updateCareer = async (id: string, data: addCareerData) => {
+export const updateCareer = async (id: string, data: FormData) => {
   try {
-    const res = await api.put(id, data);
+    const res = await api.put(`/careers/${id}`, data);
 
     console.log(res.data.data);
-    return res.data.data.message;
+    return {
+      id: res.data.data._id,
+      message: res.data.message,
+    };
   } catch (error: any) {
     const message = error.res.data.message;
     throw new Error(message);
   }
 };
 
-export const getCareer = async (id: string) => {
+export const getCareer = async (id?: string) => {
   try {
-    const res = await api.get(id);
+    const res = await api.get(`/careers/${id}`);
 
     console.log(res.data.data);
     return res.data.data;
