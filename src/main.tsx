@@ -90,6 +90,7 @@ import AddInsuranceBooking from "./pages/insurances/bookings/AddInsuranceBooking
 import Careers from "./pages/careers/Careers";
 import AddCareer from "./pages/careers/AddCareer";
 import EditCareer from "./pages/careers/EditCareer";
+import ViewCareer from "./pages/careers/ViewCareer";
 
 const router = createBrowserRouter([
   {
@@ -254,6 +255,14 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditCareer />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/careers/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewCareer />
       </RouteProtection>
     ),
   },
