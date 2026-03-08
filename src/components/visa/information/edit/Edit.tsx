@@ -29,6 +29,7 @@ import EditProcessForm, { type ProcessFormHandle } from "../../EditProcessForm";
 import EditPricelistForm, {
   type PricelistFormHandle,
 } from "../../EditPricelistForm";
+import EditFaqsForm, { type FaqsFormHandle } from "../../EditFaqsForm";
 import { addPriceList } from "../../../../hooks/visa/pricelist/addPriceList";
 import PageLoader from "../../../loader/PageLoader";
 import { deleteVisaFile } from "../../../../hooks/visa/file/deleteVisaFile";
@@ -38,13 +39,20 @@ import { deleteTerm } from "../../../../hooks/visa/terms/deleteTerm";
 import { deleteDocument } from "../../../../hooks/visa/document/deleteDocument";
 import { deletePayment } from "../../../../hooks/visa/payment/deletePayment";
 import Modal from "../../../modal/Modal";
+import {
+  addFaq,
+  deleteFaq,
+  getFaq,
+  updateFaq,
+} from "../../../../hooks/visa/faqs/faqs";
 
 export type FormType =
   | "pricelist"
   | "process"
   | "payment"
   | "term"
-  | "document";
+  | "document"
+  | "faq";
 
 interface EditData {
   pricelist?: any[];
@@ -52,6 +60,7 @@ interface EditData {
   payment?: any[];
   term?: any[];
   document?: any[];
+  faq?: any[];
 }
 
 interface FileData {
@@ -79,6 +88,7 @@ const FORM_TYPES: FormType[] = [
   "payment",
   "term",
   "document",
+  "faq",
 ];
 
 const useEditData = (id: string | undefined) => {
@@ -117,12 +127,14 @@ const useEditData = (id: string | undefined) => {
           paymentData,
           termData,
           documentData,
+          faqData,
         ] = await Promise.all([
           getPricelist(id),
           getProcess(id),
           getPayment(id),
           getTerm(id),
           getDocument(id),
+          getFaq(id),
         ]);
 
         const pricelistArray = Array.isArray(pricelistData)
@@ -140,6 +152,9 @@ const useEditData = (id: string | undefined) => {
         const paymentArray = Array.isArray(paymentData)
           ? paymentData
           : [paymentData].filter(Boolean);
+        const faqArray = Array.isArray(faqData)
+          ? faqData
+          : [faqData].filter(Boolean);
 
         setEditData({
           pricelist: pricelistArray,
@@ -147,6 +162,7 @@ const useEditData = (id: string | undefined) => {
           payment: paymentArray,
           term: termArray,
           document: documentArray,
+          faq: faqArray,
         });
 
         const pricelistFileIdsArray = pricelistArray.map((pricelist) =>
@@ -324,6 +340,10 @@ const useFormMutations = () => {
       mutationFn: ({ id, data }: { id: string; data: FormData }) =>
         updateDocument(id, data),
     }),
+    faq: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+        updateFaq(id, data),
+    }),
   };
 
   const addMutations = {
@@ -332,6 +352,7 @@ const useFormMutations = () => {
     payment: useMutation({ mutationFn: addPayment }),
     term: useMutation({ mutationFn: addTerm }),
     document: useMutation({ mutationFn: addDocument }),
+    faq: useMutation({ mutationFn: addFaq }),
   };
 
   const deletePricelistMutation = useMutation({
@@ -369,6 +390,13 @@ const useFormMutations = () => {
     },
   });
 
+  const deleteFaqMutation = useMutation({
+    mutationFn: deleteFaq,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["faqs"], exact: false });
+    },
+  });
+
   const fileMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: FormData }) =>
       updateVisaFile(id, data),
@@ -398,17 +426,13 @@ const useFormMutations = () => {
     deleteTermMutation,
     deleteDocumentMutation,
     deletePaymentMutation,
+    deleteFaqMutation,
     fileMutation,
     fileAddMutation,
     fileDeleteMutation,
     invalidateQueries,
   };
 };
-
-// interface UpdateMutationParams {
-//   id: string;
-//   data: FormData;
-// }
 
 const hasFormData = (formData: any): boolean => {
   if (formData === null) {
@@ -452,6 +476,9 @@ const hasFormData = (formData: any): boolean => {
   ) {
     return true;
   }
+  if (Array.isArray(formData) && formData.length > 0) {
+    return true;
+  }
 
   return false;
 };
@@ -475,6 +502,7 @@ const Edit = () => {
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(
     null,
   );
+  const [deletingFaqId, setDeletingFaqId] = useState<string | null>(null);
   const [message, setMessage] = useState<ErrorState | null>(null);
 
   const {
@@ -501,6 +529,7 @@ const Edit = () => {
     deleteTermMutation,
     deleteDocumentMutation,
     deletePaymentMutation,
+    deleteFaqMutation,
     fileMutation,
     fileAddMutation,
     fileDeleteMutation,
@@ -512,6 +541,7 @@ const Edit = () => {
   const paymentFormRef = useRef<PaymentFormHandle>(null);
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
+  const faqFormRef = useRef<FaqsFormHandle>(null);
 
   const showMessage = useCallback((message: ErrorState | null) => {
     setMessage(message);
@@ -830,6 +860,48 @@ const Edit = () => {
     [deletePaymentMutation, setEditData, showMessage],
   );
 
+  const handleDeleteFaq = useCallback(
+    async (faqId: string, index: number) => {
+      if (
+        !faqId ||
+        !window.confirm("Are you sure you want to delete this FAQ?")
+      ) {
+        return;
+      }
+
+      try {
+        setDeletingFaqId(faqId);
+        await deleteFaqMutation.mutateAsync(faqId);
+
+        const formHandle = faqFormRef.current as any;
+        if (formHandle.removeFaqField) {
+          formHandle.removeFaqField(index);
+        }
+
+        setEditData((prev) => ({
+          ...prev,
+          faq: prev.faq?.filter((_, i) => i !== index) || [],
+        }));
+
+        showMessage({
+          message: "FAQ deleted successfully!",
+          type: "success",
+          action: "delete",
+        });
+      } catch (error: any) {
+        console.error("Error deleting FAQ:", error);
+        showMessage({
+          message: error.message || "Error deleting FAQ",
+          type: "error",
+          action: "delete",
+        });
+      } finally {
+        setDeletingFaqId(null);
+      }
+    },
+    [deleteFaqMutation, setEditData, showMessage],
+  );
+
   const handleDeleteFile = useCallback(
     async (fileId: string, fileType: FormType, index?: number) => {
       if (
@@ -995,6 +1067,7 @@ const Edit = () => {
               }));
             }
           },
+          faq: () => {},
         };
 
         updateState[fileType]();
@@ -1034,6 +1107,7 @@ const Edit = () => {
         payment: "payment",
         terms: "term",
         document: "document",
+        faq: "faq",
       };
 
       const mutationKey = typeMapping[type] || type;
@@ -1070,14 +1144,15 @@ const Edit = () => {
       const paymentFormData = await paymentFormRef.current?.getFormData();
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
+      const faqFormData = await faqFormRef.current?.getFormData();
 
-      // FIRST: Check if any form has validation errors (returns null)
       const formResults = [
         { data: pricelistFormData, type: "pricelist" },
         { data: processFormData, type: "process" },
         { data: paymentFormData, type: "payment" },
         { data: termFormData, type: "term" },
         { data: documentFormData, type: "document" },
+        { data: faqFormData, type: "faq" },
       ];
 
       const validationErrors = formResults.filter(({ data }) => data === null);
@@ -1093,7 +1168,6 @@ const Edit = () => {
         return;
       }
 
-      // SECOND: Check if at least one form has valid data
       const hasAtLeastOneValidForm = formResults.some(({ data }) =>
         hasFormData(data),
       );
@@ -1464,6 +1538,40 @@ const Edit = () => {
         }
       }
 
+      if (faqFormData && hasFormData(faqFormData)) {
+        const safeFaqData = Array.isArray(faqFormData)
+          ? faqFormData
+          : [faqFormData];
+        const editFaqArray = Array.isArray(editData.faq)
+          ? editData.faq
+          : [editData.faq].filter(Boolean);
+
+        for (let i = 0; i < safeFaqData.length; i++) {
+          const faqItem = safeFaqData[i];
+          const faqFormDataToSubmit = new FormData();
+          faqFormDataToSubmit.append("type", "faq");
+          faqFormDataToSubmit.append("question", faqItem.question || "");
+          faqFormDataToSubmit.append("answer", faqItem.answer || "");
+          faqFormDataToSubmit.append("visa", id);
+
+          const hasExistingData = !!editFaqArray[i]?._id;
+          const mutation = getMutationFunction("faq", hasExistingData);
+
+          if (hasExistingData) {
+            submissions.push(
+              (mutation as any).mutateAsync({
+                id: editFaqArray[i]._id,
+                data: faqFormDataToSubmit,
+              }),
+            );
+          } else {
+            submissions.push(
+              (mutation as any).mutateAsync(faqFormDataToSubmit),
+            );
+          }
+        }
+      }
+
       await Promise.all(submissions);
       invalidateQueries();
 
@@ -1537,6 +1645,12 @@ const Edit = () => {
       isDeleting: deletingFileId !== null,
       isDeletingDocument: deletingDocumentId !== null,
     },
+    faq: {
+      ref: faqFormRef,
+      editData: editData.faq || [],
+      onDeleteFaq: handleDeleteFaq,
+      isDeleting: deletingFaqId !== null,
+    },
   };
 
   return (
@@ -1560,6 +1674,7 @@ const Edit = () => {
             {type === "document" && (
               <EditDocumentForm {...formProps.document} />
             )}
+            {type === "faq" && <EditFaqsForm {...formProps.faq} />}
           </div>
         ))}
 
@@ -1582,7 +1697,7 @@ const Edit = () => {
               message.type === "success" &&
               message.action === "addOrUpdate"
             ) {
-              navigate(-1);
+              navigate(-2);
             }
           }}
         />

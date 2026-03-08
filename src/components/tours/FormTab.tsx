@@ -8,6 +8,7 @@ import {
   RiMoneyCnyCircleFill,
   RiFolder3Fill,
   RiLayoutRight2Fill,
+  RiQuestionFill,
 } from "react-icons/ri";
 import type { FormType } from "./information/add/Add";
 
@@ -27,6 +28,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Accommodation"
       >
         <RiBuildingFill size={16} />
       </button>
@@ -38,6 +40,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="City"
       >
         <RiMapPinAddFill size={16} />
       </button>
@@ -49,6 +52,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Scope"
       >
         <RiListCheck2 size={16} />
       </button>
@@ -60,6 +64,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Itinerary"
       >
         <RiCalendarTodoFill size={16} />
       </button>
@@ -71,6 +76,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Pricelist"
       >
         <RiShoppingBasketFill size={16} />
       </button>
@@ -82,6 +88,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Process"
       >
         <RiTimer2Fill size={16} />
       </button>
@@ -93,6 +100,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Payment"
       >
         <RiMoneyCnyCircleFill size={16} />
       </button>
@@ -104,6 +112,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Terms"
       >
         <RiLayoutRight2Fill size={16} />
       </button>
@@ -115,8 +124,21 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
             ? "bg-[#1d2087] text-white"
             : "bg-white text-gray-700 hover:bg-gray-50"
         }`}
+        title="Documents"
       >
         <RiFolder3Fill size={16} />
+      </button>
+      <button
+        type="button"
+        onClick={() => setFormType("faq")}
+        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
+          formType === "faq"
+            ? "bg-[#1d2087] text-white"
+            : "bg-white text-gray-700 hover:bg-gray-50"
+        }`}
+        title="FAQs"
+      >
+        <RiQuestionFill size={16} />
       </button>
     </div>
   );

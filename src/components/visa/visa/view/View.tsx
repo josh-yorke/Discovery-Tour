@@ -11,6 +11,7 @@ import Pricelists from "../../../../pages/visa/view/sections/Pricelists";
 import Terms from "../../../../pages/visa/view/sections/Terms";
 import Payments from "../../../../pages/visa/view/sections/Payments";
 import IconButton from "../../../button/IconButton";
+import Faqs from "../../../../pages/visa/view/sections/Faqs";
 
 interface ViewProps extends visaData {
   savedAt: string;
@@ -293,6 +294,7 @@ const View = ({
         <Pricelists visaId={_id} />
         <Terms visaId={_id} />
         <Payments visaId={_id} />
+        <Faqs idType="visaId" id={_id} />
       </div>
     </>
   );

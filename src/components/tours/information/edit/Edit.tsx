@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { getVisaFile } from "../../../../hooks/visa/file/getVisaFile";
 import {
   addAccomodation,
@@ -50,12 +50,19 @@ import { deleteTerm } from "../../../../hooks/visa/terms/deleteTerm";
 import { deletePayment } from "../../../../hooks/visa/payment/deletePayment";
 import { deleteProcess } from "../../../../hooks/visa/process/deleteProcess";
 import { deletePricelist } from "../../../../hooks/visa/pricelist/deletePriceList";
+import {
+  addFaq,
+  deleteFaq,
+  getTourFaq,
+  updateFaq,
+} from "../../../../hooks/visa/faqs/faqs";
 import type { AccommodationFormHandle } from "../editforms/EditAccommodationForm";
 import type { PricelistFormHandle } from "../../../visa/EditPricelistForm";
 import type { ProcessFormHandle } from "../../../visa/EditProcessForm";
 import type { PaymentFormHandle } from "../../../visa/EditPaymentForm";
 import type { TermFormHandle } from "../../../visa/EditTermForm";
 import type { DocumentFormHandle } from "../../../visa/EditDocumentForm";
+import type { FaqsFormHandle } from "../../../visa/EditFaqsForm";
 import PageLoader from "../../../loader/PageLoader";
 import EditAccommodationForm from "../editforms/EditAccommodationForm";
 import EditItineraryForm, {
@@ -67,6 +74,7 @@ import EditTermForm from "../../../visa/EditTermForm";
 import EditPaymentForm from "../../../visa/EditPaymentForm";
 import EditProcessForm from "../../../visa/EditProcessForm";
 import EditPricelistForm from "../../../visa/EditPricelistForm";
+import EditFaqsForm from "../../../visa/EditFaqsForm";
 import FormTabs from "../../FormTab";
 import type { CityFormHandle } from "../editforms/EditCityForm";
 import EditCityForm from "../editforms/EditCityForm";
@@ -74,6 +82,7 @@ import EditScopeForm, {
   type ScopeFormHandle,
 } from "../editforms/EditScopeForm";
 import Modal from "../../../modal/Modal";
+import type { addFaqData } from "../../../../types/faqs/addFaqsTypes";
 
 export type FormType =
   | "accommodation"
@@ -84,7 +93,8 @@ export type FormType =
   | "process"
   | "payment"
   | "term"
-  | "document";
+  | "document"
+  | "faq";
 
 interface EditData {
   accommodation?: any[];
@@ -96,6 +106,7 @@ interface EditData {
   payment?: any[];
   term?: any[];
   document?: any[];
+  faq?: any[];
 }
 
 interface FileData {
@@ -104,12 +115,6 @@ interface FileData {
   term?: any[];
   document?: any[];
 }
-
-type FileFetchResult =
-  | { type: "pricelist"; data: any; index: number }
-  | { type: "process"; data: any; index: number }
-  | { type: "term"; data: any; index: number }
-  | { type: "document"; data: any; index: number };
 
 interface ErrorState {
   message: string;
@@ -127,6 +132,7 @@ const FORM_TYPES: FormType[] = [
   "payment",
   "term",
   "document",
+  "faq",
 ];
 
 const useEditData = (tourId: string | undefined) => {
@@ -151,7 +157,6 @@ const useEditData = (tourId: string | undefined) => {
   useEffect(() => {
     const fetchExistingData = async () => {
       if (!tourId) {
-        console.error("No tour ID provided");
         setIsLoadingData(false);
         return;
       }
@@ -169,41 +174,36 @@ const useEditData = (tourId: string | undefined) => {
           paymentData,
           termData,
           documentData,
+          faqData,
         ] = await Promise.all([
-          getAccommodation(tourId),
-          getCity(tourId),
-          getScope(tourId),
-          getItinerary(tourId),
-          getTourPricelist(tourId),
-          getTourProcess(tourId),
-          getTourPayment(tourId),
-          getTourTerm(tourId),
-          getTourDocument(tourId),
+          getAccommodation(tourId).catch(() => null),
+          getCity(tourId).catch(() => null),
+          getScope(tourId).catch(() => null),
+          getItinerary(tourId).catch(() => null),
+          getTourPricelist(tourId).catch(() => null),
+          getTourProcess(tourId).catch(() => null),
+          getTourPayment(tourId).catch(() => null),
+          getTourTerm(tourId).catch(() => null),
+          getTourDocument(tourId).catch(() => null),
+          getTourFaq(tourId).catch(() => null),
         ]);
 
-        const toArray = (data: any) =>
-          Array.isArray(data) ? data : [data].filter(Boolean);
-
-        const accommodationArray = toArray(accommodationData);
-        const cityArray = toArray(cityData);
-        const scopeArray = toArray(scopeData);
-        const itineraryArray = toArray(itineraryData);
-        const pricelistArray = toArray(pricelistData);
-        const processArray = toArray(processData);
-        const paymentArray = toArray(paymentData);
-        const termArray = toArray(termData);
-        const documentArray = toArray(documentData);
+        const toArray = (data: any) => {
+          if (!data) return [];
+          return Array.isArray(data) ? data : [data].filter(Boolean);
+        };
 
         setEditData({
-          accommodation: accommodationArray,
-          city: cityArray,
-          scope: scopeArray,
-          itinerary: itineraryArray,
-          pricelist: pricelistArray,
-          process: processArray,
-          payment: paymentArray,
-          term: termArray,
-          document: documentArray,
+          accommodation: toArray(accommodationData),
+          city: toArray(cityData),
+          scope: toArray(scopeData),
+          itinerary: toArray(itineraryData),
+          pricelist: toArray(pricelistData),
+          process: toArray(processData),
+          payment: toArray(paymentData),
+          term: toArray(termData),
+          document: toArray(documentData),
+          faq: toArray(faqData),
         });
 
         const createFileIdsArray = (dataArray: any[]) =>
@@ -215,17 +215,14 @@ const useEditData = (tourId: string | undefined) => {
               : [],
           );
 
-        setPricelistFileIds(createFileIdsArray(pricelistArray));
-        setProcessFileIds(createFileIdsArray(processArray));
-        setTermFileIds(createFileIdsArray(termArray));
-        setDocumentFileIds(createFileIdsArray(documentArray));
+        setPricelistFileIds(createFileIdsArray(toArray(pricelistData)));
+        setProcessFileIds(createFileIdsArray(toArray(processData)));
+        setTermFileIds(createFileIdsArray(toArray(termData)));
+        setDocumentFileIds(createFileIdsArray(toArray(documentData)));
 
-        const fileFetchPromises: Promise<FileFetchResult>[] = [];
+        const fileFetchPromises: Promise<any>[] = [];
 
-        const addFilePromises = (
-          type: FileFetchResult["type"],
-          dataArray: any[],
-        ) => {
+        const addFilePromises = (type: string, dataArray: any[]) => {
           dataArray.forEach((item, index) => {
             if (item?.filesAssociated) {
               const fileId = Array.isArray(item.filesAssociated)
@@ -242,10 +239,10 @@ const useEditData = (tourId: string | undefined) => {
           });
         };
 
-        addFilePromises("pricelist", pricelistArray);
-        addFilePromises("process", processArray);
-        addFilePromises("term", termArray);
-        addFilePromises("document", documentArray);
+        addFilePromises("pricelist", toArray(pricelistData));
+        addFilePromises("process", toArray(processData));
+        addFilePromises("term", toArray(termData));
+        addFilePromises("document", toArray(documentData));
 
         const fileResults = await Promise.all(fileFetchPromises);
         const organizedFileData: FileData = {
@@ -255,10 +252,13 @@ const useEditData = (tourId: string | undefined) => {
           document: [],
         };
 
-        fileResults.forEach((result) => {
-          const targetArray = organizedFileData[result.type];
-          if (targetArray) {
-            targetArray[result.index] = result.data;
+        fileResults.forEach((result: any) => {
+          if (result?.type && result?.index !== undefined) {
+            const targetArray =
+              organizedFileData[result.type as keyof FileData];
+            if (targetArray) {
+              targetArray[result.index] = result.data;
+            }
           }
         });
 
@@ -330,6 +330,10 @@ const useFormMutations = () => {
       mutationFn: ({ id, data }: { id: string; data: FormData }) =>
         updateDocument(id, data),
     }),
+    faq: useMutation({
+      mutationFn: ({ id, data }: { id: string; data: any }) =>
+        updateFaq(id, data),
+    }),
   };
 
   const addMutations = {
@@ -342,6 +346,7 @@ const useFormMutations = () => {
     payment: useMutation({ mutationFn: addPayment }),
     term: useMutation({ mutationFn: addTerm }),
     document: useMutation({ mutationFn: addDocument }),
+    faq: useMutation({ mutationFn: addFaq }),
   };
 
   const deleteMutations = {
@@ -385,6 +390,10 @@ const useFormMutations = () => {
       onSuccess: () =>
         queryClient.invalidateQueries({ queryKey: ["document"] }),
     }),
+    faq: useMutation({
+      mutationFn: deleteFaq,
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["faqs"] }),
+    }),
   };
 
   const fileMutation = useMutation({
@@ -418,10 +427,14 @@ const useFormMutations = () => {
 };
 
 const hasFormData = (formData: any): boolean => {
-  if (formData === null || !formData) return false;
+  if (!formData) return false;
+
+  if (Array.isArray(formData) && formData.length > 0) {
+    return true;
+  }
 
   const checkData = (fieldName: string) =>
-    fieldName in formData &&
+    formData[fieldName] &&
     Array.isArray(formData[fieldName]) &&
     formData[fieldName].length > 0;
 
@@ -482,6 +495,7 @@ const Edit = () => {
   const paymentFormRef = useRef<PaymentFormHandle>(null);
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
+  const faqFormRef = useRef<FaqsFormHandle>(null);
 
   const showMessage = useCallback((message: ErrorState | null) => {
     setMessage(message);
@@ -504,8 +518,9 @@ const Edit = () => {
         fileTitle?.trim() || (existingFileId ? "Updated File" : "New File"),
       );
 
-      const filesArray = Array.from(fileData!);
-      filesArray.forEach((file: File) => formData.append("file", file));
+      Array.from(fileData!).forEach((file: File) =>
+        formData.append("file", file),
+      );
 
       if (existingFileId) {
         try {
@@ -554,27 +569,27 @@ const Edit = () => {
 
       try {
         setDeletingId(itemId);
-        await deleteMutations[type as keyof typeof deleteMutations].mutateAsync(
-          itemId,
-        );
+        await deleteMutations[type].mutateAsync(itemId);
 
-        const formHandle = formRef.current as any;
-        const removeMethod = `remove${type.charAt(0).toUpperCase() + type.slice(1)}Field`;
-        if (formHandle && formHandle[removeMethod]) {
-          formHandle[removeMethod](index);
+        const formHandle = formRef.current;
+        const removeMethod =
+          `remove${type.charAt(0).toUpperCase() + type.slice(1)}Field` as keyof typeof formHandle;
+
+        if (formHandle && typeof formHandle[removeMethod] === "function") {
+          (formHandle[removeMethod] as (index: number) => void)(index);
         }
 
         setEditData((prev) => ({
           ...prev,
-          [type]:
-            prev[type as keyof EditData]?.filter((_, i) => i !== index) || [],
+          [type]: (prev[type] || []).filter((_, i) => i !== index),
         }));
 
         if (["pricelist", "process", "term", "document"].includes(type)) {
           setFileData((prev) => ({
             ...prev,
-            [type]:
-              prev[type as keyof FileData]?.filter((_, i) => i !== index) || [],
+            [type]: (prev[type as keyof FileData] || []).filter(
+              (_, i) => i !== index,
+            ),
           }));
 
           const setFileIdsMap: Record<
@@ -586,7 +601,8 @@ const Edit = () => {
             term: setTermFileIds,
             document: setDocumentFileIds,
           };
-          if (setFileIdsMap[type]) {
+
+          if (type in setFileIdsMap) {
             setFileIdsMap[type]((prev) => prev.filter((_, i) => i !== index));
           }
         }
@@ -727,6 +743,18 @@ const Edit = () => {
     [handleDelete],
   );
 
+  const handleDeleteFaq = useCallback(
+    (faqId: string, index: number) =>
+      handleDelete(
+        "faq",
+        faqId,
+        index,
+        faqFormRef,
+        "FAQ deleted successfully!",
+      ),
+    [handleDelete],
+  );
+
   const handleDeleteFile = useCallback(
     async (fileId: string, fileType: FormType, index?: number) => {
       if (
@@ -802,17 +830,17 @@ const Edit = () => {
         payment: "payment",
         terms: "term",
         document: "document",
+        faq: "faq",
       };
 
       const mutationKey = typeMapping[type] || type;
 
       if (hasExistingData) {
-        const mutation =
-          updateMutations[mutationKey as keyof typeof updateMutations];
+        const mutation = updateMutations[mutationKey];
         if (!mutation) throw new Error(`Invalid update form type: ${type}`);
         return mutation;
       } else {
-        const mutation = addMutations[mutationKey as keyof typeof addMutations];
+        const mutation = addMutations[mutationKey];
         if (!mutation) throw new Error(`Invalid add form type: ${type}`);
         return mutation;
       }
@@ -829,14 +857,12 @@ const Edit = () => {
   ) => {
     if (!formData) return [];
 
-    // Check if there's any data to submit
     const dataField = `${formType}Data`;
     const fileField = `${formType}FileData`;
 
     const data = formData[dataField];
     const fileData = formData[fileField];
 
-    // Return empty array if no data
     if (!data || (Array.isArray(data) && data.length === 0)) {
       return [];
     }
@@ -869,7 +895,6 @@ const Edit = () => {
 
     const uploadedFileIds = await Promise.all(fileUploadPromises);
 
-    // Only update fileIds if we have new uploads
     if (
       uploadedFileIds.some((id) => id !== fileIds.map((f) => f[0]).join(""))
     ) {
@@ -893,9 +918,7 @@ const Edit = () => {
       if (formType === "pricelist") {
         formDataToSubmit.append("type", "price");
         formDataToSubmit.append("plan", item.plan || "");
-        if (item.fee) {
-          formDataToSubmit.append("fee", item.fee.toString());
-        }
+        if (item.fee) formDataToSubmit.append("fee", item.fee.toString());
         formDataToSubmit.append("description", item.description || "");
         formDataToSubmit.append("priceCurrency", item.priceCurrency || "USD");
       } else if (formType === "process") {
@@ -948,7 +971,45 @@ const Edit = () => {
   ) => {
     if (!formData || !hasFormData(formData)) return [];
 
+    if (formType === "faq" && Array.isArray(formData)) {
+      const submissions = [];
+      const editArray = Array.isArray(editDataArray) ? editDataArray : [];
+
+      for (let i = 0; i < formData.length; i++) {
+        const item = formData[i] as addFaqData;
+
+        if (!item?.question?.trim() || !item?.answer?.trim()) {
+          throw new Error("Question and answer are required");
+        }
+
+        const faqData = {
+          type: "faq",
+          question: item.question,
+          answer: item.answer,
+          tour: id,
+        };
+
+        const hasExistingData = !!editArray[i]?._id;
+        const mutation = getMutationFunction("faq", hasExistingData);
+
+        if (hasExistingData) {
+          submissions.push(
+            (mutation as any).mutateAsync({
+              id: editArray[i]._id,
+              data: faqData,
+            }),
+          );
+        } else {
+          submissions.push((mutation as any).mutateAsync(faqData));
+        }
+      }
+
+      return submissions;
+    }
+
     const { [`${formType}Data`]: data } = formData;
+    if (!data) return [];
+
     const safeData = Array.isArray(data) ? data : [data];
     const submissions = [];
     const editArray = Array.isArray(editDataArray)
@@ -959,18 +1020,15 @@ const Edit = () => {
       const item = safeData[i];
 
       if (formType === "itinerary") {
-        // Handle itinerary submission
-        const itineraryData = {
-          type: "tour-itinerary", // Add this required field
+        const itineraryData: AddItineraryPayload = {
+          type: "tour-itinerary",
           title: item.title || "",
           location: item.location || "",
-          dayOrder: item.dayOrder || "",
+          dayOrder: item.dayOrder || 0,
           activities: item.activities || [],
           meals: item.meals || [],
           tour: id!,
         };
-
-        console.log("Submitting itinerary data:", itineraryData);
 
         const hasExistingData = !!editArray[i]?._id;
         const mutation = getMutationFunction(formType, hasExistingData);
@@ -992,14 +1050,14 @@ const Edit = () => {
 
         switch (formType) {
           case "accommodation":
-            // Only require name and description
-            if (!item.accommodationName?.trim()) {
-              throw new Error("Accommodation name is required");
+            if (
+              !item.accommodationName?.trim() ||
+              !item.accommodationDescription?.trim()
+            ) {
+              throw new Error(
+                "Accommodation name and description are required",
+              );
             }
-            if (!item.accommodationDescription?.trim()) {
-              throw new Error("Accommodation description is required");
-            }
-
             formDataToSubmit.append(
               "accommodationName",
               item.accommodationName || "",
@@ -1017,27 +1075,21 @@ const Edit = () => {
               item.accommodationWebsite || "",
             );
 
-            // Handle images
             if (item.images) {
-              if (Array.isArray(item.images)) {
-                item.images.forEach((file: File) => {
-                  if (file instanceof File) {
-                    formDataToSubmit.append("accommodationImages", file);
-                  }
-                });
-              } else if (item.images instanceof FileList) {
-                Array.from(item.images).forEach((file: any) => {
-                  if (file instanceof File) {
-                    formDataToSubmit.append("accommodationImages", file);
-                  }
-                });
-              }
+              const images = Array.isArray(item.images)
+                ? item.images
+                : Array.from(item.images || []);
+              images.forEach((file: File) => {
+                if (file instanceof File)
+                  formDataToSubmit.append("accommodationImages", file);
+              });
             }
             break;
 
           case "city":
             formDataToSubmit.append("city", item.city || "");
             break;
+
           case "scope":
             formDataToSubmit.append("scopeCategory", item.scopeCategory || "");
             formDataToSubmit.append("scopeType", item.scopeType || "");
@@ -1047,6 +1099,7 @@ const Edit = () => {
               item.scopeDescription || "",
             );
             break;
+
           case "payment":
             formDataToSubmit.append("paymentType", item.paymentType || "");
             formDataToSubmit.append("currency", item.currency || "");
@@ -1100,6 +1153,7 @@ const Edit = () => {
         paymentFormData,
         termFormData,
         documentFormData,
+        faqFormData,
       ] = await Promise.all([
         accommodationFormRef.current?.getFormData(),
         cityFormRef.current?.getFormData(),
@@ -1110,6 +1164,7 @@ const Edit = () => {
         paymentFormRef.current?.getFormData(),
         termFormRef.current?.getFormData(),
         documentFormRef.current?.getFormData(),
+        faqFormRef.current?.getFormData(),
       ]);
 
       const formResults = [
@@ -1122,6 +1177,7 @@ const Edit = () => {
         { data: paymentFormData, type: "payment" },
         { data: termFormData, type: "term" },
         { data: documentFormData, type: "document" },
+        { data: faqFormData, type: "faq" },
       ];
 
       const validationErrors = formResults.filter(({ data }) => data === null);
@@ -1202,10 +1258,15 @@ const Edit = () => {
           setDocumentFileIds,
           editData.document || [],
         ),
+        processNonFileFormSubmission(faqFormData, "faq", editData.faq || []),
       ]);
 
       const flattenedSubmissions = allSubmissions.flat();
-      await Promise.all(flattenedSubmissions);
+
+      if (flattenedSubmissions.length > 0) {
+        await Promise.all(flattenedSubmissions);
+      }
+
       invalidateQueries();
 
       showMessage({
@@ -1214,9 +1275,7 @@ const Edit = () => {
         action: "addOrUpdate",
       });
 
-      setTimeout(() => {
-        navigate(-1);
-      }, 2000);
+      navigate(-2);
     } catch (error: any) {
       console.error("Update error:", error);
       showMessage({
@@ -1306,6 +1365,12 @@ const Edit = () => {
       isDeleting: deletingFileId !== null,
       isDeletingDocument: deletingId !== null,
     },
+    faq: {
+      ref: faqFormRef,
+      editData: editData.faq || [],
+      onDeleteFaq: handleDeleteFaq,
+      isDeletingFaq: deletingId !== null,
+    },
   };
 
   return (
@@ -1316,9 +1381,7 @@ const Edit = () => {
         {FORM_TYPES.map((type) => (
           <div
             key={type}
-            className={`w-full lg:w-2xl ${
-              formType === type ? "block" : "hidden"
-            }`}
+            className={`w-full lg:w-2xl ${formType === type ? "block" : "hidden"}`}
           >
             {type === "accommodation" && (
               <EditAccommodationForm {...formProps.accommodation} />
@@ -1337,6 +1400,7 @@ const Edit = () => {
             {type === "document" && (
               <EditDocumentForm {...formProps.document} />
             )}
+            {type === "faq" && <EditFaqsForm {...formProps.faq} />}
           </div>
         ))}
 
@@ -1355,12 +1419,6 @@ const Edit = () => {
           success={message.type === "success"}
           action={() => {
             showMessage(null);
-            if (
-              message.type === "success" &&
-              message.action === "addOrUpdate"
-            ) {
-              navigate("/tours");
-            }
           }}
         />
       )}

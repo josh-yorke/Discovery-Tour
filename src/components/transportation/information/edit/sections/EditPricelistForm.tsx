@@ -111,7 +111,7 @@ const DEFAULT_PRICE_LIST: MergedSchemaType = {
   fee: "",
   description: "",
   vehicle: "",
-  priceCurrency: "USD",
+  priceCurrency: "",
   fileTitle: "",
   file: undefined,
 };

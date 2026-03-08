@@ -81,7 +81,7 @@ const DEFAULT_PRICELIST: MergedSchemaType = {
   plan: "",
   fee: "",
   description: "",
-  priceCurrency: "USD",
+  priceCurrency: "",
   fileTitle: "",
   file: undefined,
 };

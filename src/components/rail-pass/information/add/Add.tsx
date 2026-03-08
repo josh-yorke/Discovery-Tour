@@ -4,20 +4,23 @@ import { useState, useRef } from "react";
 import type { PricelistFormHandle } from "../../../visa/PricelistForm";
 import type { ProcessFormHandle } from "../../../visa/ProcessForm";
 import type { PaymentFormHandle } from "../../../visa/PaymentForm";
-import type { TermFormHandle } from "../../../visa/EditTermForm";
+import type { TermFormHandle } from "../../../visa/TermForm";
 import type { DocumentFormHandle } from "../../../visa/DocumentForm";
+import type { FaqsFormHandle } from "../../../visa/FaqsForm";
 import { addVisaFile } from "../../../../hooks/visa/file/addVisaFile";
 import { addPriceList } from "../../../../hooks/visa/pricelist/addPriceList";
 import { addProcess } from "../../../../hooks/visa/process/addProcess";
 import { addPayment } from "../../../../hooks/visa/payment/addPayment";
 import { addTerm } from "../../../../hooks/visa/terms/addTerm";
 import { addDocument } from "../../../../hooks/visa/document/addDocument";
+import { addFaq } from "../../../../hooks/visa/faqs/faqs";
 import FormTabs from "../../../visa/information/add/FormTab";
 import PricelistForm from "../../../visa/PricelistForm";
 import ProcessForm from "../../../visa/ProcessForm";
 import PaymentForm from "../../../visa/PaymentForm";
 import TermForm from "../../../visa/TermForm";
 import DocumentForm from "../../../visa/DocumentForm";
+import FaqsForm from "../../../visa/FaqsForm";
 import ActionButton from "../../../button/ActionButton";
 
 export type FormType =
@@ -25,7 +28,8 @@ export type FormType =
   | "process"
   | "payment"
   | "term"
-  | "document";
+  | "document"
+  | "faq";
 
 const Add = () => {
   const queryClient = useQueryClient();
@@ -38,6 +42,7 @@ const Add = () => {
   const paymentFormRef = useRef<PaymentFormHandle>(null);
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
+  const faqFormRef = useRef<FaqsFormHandle>(null);
 
   const fileMutation = useMutation<string, Error, FormData>({
     mutationFn: addVisaFile,
@@ -63,6 +68,10 @@ const Add = () => {
     mutationFn: addDocument,
   });
 
+  const faqMutation = useMutation<string, Error, FormData>({
+    mutationFn: addFaq,
+  });
+
   const uploadFile = async (
     fileData: File[],
     fileTitle: string,
@@ -85,6 +94,10 @@ const Add = () => {
 
   const hasFormData = (formData: any): boolean => {
     if (!formData) return false;
+
+    if (Array.isArray(formData) && formData.length > 0) {
+      return true;
+    }
 
     if (
       "pricelistData" in formData &&
@@ -142,14 +155,15 @@ const Add = () => {
       const paymentFormData = await paymentFormRef.current?.getFormData();
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
+      const faqFormData = await faqFormRef.current?.getFormData();
 
-      // Check if all forms are empty
       const allFormsEmpty = [
         pricelistFormData,
         processFormData,
         paymentFormData,
         termFormData,
         documentFormData,
+        faqFormData,
       ].every((formData) => !hasFormData(formData));
 
       if (allFormsEmpty) {
@@ -408,6 +422,23 @@ const Add = () => {
         }
       }
 
+      if (faqFormData && hasFormData(faqFormData)) {
+        const safeFaqData = Array.isArray(faqFormData)
+          ? faqFormData
+          : [faqFormData];
+
+        for (let i = 0; i < safeFaqData.length; i++) {
+          const faqItem = safeFaqData[i];
+          const faqFormDataToSubmit = new FormData();
+          faqFormDataToSubmit.append("type", "faq");
+          faqFormDataToSubmit.append("question", faqItem.question);
+          faqFormDataToSubmit.append("answer", faqItem.answer);
+          faqFormDataToSubmit.append("railpass", railPassId);
+
+          allSubmissions.push(faqMutation.mutateAsync(faqFormDataToSubmit));
+        }
+      }
+
       await Promise.all(allSubmissions);
 
       queryClient.invalidateQueries({ queryKey: ["pricelist"], exact: false });
@@ -416,9 +447,10 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["term"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["document"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["faqs"], exact: false });
 
       alert("Rail pass information added successfully!");
-      navigate(-1);
+      navigate(-2);
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");
@@ -469,6 +501,12 @@ const Add = () => {
         }`}
       >
         <DocumentForm ref={documentFormRef} />
+      </div>
+
+      <div
+        className={`w-full lg:w-2xl ${formType === "faq" ? "block" : "hidden"}`}
+      >
+        <FaqsForm ref={faqFormRef} />
       </div>
 
       <div className="w-full lg:w-2xl mt-8">

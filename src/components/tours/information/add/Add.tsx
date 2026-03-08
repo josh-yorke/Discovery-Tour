@@ -13,6 +13,7 @@ import type { PricelistFormHandle } from "../../../visa/PricelistForm";
 import type { ProcessFormHandle } from "../../../visa/ProcessForm";
 import type { PaymentFormHandle } from "../../../visa/PaymentForm";
 import type { TermFormHandle } from "../../../visa/TermForm";
+import type { FaqsFormHandle } from "../../../visa/FaqsForm";
 import AccommodationForm from "../addforms/AccomodationForm";
 import CityForm from "../addforms/CityForm";
 import ScopeForm from "../addforms/ScopeForm";
@@ -24,6 +25,7 @@ import { addPayment } from "../../../../hooks/visa/payment/addPayment";
 import PaymentForm from "../../../visa/PaymentForm";
 import ProcessForm from "../../../visa/ProcessForm";
 import PricelistForm from "../../../visa/PricelistForm";
+import FaqsForm from "../../../visa/FaqsForm";
 import FormTabs from "../../FormTab";
 import { addTerm } from "../../../../hooks/visa/terms/addTerm";
 import TermForm from "../../../visa/TermForm";
@@ -34,6 +36,7 @@ import {
   addItinerary,
   type AddItineraryPayload,
 } from "../../../../hooks/tours/itinerary/itinerary";
+import { addFaq } from "../../../../hooks/visa/faqs/faqs";
 
 export type FormType =
   | "accommodation"
@@ -44,7 +47,8 @@ export type FormType =
   | "process"
   | "payment"
   | "term"
-  | "document";
+  | "document"
+  | "faq";
 
 const Add = () => {
   const queryClient = useQueryClient();
@@ -61,6 +65,7 @@ const Add = () => {
   const paymentFormRef = useRef<PaymentFormHandle>(null);
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
+  const faqFormRef = useRef<FaqsFormHandle>(null);
 
   const fileMutation = useMutation<string, Error, FormData>({
     mutationFn: addVisaFile,
@@ -100,6 +105,10 @@ const Add = () => {
 
   const documentMutation = useMutation<string, Error, FormData>({
     mutationFn: addDocument,
+  });
+
+  const faqMutation = useMutation<string, Error, FormData>({
+    mutationFn: addFaq,
   });
 
   const uploadFile = async (
@@ -188,6 +197,9 @@ const Add = () => {
     ) {
       return true;
     }
+    if (Array.isArray(formData) && formData.length > 0) {
+      return true;
+    }
 
     return false;
   };
@@ -214,6 +226,7 @@ const Add = () => {
       const paymentFormData = await paymentFormRef.current?.getFormData();
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
+      const faqFormData = await faqFormRef.current?.getFormData();
 
       // Check if accommodation form has validation errors
       if (accommodationFormData && accommodationFormData.isValid === false) {
@@ -234,6 +247,7 @@ const Add = () => {
         paymentFormData,
         termFormData,
         documentFormData,
+        faqFormData,
       ].every((formData) => !hasFormData(formData));
 
       if (allFormsEmpty) {
@@ -359,7 +373,6 @@ const Add = () => {
               )
             : [];
 
-          // Only include meals if they exist and have all fields filled
           const validMeals = Array.isArray(itineraryItem.meals)
             ? itineraryItem.meals.filter(
                 (meal: any) =>
@@ -370,7 +383,6 @@ const Add = () => {
               )
             : [];
 
-          // Prepare payload - don't include meals field if empty
           const payload: any = {
             type: "tour-itinerary",
             tour: tourId,
@@ -380,7 +392,6 @@ const Add = () => {
             activities: filteredActivities,
           };
 
-          // Only add meals field if there are valid meals
           if (validMeals.length > 0) {
             payload.meals = validMeals.map((meal: any) => ({
               ...meal,
@@ -640,6 +651,23 @@ const Add = () => {
         }
       }
 
+      if (faqFormData && hasFormData(faqFormData)) {
+        const safeFaqData = Array.isArray(faqFormData)
+          ? faqFormData
+          : [faqFormData];
+
+        for (let i = 0; i < safeFaqData.length; i++) {
+          const faqItem = safeFaqData[i];
+          const faqFormDataToSubmit = new FormData();
+          faqFormDataToSubmit.append("type", "faq");
+          faqFormDataToSubmit.append("question", faqItem.question);
+          faqFormDataToSubmit.append("answer", faqItem.answer);
+          faqFormDataToSubmit.append("tour", tourId);
+
+          allSubmissions.push(faqMutation.mutateAsync(faqFormDataToSubmit));
+        }
+      }
+
       await Promise.all(allSubmissions);
 
       queryClient.invalidateQueries({
@@ -658,9 +686,10 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["terms"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["documents"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["tour-files"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["faqs"], exact: false });
 
       alert("Tour information added successfully!");
-      navigate(-1);
+      navigate(-2);
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");
@@ -743,6 +772,12 @@ const Add = () => {
         }`}
       >
         <DocumentForm ref={documentFormRef} />
+      </div>
+
+      <div
+        className={`w-full lg:w-2xl ${formType === "faq" ? "block" : "hidden"}`}
+      >
+        <FaqsForm ref={faqFormRef} />
       </div>
 
       <div className="w-full lg:w-2xl mt-8">

@@ -1,3 +1,4 @@
+import Faqs from "../../../pages/visa/view/sections/Faqs";
 import type { RailPassData } from "../../../types/rail-pass/railPassDataTypes";
 import PassDocument from "./sections/PassDocument";
 import PassInformation from "./sections/PassInformation";
@@ -38,6 +39,7 @@ const View = ({
         <PassPayment passId={_id} />
         <PassTerm passId={_id} />
         <PassDocument passId={_id} />
+        <Faqs id={_id} idType="railPassId" />
       </div>
     </>
   );

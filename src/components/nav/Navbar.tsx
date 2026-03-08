@@ -17,10 +17,10 @@ import {
   RiMenuFill,
   RiUser4Fill,
   RiUser4Line,
-  RiBankCardFill,
-  RiBankCardLine,
   RiBriefcase2Line,
   RiBriefcase2Fill,
+  RiHeartPulseLine,
+  RiHeartPulseFill,
 } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router";
 import LogoutButton from "../button/LogoutButton";
@@ -121,9 +121,9 @@ const Navbar = () => {
               } flex flex-row items-center justify-center text-sm  gap-2`}
               icon={
                 pathname.startsWith("/insurance") ? (
-                  <RiBankCardFill size={16} />
+                  <RiHeartPulseFill size={16} />
                 ) : (
-                  <RiBankCardLine size={16} />
+                  <RiHeartPulseLine size={16} />
                 )
               }
               title="Insurance"
@@ -316,9 +316,9 @@ const Navbar = () => {
                 } flex flex-row items-center justify-center text-sm  gap-2`}
                 icon={
                   pathname.startsWith("/insurance") ? (
-                    <RiCarFill size={16} />
+                    <RiHeartPulseFill size={16} />
                   ) : (
-                    <RiCarLine size={16} />
+                    <RiHeartPulseLine size={16} />
                   )
                 }
                 title="Insurance"

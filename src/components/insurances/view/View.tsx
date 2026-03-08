@@ -1,3 +1,4 @@
+import Faqs from "../../../pages/visa/view/sections/Faqs";
 import type { insuranceData } from "../../../types/insurances/insuranceDataTypes";
 import InsuranceDocument from "./sections/InsuranceDocument";
 import InsuranceInformation from "./sections/InsuranceInformation";
@@ -42,6 +43,7 @@ const View = ({
         <InsurancePayment insuranceId={_id} />
         <InsuranceTerm insuranceId={_id} />
         <InsuranceDocument insuranceId={_id} />
+        <Faqs id={_id} idType="insuranceId" />
       </div>
     </>
   );

@@ -8,6 +8,7 @@ import TourPayments from "./sections/TourPayments";
 import TourTerms from "./sections/TourTerms";
 import TourDocuments from "./sections/TourDocuments";
 import type { tourData } from "../../types/tours/tourDataTypes";
+import Faqs from "../../pages/visa/view/sections/Faqs";
 
 interface Props extends tourData {
   onDelete: (_id: string) => void;
@@ -56,6 +57,7 @@ const View = ({
         <TourPayments tourId={_id} />
         <TourTerms tourId={_id} />
         <TourDocuments tourId={_id} />
+        <Faqs idType="tourId" id={_id} />
       </div>
     </>
   );

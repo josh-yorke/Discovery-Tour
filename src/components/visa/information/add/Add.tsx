@@ -11,19 +11,25 @@ import ActionButton from "../../../button/ActionButton";
 import type { PricelistFormHandle } from "../../PricelistForm";
 import type { ProcessFormHandle } from "../../ProcessForm";
 import type { PaymentFormHandle } from "../../PaymentForm";
+import type { TermFormHandle } from "../../TermForm";
+import type { DocumentFormHandle } from "../../DocumentForm";
+import type { FaqsFormHandle } from "../../FaqsForm";
 import FormTabs from "./FormTab";
 import PricelistForm from "../../PricelistForm";
 import ProcessForm from "../../ProcessForm";
 import PaymentForm from "../../PaymentForm";
-import TermForm, { type TermFormHandle } from "../../TermForm";
-import DocumentForm, { type DocumentFormHandle } from "../../DocumentForm";
+import TermForm from "../../TermForm";
+import DocumentForm from "../../DocumentForm";
+import FaqsForm from "../../FaqsForm";
+import { addFaq } from "../../../../hooks/visa/faqs/faqs";
 
 export type FormType =
   | "pricelist"
   | "process"
   | "payment"
   | "term"
-  | "document";
+  | "document"
+  | "faq";
 
 const Add = () => {
   const queryClient = useQueryClient();
@@ -36,6 +42,7 @@ const Add = () => {
   const paymentFormRef = useRef<PaymentFormHandle>(null);
   const termFormRef = useRef<TermFormHandle>(null);
   const documentFormRef = useRef<DocumentFormHandle>(null);
+  const faqFormRef = useRef<FaqsFormHandle>(null);
 
   const fileMutation = useMutation<string, Error, FormData>({
     mutationFn: addVisaFile,
@@ -59,6 +66,10 @@ const Add = () => {
 
   const documentMutation = useMutation<string, Error, FormData>({
     mutationFn: addDocument,
+  });
+
+  const faqMutation = useMutation<string, Error, FormData>({
+    mutationFn: addFaq,
   });
 
   const uploadFile = async (
@@ -119,6 +130,9 @@ const Add = () => {
     ) {
       return true;
     }
+    if (Array.isArray(formData) && formData.length > 0) {
+      return true;
+    }
 
     return false;
   };
@@ -140,6 +154,7 @@ const Add = () => {
       const paymentFormData = await paymentFormRef.current?.getFormData();
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
+      const faqFormData = await faqFormRef.current?.getFormData(); // Get FAQ form data
 
       const allFormsEmpty = [
         pricelistFormData,
@@ -147,6 +162,7 @@ const Add = () => {
         paymentFormData,
         termFormData,
         documentFormData,
+        faqFormData,
       ].every((formData) => !hasFormData(formData));
 
       if (allFormsEmpty) {
@@ -405,6 +421,23 @@ const Add = () => {
         }
       }
 
+      if (faqFormData && hasFormData(faqFormData)) {
+        const safeFaqData = Array.isArray(faqFormData)
+          ? faqFormData
+          : [faqFormData];
+
+        for (let i = 0; i < safeFaqData.length; i++) {
+          const faqItem = safeFaqData[i];
+          const faqFormDataToSubmit = new FormData();
+          faqFormDataToSubmit.append("type", "faq");
+          faqFormDataToSubmit.append("question", faqItem.question);
+          faqFormDataToSubmit.append("answer", faqItem.answer);
+          faqFormDataToSubmit.append("visa", visaId);
+
+          allSubmissions.push(faqMutation.mutateAsync(faqFormDataToSubmit));
+        }
+      }
+
       await Promise.all(allSubmissions);
 
       queryClient.invalidateQueries({ queryKey: ["pricelist"], exact: false });
@@ -413,9 +446,10 @@ const Add = () => {
       queryClient.invalidateQueries({ queryKey: ["term"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["document"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["files"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["faqs"], exact: false });
 
       alert("Visa information added successfully!");
-      navigate(-1);
+      navigate(-2);
     } catch (error) {
       console.error("Submission error:", error);
       alert("There was an error submitting the forms. Please try again.");
@@ -466,6 +500,12 @@ const Add = () => {
         }`}
       >
         <DocumentForm ref={documentFormRef} />
+      </div>
+
+      <div
+        className={`w-full lg:w-2xl ${formType === "faq" ? "block" : "hidden"}`}
+      >
+        <FaqsForm ref={faqFormRef} />
       </div>
 
       <div className="w-full lg:w-2xl mt-8">
