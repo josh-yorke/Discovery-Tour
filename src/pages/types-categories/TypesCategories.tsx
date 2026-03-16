@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type z from "zod";
 import SectionError from "../../components/error/SectionError";
@@ -45,6 +45,10 @@ const TypesCategories = () => {
     setValue("page", 1);
   };
 
+  const onError = (errors: any) => {
+    console.error("Validation Errors:", errors);
+  };
+
   const handlePageChange = (page: number) => {
     const values = getValues();
     setValue("page", page);
@@ -54,15 +58,17 @@ const TypesCategories = () => {
     });
   };
 
-  const fetchTypesCategories = useCallback(async () => {
-    return await getTypesCategories(searchParams);
-  }, [searchParams]);
-
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["typesCategories", searchParams],
-    queryFn: fetchTypesCategories,
+    queryFn: () => getTypesCategories(searchParams),
     enabled: true,
   });
+
+  useEffect(() => {
+    if (isError && searchParams.page > 1) {
+      handlePageChange(searchParams.page - 1);
+    }
+  }, [isError]);
 
   return (
     <>
@@ -70,7 +76,7 @@ const TypesCategories = () => {
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <TypesCategoriesSearch
           service={register("service")}
-          action={handleSubmit(onSubmit)}
+          action={handleSubmit(onSubmit, onError)}
           services={TYPES_CATEGORIES_OPTIONS}
         />
         {isError ? (
