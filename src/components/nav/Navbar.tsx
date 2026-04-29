@@ -50,7 +50,7 @@ const Navbar = () => {
       <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
         <div className=" w-full lg:w-7xl flex flex-row items-center justify-between px-6 lg:px-2 py-4  bg-white ">
           <div onClick={handleLogoClick} className="cursor-pointer">
-            <img src="/Logov2.svg" alt="/" width={200} />
+            <img src="/Logo.jpeg" alt="/" width={200} />
           </div>
           <div className="hidden lg:flex flex-row items-center justify-center gap-6">
             <LinkButton
@@ -91,8 +91,8 @@ const Navbar = () => {
               options={[
                 "vehicles",
                 "transportation",
-                "rental",
-                "rail-passes",
+                "vehicle hire",
+                "rail passes",
                 "bookings",
               ]}
               to="/transport"
@@ -147,7 +147,7 @@ const Navbar = () => {
             />
 
             <HoverLink
-              options={["news", "blogs", "promotions"]}
+              options={["happenings", "blogs"]}
               to="/articles"
               style={`${
                 pathname.startsWith("/articles")
@@ -342,7 +342,7 @@ const Navbar = () => {
               />
 
               <DropdownLink
-                options={["blogs", "news", "promotions"]}
+                options={["blogs", "happenings"]}
                 to="/articles"
                 style={`${
                   pathname.startsWith("/articles")
@@ -360,20 +360,20 @@ const Navbar = () => {
               />
 
               <LinkButton
-                  to="/types-categories"
-                  style={`${
-                      pathname.startsWith("/types-categories")
-                          ? "font-semibold text-[#1d2087]"
-                          : "font-normal"
-                  } flex flex-row items-center justify-center text-sm  gap-2`}
-                  icon={
-                    pathname.startsWith("/types-categories") ? (
-                        <RiGridFill size={16} />
-                    ) : (
-                        <RiGridLine size={16} />
-                    )
-                  }
-                  title="Categories"
+                to="/types-categories"
+                style={`${
+                  pathname.startsWith("/types-categories")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/types-categories") ? (
+                    <RiGridFill size={16} />
+                  ) : (
+                    <RiGridLine size={16} />
+                  )
+                }
+                title="Categories"
               />
 
               <DropdownLink

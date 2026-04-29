@@ -140,7 +140,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/articles/news",
+    path: "/articles/happenings",
     element: (
       <RouteProtection>
         <News />
@@ -580,7 +580,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/rail-passes",
+    path: "/transport/rail passes",
     element: (
       <RouteProtection>
         <RailPass />
@@ -700,7 +700,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/rental",
+    path: "/transport/vehicle hire",
     element: (
       <RouteProtection>
         <Rental />

@@ -59,6 +59,7 @@ const ViewNews = () => {
               style="aspect-3/2 rounded-3xl overflow-hidden"
             />
             <View
+              relatedLinks={data.relatedLinks}
               slug={data.slug}
               onDelete={() => handleDelete(data._id)}
               title={data.title}

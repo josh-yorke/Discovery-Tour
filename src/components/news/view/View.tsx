@@ -1,4 +1,10 @@
-import { RiArrowUpSLine, RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
+import {
+  RiArrowUpSLine,
+  RiDeleteBin4Fill,
+  RiLink,
+  RiLinkUnlink,
+  RiPencilFill,
+} from "react-icons/ri";
 import type { newsData } from "../../../types/news/newsDataTypes";
 import IconButton from "../../button/IconButton";
 import DateText from "../../cards/DateText";
@@ -20,12 +26,19 @@ const View = ({
   savedAt,
   status,
   onDelete,
+  relatedLinks,
 }: ViewProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
+
+  const validLinks = relatedLinks
+    ? relatedLinks.filter(
+        (link): link is string => link !== null && link !== undefined,
+      )
+    : [];
 
   return (
     <>
@@ -93,6 +106,47 @@ const View = ({
             {contents}
           </p>
         </pre>
+        <div className="whitespace-pre-line font-sans bg-white p-6 rounded-3xl shadow-xl shadow-black/6 flex flex-col gap-4">
+          <div className="w-full flex flex-row items-center justify-between gap-2">
+            <p className="text-base uppercase font-semibold text-[#1d2087]">
+              Related Links & Resources
+            </p>
+          </div>
+
+          {validLinks.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {validLinks.map((link: string, index: number) => (
+                <a
+                  key={index}
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-sm text-[#1d2087] hover:text-[#0a0d5c] transition-colors group"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center bg-[#1d2087]/10 rounded-2xl shrink-0">
+                    <span className="text-xs font-semibold text-[#1d2087]">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <span className="group-hover:underline grow truncate">
+                    {link}
+                  </span>
+                  <RiLink
+                    size={16}
+                    className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                  />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 py-6 text-black/60">
+              <RiLinkUnlink size={32} />
+              <p className="text-sm font-normal text-center">
+                No related links available for this blog.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

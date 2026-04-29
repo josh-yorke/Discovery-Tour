@@ -9,6 +9,7 @@ const newsDataSchema = z.object({
   status: z.string(),
   savedAt: z.string(),
   slug: z.string(),
+  relatedLinks: z.array(z.string().nullable()),
 });
 
 export type newsData = z.infer<typeof newsDataSchema>;

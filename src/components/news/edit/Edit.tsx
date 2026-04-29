@@ -14,6 +14,7 @@ import {
 import InputOption from "../../input/InputOption";
 import Button from "../../button/Button";
 import { updateNews } from "../../../hooks/news/updateNews";
+import RelatedLinksInput from "../../input/RelatedLinksInput";
 
 interface EditInputsProps extends editNewsData {
   id: string;
@@ -26,6 +27,7 @@ const EditInputs = ({
   contents,
   status,
   images,
+  relatedLinks,
 }: EditInputsProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -38,6 +40,7 @@ const EditInputs = ({
       contents: contents,
       images: images,
       status: status,
+      relatedLinks,
     },
   });
 
@@ -68,6 +71,12 @@ const EditInputs = ({
 
     data.tags.forEach((tag) => {
       formData.append("tags", tag);
+    });
+
+    data.relatedLinks.forEach((link) => {
+      if (link && link.trim() !== "") {
+        formData.append("relatedLinks", link);
+      }
     });
 
     Array.from(data.images).forEach((file: any) => {
@@ -143,6 +152,10 @@ const EditInputs = ({
                 ? errors.images.message
                 : ""
             }
+          />
+          <RelatedLinksInput
+            error={errors.relatedLinks?.[0]?.message || ""}
+            disabled={false}
           />
           <Button
             isLoading={mutation.isPending}

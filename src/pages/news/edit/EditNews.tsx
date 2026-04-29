@@ -49,6 +49,7 @@ const EditNews = () => {
             id={data._id}
           />
           <Edit
+            relatedLinks={data.relatedLinks}
             status={data.status}
             id={data._id}
             images={images}

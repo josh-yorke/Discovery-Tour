@@ -15,6 +15,7 @@ import ImageInput from "../../input/ImageInput";
 import Button from "../../button/Button";
 import Modal from "../../modal/Modal"; // Import Modal component
 import { useState } from "react";
+import RelatedLinksInput from "../../input/RelatedLinksInput";
 
 const Add = () => {
   const queryClient = useQueryClient();
@@ -77,6 +78,12 @@ const Add = () => {
 
     Array.from(data.images).forEach((file: any) => {
       formData.append("images", file);
+    });
+
+    data.relatedLinks.forEach((link) => {
+      if (link && link.trim() !== "") {
+        formData.append("relatedLinks", link);
+      }
     });
 
     const user = localStorage.getItem("user");
@@ -158,6 +165,11 @@ const Add = () => {
 
             <TagsInput
               error={errors.tags?.[0]?.message || ""}
+              disabled={false}
+            />
+
+            <RelatedLinksInput
+              error={errors.relatedLinks?.[0]?.message || ""}
               disabled={false}
             />
 
