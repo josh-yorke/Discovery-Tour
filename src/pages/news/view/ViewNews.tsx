@@ -52,12 +52,9 @@ const ViewNews = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader style="p-6" title="View News" url="/news" id={data._id} />
+          <PageHeader style="p-6" title="View News" id={data._id} />
           <div className="w-full lg:w-7xl flex flex-col p-6 gap-6 bg-gray-100">
-            <ImageCard
-              url={data.images}
-              style="aspect-3/2 rounded-3xl overflow-hidden"
-            />
+            <ImageCard url={data.images} style="" />
             <View
               relatedLinks={data.relatedLinks}
               slug={data.slug}
@@ -83,7 +80,7 @@ const ViewNews = () => {
           }
           action={() => {
             showModal(false);
-            navigate("/news");
+            navigate(-1);
           }}
         />
       )}

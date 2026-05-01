@@ -982,12 +982,20 @@ const Edit = () => {
           throw new Error("Question and answer are required");
         }
 
-        const faqData = {
+        // Create object instead of FormData
+        const faqData: any = {
           type: "faq",
           question: item.question,
           answer: item.answer,
           tour: id,
         };
+
+        // Add formattedLinks if they exist
+        if (item.formattedLinks && item.formattedLinks.length > 0) {
+          faqData.formattedLinks = item.formattedLinks;
+        }
+
+        console.log("Submitting FAQ with data:", faqData);
 
         const hasExistingData = !!editArray[i]?._id;
         const mutation = getMutationFunction("faq", hasExistingData);
@@ -1007,6 +1015,7 @@ const Edit = () => {
       return submissions;
     }
 
+    // Rest of your existing code for other form types...
     const { [`${formType}Data`]: data } = formData;
     if (!data) return [];
 

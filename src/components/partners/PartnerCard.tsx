@@ -73,7 +73,7 @@ const PartnerCard = ({
           />
         </div>
 
-        <ImageCard style="w-full h-full object-cover" url={[logoImage]} />
+        <ImageCard url={[logoImage]} style="" />
 
         <div className="absolute bottom-4 left-4 z-10">
           <GlassTag

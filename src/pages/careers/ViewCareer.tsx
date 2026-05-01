@@ -51,18 +51,10 @@ const ViewCareer = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader
-            style="p-6"
-            title="View Career"
-            url="/careers"
-            id={data._id}
-          />
+          <PageHeader style="p-6" title="View Career" id={data._id} />
           <div className="w-full lg:w-7xl flex flex-col p-6 gap-6">
             {data.images && data.images.length > 0 && (
-              <ImageCard
-                url={data.images}
-                style="aspect-3/2 rounded-3xl overflow-hidden"
-              />
+              <ImageCard url={data.images} style="" />
             )}
             <View
               onDelete={() => handleDelete(data._id)}

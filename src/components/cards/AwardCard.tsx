@@ -26,7 +26,7 @@ const AwardCard = ({
   return (
     <div className={`w-full relative overflow-hidden  ${style}`}>
       <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
-        <ImageCard url={url} style="w-full h-full" />
+        <ImageCard url={url} style="" />
 
         <div className="absolute inset-0 bg-linear-to-tr from-white to-white/10 flex flex-col justify-end p-6 gap-2">
           <div className="w-full flex flex-col items-start justify-center">

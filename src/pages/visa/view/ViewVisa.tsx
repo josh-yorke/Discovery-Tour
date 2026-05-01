@@ -1,8 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import PageLoader from "../../../components/loader/PageLoader";
-import PageError from "../../../components/error/PageError";
 import ImageCard from "../../../components/cards/ImageCard";
 import { useState } from "react";
 import Modal from "../../../components/modal/Modal";
@@ -10,6 +8,8 @@ import { getVisa } from "../../../hooks/visa/visa/getVisa";
 import View from "../../../components/visa/visa/view/View";
 import { deleteVisa } from "../../../hooks/visa/visa/deleteVisa";
 import PageHeader from "../../../components/users/PageHeader";
+import SectionError from "../../../components/error/SectionError";
+import SectionLoader from "../../../components/loader/SectionLoader";
 
 const ViewVisa = () => {
   const { id } = useParams();
@@ -46,23 +46,15 @@ const ViewVisa = () => {
       <Navbar />
       {isLoading || isError ? (
         isError ? (
-          <PageError title="Reload" action={refetch} error={error.message} />
+          <SectionError action={refetch} error={error.message} />
         ) : isLoading ? (
-          <PageLoader />
+          <SectionLoader />
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader
-            style="py-6"
-            title="View Visa"
-            url="/visas/visa"
-            id={data._id}
-          />
+          <PageHeader style="py-6" title="View Visa" id={data._id} />
           <div className="w-full lg:w-7xl flex flex-col py-6 gap-6 bg-gray-100">
-            <ImageCard
-              url={data.images}
-              style="aspect-3/2 rounded-3xl overflow-hidden"
-            />
+            <ImageCard url={data.images} style="rounded-3xl" />
             <View
               country={data.country}
               type={data.type}

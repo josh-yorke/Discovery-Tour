@@ -163,10 +163,7 @@ const View = ({
           )}
         </div>
 
-        <ImageCard
-          style="w-full h-[400px] object-cover rounded-3xl"
-          url={[image]}
-        />
+        <ImageCard url={[image]} style="" />
       </div>
     </>
   );

@@ -1084,7 +1084,6 @@ const Edit = () => {
   ) => {
     if (!formData || !hasFormData(formData)) return [];
 
-    // Handle FAQ (returns array directly)
     if (formType === "faq" && Array.isArray(formData)) {
       const submissions = [];
       const editArray = Array.isArray(editDataArray) ? editDataArray : [];
@@ -1096,12 +1095,16 @@ const Edit = () => {
           throw new Error("Question and answer are required");
         }
 
-        const faqData = {
+        const faqData: any = {
           type: "faq",
           question: item.question,
           answer: item.answer,
           insurance: id,
         };
+
+        if (item.formattedLinks && item.formattedLinks.length > 0) {
+          faqData.formattedLinks = item.formattedLinks;
+        }
 
         const hasExistingData = !!editArray[i]?._id;
         const mutation = getMutationFunction("faq", hasExistingData);
@@ -1121,7 +1124,6 @@ const Edit = () => {
       return submissions;
     }
 
-    // Handle other forms
     const { [`${formType}Data`]: data } = formData;
     if (!data) return [];
 
@@ -1284,8 +1286,6 @@ const Edit = () => {
         type: "success",
         action: "addOrUpdate",
       });
-
-      navigate(-1);
     } catch (error: any) {
       console.error("Update error:", error);
       showMessage({
@@ -1399,6 +1399,12 @@ const Edit = () => {
           success={message.type === "success"}
           action={() => {
             setMessage(null);
+            if (
+              message.type === "success" &&
+              message.action === "addOrUpdate"
+            ) {
+              navigate(-2);
+            }
           }}
         />
       )}

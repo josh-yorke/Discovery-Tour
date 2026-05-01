@@ -103,7 +103,7 @@ export const getTransportFaq = async (id?: string) => {
 
 export const getInsuranceFaq = async (id?: string) => {
   try {
-    const res = await api.get(`/shared-fields/?transportId=${id}&type=faq`);
+    const res = await api.get(`/shared-fields/?insuranceId=${id}&type=faq`);
     console.log(res);
     return res.data.data;
   } catch (error: any) {

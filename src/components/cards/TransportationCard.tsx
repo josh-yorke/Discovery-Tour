@@ -142,7 +142,7 @@ const TransportationCard = ({
           <GlassTag style="" icon text={type.transportType} />
         </div>
 
-        <ImageCard style="w-full h-full object-cover" url={images || []} />
+        <ImageCard url={images || []} style="" />
       </div>
 
       <div className="w-full flex flex-row flex-1 items-center justify-between px-2">

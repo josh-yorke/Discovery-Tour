@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router";
+
 interface LinkProps {
   title: string;
   url: string;
@@ -5,10 +7,12 @@ interface LinkProps {
 }
 
 const LinkText = ({ title, url, style }: LinkProps) => {
+  const navigate = useNavigate();
+
   return (
     <p
       className={`${style} text-md cursor-pointer text-[#1d2087] hover:text-[#8f92ff] duration-300`}
-      onClick={() => window.open(url, "_blank")}
+      onClick={() => navigate(url)}
     >
       {title}
     </p>

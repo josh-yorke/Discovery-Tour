@@ -107,7 +107,7 @@ const BlogCard = ({
           </div>
         </div>
 
-        <ImageCard style="w-full h-full object-cover" url={images} />
+        <ImageCard url={images} style="" />
 
         {tags.length > 0 && (
           <div className="absolute bottom-4 left-4 right-4 z-10">

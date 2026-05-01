@@ -1548,11 +1548,19 @@ const Edit = () => {
 
         for (let i = 0; i < safeFaqData.length; i++) {
           const faqItem = safeFaqData[i];
-          const faqFormDataToSubmit = new FormData();
-          faqFormDataToSubmit.append("type", "faq");
-          faqFormDataToSubmit.append("question", faqItem.question || "");
-          faqFormDataToSubmit.append("answer", faqItem.answer || "");
-          faqFormDataToSubmit.append("visa", id);
+
+          const faqDataToSubmit: any = {
+            type: "faq",
+            question: faqItem.question || "",
+            answer: faqItem.answer || "",
+            visa: id,
+          };
+
+          if (faqItem.formattedLinks && faqItem.formattedLinks.length > 0) {
+            faqDataToSubmit.formattedLinks = faqItem.formattedLinks;
+          }
+
+          console.log("Submitting FAQ with data:", faqDataToSubmit);
 
           const hasExistingData = !!editFaqArray[i]?._id;
           const mutation = getMutationFunction("faq", hasExistingData);
@@ -1561,13 +1569,11 @@ const Edit = () => {
             submissions.push(
               (mutation as any).mutateAsync({
                 id: editFaqArray[i]._id,
-                data: faqFormDataToSubmit,
+                data: faqDataToSubmit,
               }),
             );
           } else {
-            submissions.push(
-              (mutation as any).mutateAsync(faqFormDataToSubmit),
-            );
+            submissions.push((mutation as any).mutateAsync(faqDataToSubmit));
           }
         }
       }

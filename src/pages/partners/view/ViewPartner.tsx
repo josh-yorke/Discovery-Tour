@@ -54,10 +54,7 @@ const ViewPartner = () => {
       ) : (
         <>
           <div className="w-full flex flex-col items-center justify-center bg-black/6">
-            <ImageCard
-              url={data.logoImage ? [data.logoImage] : []}
-              style="h-[50vh] md:h-[70vh]"
-            />
+            <ImageCard url={data.logoImage ? [data.logoImage] : []} style="" />
             <div className="w-full lg:w-7xl flex flex-col p-6 pb-24 gap-6">
               <View
                 _id={data._id}

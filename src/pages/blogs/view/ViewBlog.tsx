@@ -52,17 +52,9 @@ const ViewBlog = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader
-            style="p-6"
-            title="View Blog"
-            url="/blogs"
-            id={data._id}
-          />
+          <PageHeader style="p-6" title="View Blog" id={data._id} />
           <div className="w-full lg:w-7xl flex flex-col gap-6 p-6 bg-gray-100">
-            <ImageCard
-              url={data.images}
-              style="aspect-3/2 rounded-3xl overflow-hidden"
-            />
+            <ImageCard url={data.images} style="" />
             <View
               onDelete={() => handleDelete(data._id)}
               title={data.title}
@@ -89,7 +81,7 @@ const ViewBlog = () => {
           }
           action={() => {
             showModal(false);
-            navigate("/blogs");
+            navigate(-1);
           }}
         />
       )}

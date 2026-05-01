@@ -1,5 +1,8 @@
 import { FormProvider, useForm } from "react-hook-form";
-import { addNewsSchema } from "../../../types/news/addNewsTypes";
+import {
+  addNewsSchema,
+  type addNewsData,
+} from "../../../types/news/addNewsTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
@@ -15,7 +18,7 @@ import { addPromotion } from "../../../hooks/promotions/addPromotion.ts";
 const Add = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const methods = useForm<addPromotionData>({
+  const methods = useForm<addNewsData>({
     resolver: zodResolver(addNewsSchema),
     defaultValues: {
       tags: [""],

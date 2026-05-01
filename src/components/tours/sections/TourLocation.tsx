@@ -160,7 +160,7 @@ const TourLocation = ({
           )}
         </div>
 
-        <ImageCard style="" url={mainLocationImages} />
+        <ImageCard url={mainLocationImages} style="" />
       </div>
     </>
   );

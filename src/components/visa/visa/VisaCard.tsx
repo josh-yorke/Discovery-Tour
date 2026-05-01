@@ -159,7 +159,7 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
           </div>
         </div>
 
-        <ImageCard style="w-full h-full object-cover" url={images} />
+        <ImageCard url={images} style="" />
       </div>
 
       <div className="flex flex-row flex-1 items-center justify-between px-2">

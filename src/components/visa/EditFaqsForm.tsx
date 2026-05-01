@@ -9,6 +9,7 @@ import Input from "../input/Input";
 import TextArea from "../input/TextArea";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
+import FormattedLinkInput from "../input/FormattedLinkInput";
 
 export interface FaqsFormHandle {
   getFormData: () => Promise<addFaqData[] | null>;
@@ -20,6 +21,36 @@ interface FaqsFormProps {
   onDeleteFaq?: (faqId: string, index: number) => void;
   isDeleting?: boolean;
 }
+
+interface FormattedLink {
+  title: string;
+  link: string;
+}
+
+interface FaqSchemaType {
+  question: string;
+  answer: string;
+  formattedLinks: FormattedLink[];
+}
+
+type FormData = { faqs: FaqSchemaType[] };
+
+const DEFAULT_FAQ: FaqSchemaType = {
+  question: "",
+  answer: "",
+  formattedLinks: [],
+};
+
+const formattedLinkSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  link: z.string().url("Must be a valid URL").min(1, "URL is required"),
+});
+
+const faqSchema = z.object({
+  question: z.string().min(1, "Question is required"),
+  answer: z.string().min(1, "Answer is required"),
+  formattedLinks: z.array(formattedLinkSchema).default([]),
+});
 
 const hasFaqContent = (faq: {
   question?: string;
@@ -41,23 +72,6 @@ const hasCompleteFaq = (faq: {
   );
 };
 
-const faqSchema = z.object({
-  question: z.string().min(1, "Question is required"),
-  answer: z.string().min(1, "Answer is required"),
-});
-
-type FaqSchemaType = {
-  question: string;
-  answer: string;
-};
-
-type FormData = { faqs: FaqSchemaType[] };
-
-const DEFAULT_FAQ: FaqSchemaType = {
-  question: "",
-  answer: "",
-};
-
 const mapEditDataToDefaultValues = (
   editData: editFaqData[],
 ): FaqSchemaType[] => {
@@ -66,6 +80,7 @@ const mapEditDataToDefaultValues = (
   return editData.map((data) => ({
     question: data?.question || "",
     answer: data?.answer || "",
+    formattedLinks: data?.formattedLinks || [],
   }));
 };
 
@@ -110,13 +125,11 @@ const EditFaqsForm = forwardRef<FaqsFormHandle, FaqsFormProps>(
           if (!result.success) {
             isValid = false;
             result.error.issues.forEach((issue) => {
-              const path = issue.path[0];
-              if (typeof path === "string") {
-                setError(`faqs.${index}.${path}` as any, {
-                  type: "manual",
-                  message: issue.message,
-                });
-              }
+              const path = issue.path.join(".");
+              setError(`faqs.${index}.${path}` as any, {
+                type: "manual",
+                message: issue.message,
+              });
             });
           }
 
@@ -124,6 +137,7 @@ const EditFaqsForm = forwardRef<FaqsFormHandle, FaqsFormProps>(
             faqData.push({
               question: faq.question,
               answer: faq.answer,
+              formattedLinks: faq.formattedLinks || [],
             });
           } else if (hasContent && !hasCompleteData) {
             isValid = false;
@@ -142,6 +156,11 @@ const EditFaqsForm = forwardRef<FaqsFormHandle, FaqsFormProps>(
           }
         }
       });
+
+      console.log(
+        "EditFaqsForm - Final data:",
+        JSON.stringify(faqData, null, 2),
+      );
 
       return { isValid, faqData };
     }, [getValues, setError, clearErrors]);
@@ -187,6 +206,7 @@ const EditFaqsForm = forwardRef<FaqsFormHandle, FaqsFormProps>(
       const hasContent = hasFaqContent(currentFaq);
       const questionError = errors.faqs?.[index]?.question?.message;
       const answerError = errors.faqs?.[index]?.answer?.message;
+      const formattedLinksErrors = errors.faqs?.[index]?.formattedLinks;
 
       return (
         <div
@@ -197,7 +217,7 @@ const EditFaqsForm = forwardRef<FaqsFormHandle, FaqsFormProps>(
             <IconButton
               action={() => removeFaq(index)}
               style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg mb-4"
-              title=""
+              title="Remove FAQ"
               icon={<RiDeleteBin4Fill size={16} />}
             />
           )}
@@ -219,6 +239,13 @@ const EditFaqsForm = forwardRef<FaqsFormHandle, FaqsFormProps>(
               title="Answer *"
               placeholder="Enter detailed answer to the question"
               {...register(`faqs.${index}.answer` as const)}
+            />
+
+            <FormattedLinkInput
+              control={control}
+              register={register}
+              errors={formattedLinksErrors || {}}
+              faqIndex={index}
             />
           </div>
         </div>

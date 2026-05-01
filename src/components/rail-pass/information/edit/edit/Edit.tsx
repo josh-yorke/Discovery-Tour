@@ -1062,7 +1062,6 @@ const Edit = () => {
   ) => {
     if (!formData || !hasFormData(formData)) return [];
 
-    // Handle FAQ (returns array directly)
     if (formType === "faq" && Array.isArray(formData)) {
       const submissions = [];
       const editArray = Array.isArray(editDataArray) ? editDataArray : [];
@@ -1074,12 +1073,18 @@ const Edit = () => {
           throw new Error("Question and answer are required");
         }
 
-        const faqData = {
+        const faqData: any = {
           type: "faq",
           question: item.question,
           answer: item.answer,
           railpass: id,
         };
+
+        if (item.formattedLinks && item.formattedLinks.length > 0) {
+          faqData.formattedLinks = item.formattedLinks;
+        }
+
+        console.log("Submitting FAQ with data:", faqData);
 
         const hasExistingData = !!editArray[i]?._id;
         const mutation = getMutationFunction("faq", hasExistingData);
@@ -1099,7 +1104,6 @@ const Edit = () => {
       return submissions;
     }
 
-    // Handle other forms
     const { [`${formType}Data`]: data } = formData;
     if (!data) return [];
 

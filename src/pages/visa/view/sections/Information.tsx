@@ -163,7 +163,7 @@ const Information = ({
 
   return (
     <>
-      <ImageCard url={visaData.images} style="w-full aspect-2/1 rounded-lg" />
+      <ImageCard url={visaData.images} style="" />
       <div
         className="w-full bg-white p-6 rounded-lg flex flex-col items-center gap-4"
         id="information"

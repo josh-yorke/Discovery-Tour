@@ -1,23 +1,26 @@
 import { RiArrowLeftLine, RiArrowRightSLine } from "react-icons/ri";
-import { NavLink } from "react-router";
+import { useNavigate } from "react-router";
 
 interface HeaderProps {
-  url: string;
   title: string;
   id: string;
   style: string;
 }
 
-const PageHeader = ({ url, title, id, style }: HeaderProps) => {
+const PageHeader = ({ title, id, style }: HeaderProps) => {
+  const navigate = useNavigate();
   return (
     <div
       className={`w-full lg:w-7xl flex flex-row items-center justify-start gap-4 bg-gray-100 ${style}`}
     >
-      <NavLink to={url} className="p-2 rounded-full bg-black/10 cursor-pointer">
+      <button
+        onClick={() => navigate(-1)}
+        className="p-2 rounded-full bg-black/10 cursor-pointer"
+      >
         <RiArrowLeftLine size={16} />
-      </NavLink>
+      </button>
       <div className="flex flex-row gap-2 items-center justify-center">
-        <p className="text-sm font-semibold truncate whitespace-nowrap max-w-[120px]">
+        <p className="text-sm font-semibold truncate whitespace-nowrap max-w-30">
           {title}
         </p>
         <RiArrowRightSLine size={20} />

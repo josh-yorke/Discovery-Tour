@@ -1,14 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { RiQuestionFill } from "react-icons/ri";
+import { RiLinkM, RiQuestionFill } from "react-icons/ri";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import SectionLoader from "../../../../components/loader/SectionLoader";
 import { getAllFaqs } from "../../../../hooks/visa/faqs/faqs";
+
+interface FormattedLink {
+  title: string;
+  link: string;
+}
 
 interface FAQ {
   _id: string;
   question: string;
   answer: string;
+  formattedLinks?: FormattedLink[];
 }
 
 interface FAQsSectionProps {
@@ -124,10 +130,32 @@ const Faqs = ({
                 openItems.includes(faq._id) ? "max-h-96 mt-3" : "max-h-0"
               }`}
             >
-              <div className="text-xs md:text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+              <div className="flex flex-col items-start justify-center text-sm gap-4 text-black bg-black/2 p-4 rounded-xl">
                 <pre className="whitespace-pre-wrap font-sans">
                   {faq.answer}
                 </pre>
+
+                {faq.formattedLinks && faq.formattedLinks.length > 0 && (
+                  <>
+                    <div className="w-full border-b border-black/6" />
+                    <div className="w-full flex flex-row items-center justify-start gap-2 flex-wrap">
+                      {faq.formattedLinks.map(
+                        (link: FormattedLink, idx: number) => (
+                          <button
+                            key={idx}
+                            onClick={() => window.open(link.link, "_blank")}
+                            className="flex flex-row items-center justify-center gap-1 px-4 py-2 rounded-full bg-white inset-shadow-sm shadow-black text-sm font-semibold cursor-pointer"
+                          >
+                            <RiLinkM size={16} />
+                            <span className="underline font-normal">
+                              {link.title}
+                            </span>
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

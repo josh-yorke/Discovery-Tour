@@ -658,16 +658,23 @@ const Add = () => {
 
         for (let i = 0; i < safeFaqData.length; i++) {
           const faqItem = safeFaqData[i];
-          const faqFormDataToSubmit = new FormData();
-          faqFormDataToSubmit.append("type", "faq");
-          faqFormDataToSubmit.append("question", faqItem.question);
-          faqFormDataToSubmit.append("answer", faqItem.answer);
-          faqFormDataToSubmit.append("tour", tourId);
 
-          allSubmissions.push(faqMutation.mutateAsync(faqFormDataToSubmit));
+          const faqDataToSubmit: any = {
+            type: "faq",
+            question: faqItem.question,
+            answer: faqItem.answer,
+            tour: tourId,
+          };
+
+          if (faqItem.formattedLinks && faqItem.formattedLinks.length > 0) {
+            faqDataToSubmit.formattedLinks = faqItem.formattedLinks;
+          }
+
+          console.log("Submitting FAQ with data:", faqDataToSubmit);
+
+          allSubmissions.push(faqMutation.mutateAsync(faqDataToSubmit));
         }
       }
-
       await Promise.all(allSubmissions);
 
       queryClient.invalidateQueries({
