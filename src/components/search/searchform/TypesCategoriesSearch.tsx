@@ -1,22 +1,29 @@
-import type { UseFormRegisterReturn } from "react-hook-form";
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
 import Options from "../Options";
 
 interface FormProps {
-  service: UseFormRegisterReturn;
-  action: () => void;
+  serviceValue: string;
+  onServiceChange: (value: string) => void;
   services: string[];
 }
 
-const TypesCategoriesSearch = ({ action, services, service }: FormProps) => {
+const TypesCategoriesSearch = ({
+  serviceValue,
+  onServiceChange,
+  services,
+}: FormProps) => {
   const navigate = useNavigate();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <form
       className="w-full relative flex flex-col items-center justify-center gap-4"
-      onSubmit={action}
+      onSubmit={handleSubmit}
     >
       <div className="">
         <p className="text-md font-semibold text-[#1d2087]">
@@ -25,7 +32,13 @@ const TypesCategoriesSearch = ({ action, services, service }: FormProps) => {
       </div>
 
       <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options options={services} {...service} allowShowAll={false} title="Types or Categories For" />
+        <Options
+          options={services}
+          value={serviceValue}
+          onChange={(e) => onServiceChange(e.target.value)}
+          allowShowAll={false}
+          title="Types or Categories For"
+        />
 
         <button
           type="submit"

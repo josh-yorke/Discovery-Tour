@@ -1,8 +1,6 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import type z from "zod";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
 import Navbar from "../../components/nav/Navbar";
@@ -10,75 +8,69 @@ import TypesCategoriesSearch from "../../components/search/searchform/TypesCateg
 import TypesCategoriesParent from "../../components/types-categories/TypesCategoriesParent";
 import { TYPES_CATEGORIES_OPTIONS } from "../../constants/typesCategoriesConstants";
 import { getTypesCategories } from "../../hooks/types-categories/typesCategories";
-import {
-  typesCategoriesSearchSchema,
-  type typesCategoriesSearchData,
-} from "../../types/types-categories/typesCategoriesSearchTypes";
-import { useLocation } from "react-router";
 import Pagination from "../../components/pagination/Pagination";
 
 const TypesCategories = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const urlParams = new URLSearchParams(location.search);
   const rawType = urlParams.get("type");
   const type =
     rawType && TYPES_CATEGORIES_OPTIONS.includes(rawType) ? rawType : null;
 
-  const { register, handleSubmit, setValue, getValues } = useForm<
-    z.input<typeof typesCategoriesSearchSchema>
-  >({
-    resolver: zodResolver(typesCategoriesSearchSchema),
-    defaultValues: {
-      service: type || "visa",
-      page: 1,
-    },
-  });
-
-  const [searchParams, setSearchParams] = useState<typesCategoriesSearchData>({
-    service: type || "visa",
-    page: 1,
-  });
-
-  const onSubmit = (data: z.input<typeof typesCategoriesSearchSchema>) => {
-    setSearchParams({ ...data, page: 1 });
-    setValue("page", 1);
-  };
-
-  const onError = (errors: any) => {
-    console.error("Validation Errors:", errors);
-  };
-
-  const handlePageChange = (page: number) => {
-    const values = getValues();
-    setValue("page", page);
-    setSearchParams({
-      ...values,
-      page,
-    });
-  };
-
-  const { data, isLoading, refetch, isError, error } = useQuery({
-    queryKey: ["typesCategories", searchParams],
-    queryFn: () => getTypesCategories(searchParams),
-    enabled: true,
-  });
+  const [service, setService] = useState(type || "visa");
+  const [page, setPage] = useState(1);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (isError && searchParams.page > 1) {
-      handlePageChange(searchParams.page - 1);
-    }
-  }, [isError]);
+    const urlPage = parseInt(urlParams.get("page") || "1");
+    const urlService = urlParams.get("type") || "visa";
+
+    setPage(urlPage);
+    setService(urlService);
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const params = new URLSearchParams();
+    if (page !== 1) params.set("page", page.toString());
+    if (service && service !== "visa") params.set("type", service);
+
+    navigate({ search: params.toString() }, { replace: true });
+  }, [page, service, navigate, isInitialized]);
+
+  const { data, isLoading, refetch, isError, error } = useQuery({
+    queryKey: ["typesCategories", { service, page }],
+    queryFn: () => getTypesCategories({ service, page }),
+    enabled: isInitialized,
+  });
+
+  const handleServiceChange = (value: string) => {
+    setService(value);
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  if (!isInitialized) {
+    return <SectionLoader />;
+  }
 
   return (
     <>
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-screen px-6 py-12 gap-12">
         <TypesCategoriesSearch
-          service={register("service")}
-          action={handleSubmit(onSubmit, onError)}
+          serviceValue={service}
+          onServiceChange={handleServiceChange}
           services={TYPES_CATEGORIES_OPTIONS}
         />
+
         {isError ? (
           <SectionError action={refetch} error={error?.message} />
         ) : isLoading ? (
@@ -86,13 +78,13 @@ const TypesCategories = () => {
         ) : (
           <>
             <TypesCategoriesParent
-              type={searchParams.service}
+              type={service}
               typeCategories={data?.typesCategories}
               isLoading={isLoading}
             />
             {data?.totalPages > 1 && (
               <Pagination
-                currentPage={searchParams.page ?? 1}
+                currentPage={page}
                 totalPages={data?.totalPages}
                 onPageChange={handlePageChange}
               />

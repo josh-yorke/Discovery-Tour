@@ -16,7 +16,7 @@ export const TYPES_CATEGORIES_VALUES = Object.values(TYPES_CATEGORIES_MAPPING);
 export const TYPES_CATEGORIES_OPTIONS = [
   "visa",
   "tour",
-  "transport",
+  "transportation",
   "pass",
   "pass-category",
   "country",
