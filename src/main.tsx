@@ -92,6 +92,9 @@ import AddCareer from "./pages/careers/AddCareer";
 import EditCareer from "./pages/careers/EditCareer";
 import ViewCareer from "./pages/careers/ViewCareer";
 import ViewInsuranceBooking from "./pages/insurances/bookings/view/ViewInsuranceBooking";
+import Markups from "./pages/markups/Markups";
+import EditMarkup from "./pages/markups/edit/EditMarkup";
+import AddMarkup from "./pages/markups/add/AddMarkup";
 
 const router = createBrowserRouter([
   {
@@ -448,6 +451,30 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditCompany />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/markups",
+    element: (
+      <RouteProtection>
+        <Markups />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/markups/add",
+    element: (
+      <RouteProtection>
+        <AddMarkup />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/markups/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditMarkup />
       </RouteProtection>
     ),
   },

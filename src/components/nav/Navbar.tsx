@@ -188,6 +188,8 @@ const Navbar = () => {
                 "services",
                 "awards",
                 "branches",
+                "markups",
+                "scraper",
               ]}
               to="/company"
               style={`${
@@ -383,6 +385,8 @@ const Navbar = () => {
                   "services",
                   "awards",
                   "branches",
+                  "markups",
+                  "scraper",
                 ]}
                 to="/company"
                 style={`${
