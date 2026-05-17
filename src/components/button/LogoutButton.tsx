@@ -16,12 +16,11 @@ const LogoutButton = () => {
 
   return (
     <button
-      className="flex flex-row items-center justify-center gap-2 bg-[#1d2087] hover:bg-[#3b3eac] text-xs font-normal text-white px-6 py-3 cursor-pointer rounded-full"
+      className="flex flex-row items-center justify-center gap-2 bg-[#1d2087] hover:bg-[#3b3eac] text-xs font-normal text-white p-3 cursor-pointer rounded-full"
       onClick={() => mutation.mutate()}
       disabled={mutation.isPending}
     >
       <RiLogoutBoxLine size={14} />
-      <p>Logout</p>
     </button>
   );
 };

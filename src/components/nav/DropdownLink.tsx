@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, useEffect, useRef } from "react";
 import { RiArrowDownSLine, RiArrowUpSLine } from "react-icons/ri";
 import { NavLink, useLocation } from "react-router";
 
@@ -12,28 +12,61 @@ interface NavProps {
 
 const DropdownLink = ({ to, style, icon, title, options }: NavProps) => {
   const [open, setOpen] = useState(false);
-
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Close dropdown on escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && open) setOpen(false);
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open]);
+
   return (
-    <div className="flex flex-col justify-center gap-4">
-      <NavLink to={""} className={style} onClick={() => setOpen(!open)}>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`${style} cursor-pointer hover:opacity-80 transition-opacity`}
+        aria-expanded={open}
+        aria-haspopup="true"
+      >
         {icon}
-        <p>{title}</p>
+        <span>{title}</span>
         {open ? <RiArrowUpSLine size={16} /> : <RiArrowDownSLine size={16} />}
-      </NavLink>
+      </button>
+
       {open && (
-        <div className="flex flex-col gap-4 line-clamp-1 items-center justify-center">
-          {options.map((option: string, id) => (
+        <div className="absolute top-full left-0 mt-2 min-w-40 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200">
+          {options.map((option) => (
             <NavLink
-              key={id}
+              key={option}
               to={`${to}/${option}`}
-              className={`text-sm font-normal capitalize cursor-pointer ${
+              onClick={() => setOpen(false)}
+              className={`block px-4 py-2 text-sm capitalize transition-colors hover:bg-gray-100 ${
                 pathname.includes(option)
-                  ? "text-[#1d2087] font-semibold"
-                  : "text-black"
+                  ? "text-[#1d2087] font-semibold bg-blue-50"
+                  : "text-gray-700"
               }`}
             >
-              {option}
+              {option.replace(/-/g, " ")}
             </NavLink>
           ))}
         </div>

@@ -1,3 +1,4 @@
+import ConversionRates from "../../pages/visa/view/sections/ConversionRates";
 import Faqs from "../../pages/visa/view/sections/Faqs";
 import type { transportationData } from "../../types/transportation/transportationDataTypes";
 import TransportDocument from "./sections/TransportDocument";
@@ -33,6 +34,7 @@ const View = ({ transportData, onDelete }: ViewProps) => {
         <TransportTerm transportId={_id} />
         <TransportDocument transportId={_id} />
         <Faqs id={_id} idType="transportId" />
+        <ConversionRates />
       </div>
     </>
   );

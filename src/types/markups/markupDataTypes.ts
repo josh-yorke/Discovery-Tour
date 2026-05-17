@@ -5,6 +5,9 @@ const markupSchema = z.object({
   spread: z.string(),
   markUp: z.string(),
   currencyPair: z.string(),
+  tts: z.string(),
+  ttm: z.string(),
+  ttb: z.string(),
 });
 
 export type markupData = z.infer<typeof markupSchema>;

@@ -21,7 +21,7 @@ export const getMarkups = async () => {
   try {
     const companyId = await getCompanyId();
 
-    const res = await api.get(`/company/${companyId}/markups`);
+    const res = await api.get(`/company/${companyId}/markups?finalRate=true`);
     console.log(res.data);
     return {
       markups: res.data.data,
