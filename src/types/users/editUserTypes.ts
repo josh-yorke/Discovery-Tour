@@ -7,6 +7,14 @@ export const allowedActionsSchema = z.object({
   delete: z.boolean(),
 });
 
+export const emailReceiverSetterSchema = z.object({
+  contactPage: z.boolean(),
+  railPass: z.boolean(),
+  transportation: z.boolean(),
+  insurance: z.boolean(),
+  optionsForYou: z.boolean(),
+});
+
 export const editUserSchema = z.object({
   firstName: z.string().min(2, "first name is required"),
   lastName: z.string().min(2, "last name is required"),
@@ -19,6 +27,7 @@ export const editUserSchema = z.object({
   role: z.enum(["admin", "staff", "user"]),
   status: z.string(),
   allowedActions: allowedActionsSchema,
+  receiveEmailFrom: emailReceiverSetterSchema,
 });
 
 export type editUserData = z.infer<typeof editUserSchema>;

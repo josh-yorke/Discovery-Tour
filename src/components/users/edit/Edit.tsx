@@ -15,6 +15,7 @@ import { updateUser } from "../../../hooks/users/updateUser";
 import Modal from "../../modal/Modal";
 import { useState, useEffect } from "react";
 import AllowedActionsInputs from "../AllowedActions";
+import EmailReceiverSetterInputs from "../EmailReceiverSetter.tsx";
 
 interface EditInputsProps extends editUserData {
   id: string;
@@ -29,6 +30,7 @@ const Edit = ({
   status,
   id,
   allowedActions,
+  receiveEmailFrom,
 }: EditInputsProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -55,6 +57,7 @@ const Edit = ({
       email: email,
       role: role,
       allowedActions: allowedActions,
+      receiveEmailFrom: receiveEmailFrom,
     },
   });
 
@@ -170,12 +173,21 @@ const Edit = ({
             )}
           </div>
 
+          {/* ALLOWED ACTIONS */}
           <AllowedActionsInputs
             register={register}
             watch={watch}
             reset={reset}
           />
 
+          {/* Receiver SETTERS */}
+          <EmailReceiverSetterInputs
+            register={register}
+            watch={watch}
+            reset={reset}
+          />
+
+          {/* InputOption with error display */}
           <div className="w-full">
             <InputOption
               disabled={mutation.isPending}
