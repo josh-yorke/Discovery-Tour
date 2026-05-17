@@ -1,3 +1,4 @@
+import ConversionRates from "../../../pages/visa/view/sections/ConversionRates";
 import Faqs from "../../../pages/visa/view/sections/Faqs";
 import type { RailPassData } from "../../../types/rail-pass/railPassDataTypes";
 import PassDocument from "./sections/PassDocument";
@@ -40,6 +41,7 @@ const View = ({
         <PassTerm passId={_id} />
         <PassDocument passId={_id} />
         <Faqs id={_id} idType="railPassId" />
+        <ConversionRates />
       </div>
     </>
   );

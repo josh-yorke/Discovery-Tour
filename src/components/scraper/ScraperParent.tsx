@@ -21,6 +21,7 @@ const ScraperParent = ({ scrapedData, isLoading }: ParentProps) => {
               ttb={scrapedData.ttb}
               ttm={scrapedData.ttm}
               tts={scrapedData.tts}
+              createdAt={scrapedData.createdAt}
             />
           ))}
         </div>

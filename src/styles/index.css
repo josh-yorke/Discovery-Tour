@@ -35,3 +35,7 @@
     @apply font-sans;
   }
 }
+
+body > .skiptranslate {
+  display: none;
+}

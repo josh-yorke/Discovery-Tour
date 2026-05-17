@@ -1,3 +1,4 @@
+import ConversionRates from "../../../pages/visa/view/sections/ConversionRates";
 import Faqs from "../../../pages/visa/view/sections/Faqs";
 import type { insuranceData } from "../../../types/insurances/insuranceDataTypes";
 import InsuranceDocument from "./sections/InsuranceDocument";
@@ -44,6 +45,7 @@ const View = ({
         <InsuranceTerm insuranceId={_id} />
         <InsuranceDocument insuranceId={_id} />
         <Faqs id={_id} idType="insuranceId" />
+        <ConversionRates />
       </div>
     </>
   );

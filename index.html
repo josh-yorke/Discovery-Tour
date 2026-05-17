@@ -1,13 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/logo.png" />
     <title>Discovery Tours</title>
+    <style>
+      .goog-te-banner-frame.skiptranslate,
+      .goog-te-banner-frame,
+      .goog-te-menu-frame,
+      .skiptranslate,
+      .goog-te-balloon-frame,
+      iframe[src*="translate"] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        width: 0 !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        top: -9999px !important;
+        left: -9999px !important;
+      }
+
+      body,
+      html {
+        top: 0 !important;
+        position: relative !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+    </style>
   </head>
   <body class="font-sans">
     <div id="root"></div>
+
+    <script>
+      (function () {
+        const STORAGE_KEY = "preferred_language";
+        const DEFAULT_LANG = "ja";
+
+        const savedLang = localStorage.getItem(STORAGE_KEY);
+        const defaultLang = savedLang || DEFAULT_LANG;
+
+        if (defaultLang !== "en") {
+          document.cookie = `googtrans=/en/${defaultLang}; path=/`;
+        }
+
+        window.currentLanguage = defaultLang;
+
+        window.googleTranslateElementInit = function () {
+          new google.translate.TranslateElement(
+            { pageLanguage: "en", autoDisplay: false },
+            "google_translate_element",
+          );
+
+          setTimeout(() => {
+            const selectBox = document.querySelector(".goog-te-combo");
+            if (selectBox && window.currentLanguage !== "en") {
+              selectBox.value = window.currentLanguage;
+              selectBox.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+          }, 500);
+        };
+      })();
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <div id="google_translate_element" style="display: none"></div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

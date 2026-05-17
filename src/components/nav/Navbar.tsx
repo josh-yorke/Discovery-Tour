@@ -27,6 +27,7 @@ import LogoutButton from "../button/LogoutButton";
 import DropdownLink from "./DropdownLink";
 import HoverLink from "./HoverLink";
 import LinkButton from "./LinkButton";
+import LanguageSwitcher from "../language/LanguageSwitcher";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -36,11 +37,9 @@ const Navbar = () => {
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // If we're already on the home page, reload the page
     if (pathname === "/") {
       window.location.reload();
     } else {
-      // Otherwise navigate to home
       navigate("/");
     }
   };
@@ -48,11 +47,11 @@ const Navbar = () => {
   return (
     <>
       <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
-        <div className=" w-full lg:w-7xl flex flex-row items-center justify-between px-6 lg:px-2 py-4  bg-white ">
+        <div className=" w-full lg:w-4/5 flex flex-row items-center justify-between  px-6 lg:px-2 py-4  bg-white ">
           <div onClick={handleLogoClick} className="cursor-pointer">
             <img src="/Logo.jpeg" alt="/" width={200} />
           </div>
-          <div className="hidden lg:flex flex-row items-center justify-center gap-6">
+          <div className="hidden lg:flex flex-row items-center justify-end gap-4">
             <LinkButton
               to="/visas/visa"
               style={`${
@@ -223,6 +222,7 @@ const Navbar = () => {
               }
               title="Users"
             />
+            <LanguageSwitcher />
             <LogoutButton />
           </div>
           <div className="flex lg:hidden cursor-pointer">
@@ -419,6 +419,7 @@ const Navbar = () => {
                 }
                 title="Users"
               />
+              <LanguageSwitcher />
               <LogoutButton />
             </div>
             <div className="absolute bottom-6" onClick={() => showNav(!nav)}>
