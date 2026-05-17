@@ -36,6 +36,7 @@ const EditUser = () => {
             role={data.role}
             status={data.status}
             allowedActions={data.allowedActions}
+            receiveEmailFrom={data.receiveEmailFrom}
           />
         </div>
       )}
