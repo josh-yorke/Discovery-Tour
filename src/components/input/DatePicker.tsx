@@ -12,6 +12,7 @@ interface DatePickerData {
   maxDate?: string;
   compareField?: string;
   comparisonType?: "after" | "before" | "notSame";
+  allowSameDay?: boolean;
 }
 
 const DatePicker = ({
@@ -25,6 +26,7 @@ const DatePicker = ({
   maxDate,
   compareField,
   comparisonType = "after",
+  allowSameDay = false,
 }: DatePickerData) => {
   const { register, watch, setError, clearErrors } = useFormContext();
 
@@ -36,14 +38,16 @@ const DatePicker = ({
       const isValid = validateDateComparison(
         currentValue,
         compareValue,
-        comparisonType
+        comparisonType,
+        allowSameDay,
       );
 
       if (!isValid) {
         const errorMessage = getErrorMessage(
           title,
           compareField,
-          comparisonType
+          comparisonType,
+          allowSameDay,
         );
         setError(name, {
           type: "manual",
@@ -59,6 +63,7 @@ const DatePicker = ({
     name,
     compareField,
     comparisonType,
+    allowSameDay,
     setError,
     clearErrors,
     title,
@@ -67,7 +72,8 @@ const DatePicker = ({
   const validateDateComparison = (
     date1: string,
     date2: string,
-    type: "after" | "before" | "notSame"
+    type: "after" | "before" | "notSame",
+    sameDayAllowed: boolean,
   ): boolean => {
     if (!date1 || !date2) return true;
 
@@ -78,9 +84,9 @@ const DatePicker = ({
     d2.setHours(0, 0, 0, 0);
 
     if (type === "after") {
-      return d1 > d2;
+      return sameDayAllowed ? d1 >= d2 : d1 > d2;
     } else if (type === "before") {
-      return d1 < d2;
+      return sameDayAllowed ? d1 <= d2 : d1 < d2;
     } else if (type === "notSame") {
       return d1.getTime() !== d2.getTime();
     }
@@ -91,7 +97,8 @@ const DatePicker = ({
   const getErrorMessage = (
     title: string,
     compareField: string,
-    type: "after" | "before" | "notSame"
+    type: "after" | "before" | "notSame",
+    sameDayAllowed: boolean,
   ): string => {
     const fieldTitles: Record<string, string> = {
       "rental.pickUpDate": "Pick-up Date",
@@ -104,9 +111,13 @@ const DatePicker = ({
 
     switch (type) {
       case "after":
-        return `${title} must be after ${compareTitle}`;
+        return sameDayAllowed
+          ? `${title} must be on or after ${compareTitle}`
+          : `${title} must be after ${compareTitle}`;
       case "before":
-        return `${title} must be before ${compareTitle}`;
+        return sameDayAllowed
+          ? `${title} must be on or before ${compareTitle}`
+          : `${title} must be before ${compareTitle}`;
       case "notSame":
         return `${title} cannot be the same as ${compareTitle}`;
       default:
@@ -117,14 +128,39 @@ const DatePicker = ({
   const getMinDate = () => {
     if (minDate) return minDate;
 
-    // For drop-off date, ensure it's at least one day after pick-up
     if (name === "rental.dropOffDate" && compareField === "rental.pickUpDate") {
       const pickUpValue = watch("rental.pickUpDate");
       if (pickUpValue) {
         const pickUpDate = new Date(pickUpValue);
-        const nextDay = new Date(pickUpDate);
-        nextDay.setDate(pickUpDate.getDate() + 1);
-        return nextDay.toISOString().split("T")[0];
+
+        if (allowSameDay) {
+          return pickUpDate.toISOString().split("T")[0];
+        } else {
+          const nextDay = new Date(pickUpDate);
+          nextDay.setDate(pickUpDate.getDate() + 1);
+          return nextDay.toISOString().split("T")[0];
+        }
+      }
+    }
+
+    return "";
+  };
+
+  const getMaxDate = () => {
+    if (maxDate) return maxDate;
+
+    if (name === "rental.pickUpDate" && compareField === "rental.dropOffDate") {
+      const dropOffValue = watch("rental.dropOffDate");
+      if (dropOffValue) {
+        const dropOffDate = new Date(dropOffValue);
+
+        if (allowSameDay) {
+          return dropOffDate.toISOString().split("T")[0];
+        } else {
+          const prevDay = new Date(dropOffDate);
+          prevDay.setDate(dropOffDate.getDate() - 1);
+          return prevDay.toISOString().split("T")[0];
+        }
       }
     }
 
@@ -140,7 +176,7 @@ const DatePicker = ({
         placeholder={placeholder}
         disabled={disabled}
         min={getMinDate()}
-        max={maxDate}
+        max={getMaxDate()}
         {...register(name, {
           setValueAs: (value) => {
             if (!value) return "";
@@ -148,7 +184,7 @@ const DatePicker = ({
           },
         })}
       />
-      {error && <p className="text-red-700">{error}</p>}
+      {error && <p className="text-red-700 text-sm">{error}</p>}
     </div>
   );
 };

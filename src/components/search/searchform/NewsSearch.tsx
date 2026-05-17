@@ -35,11 +35,13 @@ const NewsSearch = ({
   return (
     <div className="w-full flex flex-col items-center justify-center gap-4">
       <div className="">
-        <p className="text-md font-semibold text-[#1d2087]">Manage News</p>
+        <p className="text-md font-semibold text-[#1d2087]">
+          Manage Happenings
+        </p>
       </div>
       <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
         <SearchInput
-          placeholder="search for news"
+          placeholder="search for happenings"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={handleSearchKeyDown}

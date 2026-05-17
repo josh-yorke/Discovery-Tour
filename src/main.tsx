@@ -95,6 +95,8 @@ import ViewInsuranceBooking from "./pages/insurances/bookings/view/ViewInsurance
 import Markups from "./pages/markups/Markups";
 import EditMarkup from "./pages/markups/edit/EditMarkup";
 import AddMarkup from "./pages/markups/add/AddMarkup";
+import Scraper from "./pages/scraper/Scraper";
+import EditScraper from "./components/scraper/EditScraperConfig";
 
 const router = createBrowserRouter([
   {
@@ -451,6 +453,23 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditCompany />
+      </RouteProtection>
+    ),
+  },
+
+  {
+    path: "/company/scraper",
+    element: (
+      <RouteProtection>
+        <Scraper />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/company/scraper/edit",
+    element: (
+      <RouteProtection>
+        <EditScraper />
       </RouteProtection>
     ),
   },

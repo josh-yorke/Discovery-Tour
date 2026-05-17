@@ -13,7 +13,7 @@ import {
 } from "../../../types/users/editUserTypes";
 import { updateUser } from "../../../hooks/users/updateUser";
 import Modal from "../../modal/Modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AllowedActionsInputs from "../AllowedActions";
 
 interface EditInputsProps extends editUserData {
@@ -85,7 +85,9 @@ const Edit = ({
       reset();
     },
     onError: (error) => {
-      setErrorMessage(error.message);
+      setErrorMessage(
+        error.message || "Failed to update user. Please try again.",
+      );
       showErrorModal(true);
     },
   });
@@ -102,6 +104,15 @@ const Edit = ({
     mutation.mutate({ id, data });
   };
 
+  useEffect(() => {
+    if (mutation.isError && !errorModal) {
+      setErrorMessage(
+        mutation.error?.message || "An unexpected error occurred",
+      );
+      showErrorModal(true);
+    }
+  }, [mutation.isError, mutation.error, errorModal]);
+
   return (
     <>
       <form
@@ -111,7 +122,7 @@ const Edit = ({
         <div className="w-full grid grid-cols-1 gap-4">
           <Input
             style="bg-white"
-            disabled={false}
+            disabled={mutation.isPending}
             title="First Name"
             type="text"
             placeholder="enter your first name"
@@ -120,7 +131,7 @@ const Edit = ({
           />
           <Input
             style="bg-white"
-            disabled={false}
+            disabled={mutation.isPending}
             title="Last Name"
             type="text"
             placeholder="enter your last name"
@@ -129,7 +140,7 @@ const Edit = ({
           />
           <Input
             style="bg-white"
-            disabled={false}
+            disabled={mutation.isPending}
             title="Email"
             type="email"
             placeholder="enter your email"
@@ -144,11 +155,10 @@ const Edit = ({
             {...register("password")}
           />
 
-          {/* InputOption with error display */}
           <div className="w-full">
             <InputOption
-              disabled={false}
-              options={["superAdmin", "admin", "staff", "user"]}
+              disabled={mutation.isPending}
+              options={["admin", "staff", "user"]}
               {...register("role")}
               style="w-full bg-white"
               title="Role"
@@ -160,17 +170,15 @@ const Edit = ({
             )}
           </div>
 
-          {/* ALLOWED ACTIONS */}
           <AllowedActionsInputs
             register={register}
             watch={watch}
             reset={reset}
           />
 
-          {/* InputOption with error display */}
           <div className="w-full">
             <InputOption
-              disabled={false}
+              disabled={mutation.isPending}
               options={["active", "pending"]}
               {...register("status")}
               style="w-full bg-white"
@@ -194,7 +202,10 @@ const Edit = ({
       {errorModal && (
         <Modal
           success={false}
-          action={() => showErrorModal(false)}
+          action={() => {
+            showErrorModal(false);
+            setErrorMessage("");
+          }}
           message={errorMessage}
         />
       )}
@@ -213,12 +224,6 @@ const Edit = ({
                 again.
               </p>
               <div className="w-full flex flex-row gap-3 mt-2">
-                <button
-                  onClick={() => showLogoutModal(false)}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium duration-300"
-                >
-                  Cancel
-                </button>
                 <button
                   onClick={handleLogout}
                   className="flex-1 px-4 py-2 bg-[#1d2087] hover:bg-[#3b3eac] text-white rounded-lg font-medium duration-300"

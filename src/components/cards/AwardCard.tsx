@@ -5,6 +5,7 @@ import {
 } from "react-icons/ri";
 import IconButton from "../button/IconButton";
 import ImageCard from "../cards/ImageCard";
+import { useNavigate } from "react-router";
 
 interface ImageProps {
   id: string;
@@ -23,6 +24,8 @@ const AwardCard = ({
   description,
   date,
 }: ImageProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className={`w-full relative overflow-hidden  ${style}`}>
       <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
@@ -43,7 +46,7 @@ const AwardCard = ({
           <div className="w-full flex flex-row gap-2">
             <IconButton
               action={() => {
-                window.open(`/company/awards/edit/${id}`, "_blank");
+                navigate(`/company/awards/edit/${id}`);
               }}
               icon={<RiPencilFill size={16} />}
               title="Edit"

@@ -44,7 +44,7 @@ const EditNews = () => {
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
           <Header
             style="px-6 lg:px-0 py-6"
-            title="Edit News"
+            title="Edit Happening"
             url="/news"
             id={data._id}
           />

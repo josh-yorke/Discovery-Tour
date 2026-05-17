@@ -1,7 +1,6 @@
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
 import SearchInput from "../SearchInput";
-import Options from "../Options";
 import IconButton from "../../button/IconButton";
 
 interface FormProps {
@@ -14,16 +13,10 @@ interface FormProps {
 
 const InsuranceSearch = ({
   searchValue,
-  statusValue,
   onSearchChange,
-  onStatusChange,
   onSearchSubmit,
 }: FormProps) => {
   const navigate = useNavigate();
-
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onStatusChange(e.target.value);
-  };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -52,12 +45,6 @@ const InsuranceSearch = ({
         </button>
       </div>
       <div className="w-full flex flex-row gap-2 items-center justify-center">
-        <Options
-          options={["active", "pending", "expired", "cancelled"]}
-          value={statusValue}
-          onChange={handleStatusChange}
-          title="Status"
-        />
         <IconButton
           icon={<RiAddLine size={16} />}
           title="New"

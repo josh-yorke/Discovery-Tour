@@ -130,6 +130,7 @@ const Add = () => {
               disabled={false}
               setValue={setValue}
               register={register}
+              maxImages={1}
               error={
                 typeof errors.image?.message === "string"
                   ? errors.image.message

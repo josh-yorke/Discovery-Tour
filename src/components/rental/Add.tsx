@@ -2,7 +2,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   addRentalSchema,
   type addRentalData,
@@ -32,8 +32,54 @@ const AddRental = () => {
     handleSubmit,
     reset,
     watch,
+    setError,
+    clearErrors,
     formState: { errors },
   } = methods;
+
+  const convertToMinutes = (time: string): number => {
+    if (!time) return -1;
+    const match = time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (match) {
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const period = match[3].toUpperCase();
+
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
+
+      return hours * 60 + minutes;
+    }
+    return 0;
+  };
+
+  const pickUpDate = watch("rental.pickUpDate");
+  const dropOffDate = watch("rental.dropOffDate");
+  const pickUpTime = watch("rental.pickUpTime");
+  const dropOffTime = watch("rental.dropOffTime");
+
+  useEffect(() => {
+    if (pickUpDate && dropOffDate && pickUpTime && dropOffTime) {
+      const isSameDay = pickUpDate === dropOffDate;
+
+      if (isSameDay) {
+        const pickUpMinutes = convertToMinutes(pickUpTime);
+        const dropOffMinutes = convertToMinutes(dropOffTime);
+
+        if (pickUpMinutes >= dropOffMinutes) {
+          setError("rental.dropOffTime", {
+            type: "manual",
+            message:
+              "Drop-off time must be later than pick-up time for same-day rentals",
+          });
+        } else {
+          clearErrors("rental.dropOffTime");
+        }
+      } else {
+        clearErrors("rental.dropOffTime");
+      }
+    }
+  }, [pickUpDate, dropOffDate, pickUpTime, dropOffTime, setError, clearErrors]);
 
   const mutation = useMutation({
     mutationFn: (data: addRentalData) =>
@@ -46,6 +92,22 @@ const AddRental = () => {
   });
 
   const onSubmit = (data: addRentalData) => {
+    const isSameDay = data.rental.pickUpDate === data.rental.dropOffDate;
+
+    if (isSameDay) {
+      const pickUpMinutes = convertToMinutes(data.rental.pickUpTime);
+      const dropOffMinutes = convertToMinutes(data.rental.dropOffTime);
+
+      if (pickUpMinutes >= dropOffMinutes) {
+        setError("rental.dropOffTime", {
+          type: "manual",
+          message:
+            "Drop-off time must be later than pick-up time for same-day rentals",
+        });
+        return;
+      }
+    }
+
     mutation.mutate(data);
   };
 
@@ -145,6 +207,7 @@ const AddRental = () => {
               minDate={new Date().toISOString().split("T")[0]}
               compareField="rental.dropOffDate"
               comparisonType="before"
+              allowSameDay
             />
 
             <Input
@@ -178,6 +241,7 @@ const AddRental = () => {
               name="rental.dropOffDate"
               compareField="rental.pickUpDate"
               comparisonType="after"
+              allowSameDay
             />
 
             <Input

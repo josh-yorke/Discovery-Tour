@@ -3,7 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
+import {
+  getVisaCountries,
+  getVisaCountriesId,
+} from "../../hooks/visa/visa/getVisas";
 import InputOption from "../input/InputOption";
 import TextArea from "../input/TextArea";
 import ImageInput from "../input/ImageInput";
@@ -30,6 +33,29 @@ const Add = () => {
     resolver: zodResolver(addTourSchema),
   });
 
+  const { watch } = methods;
+  const selectedCountry = watch("country");
+
+  const { data: countriesWithIdData } = useQuery({
+    queryKey: ["visaCountriesWithId"],
+    queryFn: getVisaCountriesId,
+    select: (data) => {
+      if (!data) return [];
+      return data.map((item: any) => ({
+        id: item._id || item.id,
+        name: item.country,
+      }));
+    },
+  });
+
+  const selectedCountryId = useMemo(() => {
+    if (!selectedCountry || !countriesWithIdData) return null;
+    const countryObj = countriesWithIdData.find(
+      (c: any) => c.name === selectedCountry,
+    );
+    return countryObj?.id || null;
+  }, [selectedCountry, countriesWithIdData]);
+
   const { data: countriesData } = useQuery({
     queryKey: ["visaCountries"],
     queryFn: getVisaCountries,
@@ -41,9 +67,13 @@ const Add = () => {
     },
   });
 
-  const { data: tourTypesData } = useQuery({
-    queryKey: ["tourTypes"],
-    queryFn: getTourTypesId,
+  const { data: tourTypesData, isLoading: isLoadingTourTypes } = useQuery({
+    queryKey: ["tourTypes", selectedCountryId],
+    queryFn: () => {
+      if (!selectedCountryId) return [];
+      return getTourTypesId(selectedCountryId);
+    },
+    enabled: !!selectedCountryId,
   });
 
   const {
@@ -110,7 +140,11 @@ const Add = () => {
   };
 
   const countries = useMemo(() => countriesData || [], [countriesData]);
-  const types = useMemo(() => tourTypesData || [], [tourTypesData]);
+
+  const types = useMemo(() => {
+    if (!tourTypesData) return [];
+    return tourTypesData;
+  }, [tourTypesData]);
 
   return (
     <>
@@ -131,12 +165,24 @@ const Add = () => {
             />
 
             <InputOptionId
-              disabled={false}
+              disabled={!selectedCountryId || isLoadingTourTypes}
               style="bg-white w-full"
               title="Tour Type"
               options={types}
               {...register("type")}
             />
+
+            {isLoadingTourTypes && selectedCountryId && (
+              <p className="text-sm text-gray-500 -mt-2">
+                Loading tour types...
+              </p>
+            )}
+
+            {!isLoadingTourTypes && selectedCountryId && types.length === 0 && (
+              <p className="text-sm text-yellow-600 -mt-2">
+                No tour types available for this country
+              </p>
+            )}
 
             <InputOption
               disabled={false}

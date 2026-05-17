@@ -20,6 +20,9 @@ const Add = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [verifyModal, showVerifyModal] = useState(false);
+  const [showAddErrorModal, setShowAddErrorModal] = useState(false);
+  const [addErrorMessage, setAddErrorMessage] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -48,10 +51,20 @@ const Add = () => {
       navigate(-1);
       reset();
     },
+    onError: (error: any) => {
+      setAddErrorMessage(
+        error.message || "Failed to add user. Please try again.",
+      );
+      setShowAddErrorModal(true);
+    },
   });
 
   const onSubmit: SubmitHandler<addUserData> = (data) => {
     addMutation.mutate(data);
+  };
+
+  const handleVerifyAndSubmit = () => {
+    handleSubmit(onSubmit)();
   };
 
   return (
@@ -100,7 +113,7 @@ const Add = () => {
           <div className="w-full">
             <InputOption
               disabled={false}
-              options={["superAdmin", "staff", "admin", "user"]}
+              options={["staff", "admin", "user"]}
               {...register("role")}
               style="w-full bg-white"
               title="Role"
@@ -135,19 +148,31 @@ const Add = () => {
           />
         </div>
       </form>
+
       {verifyModal && (
         <VerifyEmail
-          onVerify={() => handleSubmit(onSubmit)()}
+          onVerify={handleVerifyAndSubmit}
           code={emailMutation.data?.code}
           action={() => showVerifyModal(false)}
           message={emailMutation.data?.message}
         />
       )}
+
       {emailMutation.isError && (
         <Modal
-          success={!emailMutation.isError}
+          success={false}
           action={() => navigate(-1)}
           message={emailMutation.error.message}
+        />
+      )}
+
+      {showAddErrorModal && (
+        <Modal
+          success={false}
+          action={() => {
+            setShowAddErrorModal(false);
+          }}
+          message={addErrorMessage}
         />
       )}
     </>

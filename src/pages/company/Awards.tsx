@@ -15,7 +15,6 @@ const Awards = () => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Get company ID first
   const {
     data: companyId,
     isLoading: isLoadingCompany,
@@ -26,7 +25,6 @@ const Awards = () => {
     queryFn: getCompanyId,
   });
 
-  // Then fetch awards using company ID
   const {
     data: awardsData,
     isLoading: isLoadingAwards,
@@ -42,7 +40,6 @@ const Awards = () => {
     enabled: !!companyId,
   });
 
-  // Set initial date to most recent year when awards data loads
   useEffect(() => {
     if (awardsData?.years.length) {
       const mostRecentYear = awardsData.years[0];
@@ -50,12 +47,11 @@ const Awards = () => {
     }
   }, [awardsData]);
 
-  // Memoize selected year awards to prevent unnecessary recalculations
   const selectedYearAwards = useMemo(() => {
     if (!awardsData) return [];
     const selectedYear = selectedDate.getFullYear();
     const yearData = awardsData.awardsByYear.find(
-      (year) => year.year === selectedYear
+      (year) => year.year === selectedYear,
     );
     return yearData ? yearData.awards : [];
   }, [awardsData, selectedDate]);
@@ -66,16 +62,13 @@ const Awards = () => {
     setSelectedDate(newDate);
   };
 
-  // Combine states
   const isLoading = isLoadingCompany || isLoadingAwards;
   const isError = isCompanyError || isAwardsError;
   const errorMessage =
     companyError?.message || awardsError?.message || "An error occurred";
 
-  // Get available years from awards data
   const availableYears = awardsData?.years || [];
 
-  // Loading and error states
   if (isLoading) {
     return (
       <>
@@ -102,7 +95,6 @@ const Awards = () => {
     <>
       <Navbar />
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-svh px-6 py-12 gap-12">
-        {/* Header Section */}
         <div className="w-full flex flex-col items-center justify-center gap-2">
           <p className="text-md font-semibold text-[#1d2087]">Manage Awards</p>
           <IconButton
@@ -113,9 +105,7 @@ const Awards = () => {
           />
         </div>
 
-        {/* Main Content */}
         <div className="w-full flex flex-col gap-6 items-center justify-center">
-          {/* Year Picker */}
           {availableYears.length > 0 && (
             <div className="w-full lg:w-1/4">
               <YearPicker
@@ -126,7 +116,6 @@ const Awards = () => {
             </div>
           )}
 
-          {/* Awards Display */}
           {selectedYearAwards.length > 0 ? (
             <ViewAwards awards={selectedYearAwards} />
           ) : (

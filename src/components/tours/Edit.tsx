@@ -8,7 +8,10 @@ import {
   addTourSchema,
   type addTourData,
 } from "../../types/tours/addTourTypes";
-import { getVisaCountries } from "../../hooks/visa/visa/getVisas";
+import {
+  getVisaCountries,
+  getVisaCountriesId,
+} from "../../hooks/visa/visa/getVisas";
 import { getTourTypesId } from "../../hooks/tours/getTours";
 import { updateTour } from "../../hooks/tours/updateTour";
 
@@ -64,6 +67,27 @@ const Edit = ({
   });
 
   const { watch } = methods;
+  const selectedCountry = watch("country");
+
+  const { data: countriesWithIdData } = useQuery({
+    queryKey: ["visaCountriesWithId"],
+    queryFn: getVisaCountriesId,
+    select: (data) => {
+      if (!data) return [];
+      return data.map((item: any) => ({
+        id: item._id || item.id,
+        name: item.country,
+      }));
+    },
+  });
+
+  const selectedCountryId = useMemo(() => {
+    if (!selectedCountry || !countriesWithIdData) return null;
+    const countryObj = countriesWithIdData.find(
+      (c: any) => c.name === selectedCountry,
+    );
+    return countryObj?.id || null;
+  }, [selectedCountry, countriesWithIdData]);
 
   const countriesQuery = useQuery({
     queryKey: ["visaCountries"],
@@ -75,8 +99,12 @@ const Edit = ({
   });
 
   const tourTypesQuery = useQuery({
-    queryKey: ["tourTypes"],
-    queryFn: getTourTypesId,
+    queryKey: ["tourTypes", selectedCountryId],
+    queryFn: () => {
+      if (!selectedCountryId) return [];
+      return getTourTypesId(selectedCountryId);
+    },
+    enabled: !!selectedCountryId,
   });
 
   const {
@@ -143,7 +171,11 @@ const Edit = ({
     () => countriesQuery.data || [],
     [countriesQuery.data],
   );
-  const types = useMemo(() => tourTypesQuery.data || [], [tourTypesQuery.data]);
+
+  const types = useMemo(() => {
+    if (!tourTypesQuery.data) return [];
+    return tourTypesQuery.data;
+  }, [tourTypesQuery.data]);
 
   const currentCountry = watch("country");
   const currentCategory = watch("category");
@@ -166,12 +198,26 @@ const Edit = ({
             />
 
             <InputOptionId
-              disabled={false}
+              disabled={!selectedCountryId || tourTypesQuery.isLoading}
               style="bg-white w-full"
               title="Tour Type"
               options={types}
               {...register("type")}
             />
+
+            {tourTypesQuery.isLoading && selectedCountryId && (
+              <p className="text-sm text-gray-500 -mt-2">
+                Loading tour types...
+              </p>
+            )}
+
+            {!tourTypesQuery.isLoading &&
+              selectedCountryId &&
+              types.length === 0 && (
+                <p className="text-sm text-yellow-600 -mt-2">
+                  No tour types available for this country
+                </p>
+              )}
 
             <InputOption
               disabled={false}
@@ -200,7 +246,7 @@ const Edit = ({
             <Input
               style="bg-white"
               disabled={false}
-              error={errors.mainLocationName?.message || ""}
+              error={errors.title?.message || ""}
               title="Title"
               placeholder="title"
               type="text"

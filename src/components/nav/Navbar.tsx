@@ -290,7 +290,7 @@ const Navbar = () => {
                   "rail-passes",
                   "vehicles",
                   "transportation",
-                  "rental",
+                  "vehicle hire",
                 ]}
                 to="/transport"
                 style={`${

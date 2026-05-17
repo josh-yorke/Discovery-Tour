@@ -4,7 +4,7 @@ import api from "../axios/axios";
 export const getTours = async (data: tourSearchData) => {
   try {
     const res = await api.get(
-      `/tours?page=${data.page}&limit=12&search=${data.search}&country=${data.country}`
+      `/tours?page=${data.page}&limit=12&search=${data.search}&country=${data.country}`,
     );
     console.log(res);
     return {
@@ -33,10 +33,12 @@ export const getTourTypes = async () => {
   }
 };
 
-export const getTourTypesId = async () => {
+export const getTourTypesId = async (countryId: string) => {
   try {
-    const res = await api.get(`/categories-available?type=tour-type`);
-
+    const res = await api.get(
+      `/categories-available?type=tour-type&country=${countryId}`,
+    );
+    console.log(res.data.data);
     return res.data.data;
   } catch (error: any) {
     const message = error.response.data.message || error;
