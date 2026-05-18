@@ -5,12 +5,12 @@ import api from "../axios/axios";
 export const addRental = async (
   emailCustomer: boolean,
   emailAdmin: boolean,
-  data: addRentalData
+  data: addRentalData,
 ) => {
   try {
     const res = await api.post(
       `/vehicle-rentals?send_email_customer=${emailCustomer}&send_email_admin=${emailAdmin}`,
-      data
+      data,
     );
     console.log(res.data.message);
     return {
@@ -48,7 +48,7 @@ export const updateRental = async (id: string, data: addRentalData) => {
 export const getRentals = async (data: rentalSearchData) => {
   try {
     const res = await api.get(
-      `/vehicle-rentals?page=${data.page}&limit=9&year=${data.year}&month=${data.month}&day=${data.day}&status=${data.status}&search=${data.search}&vehicle=${data.vehicle}`
+      `/vehicle-rentals?page=${data.page}&limit=9&year=${data.year}&month=${data.month}&day=${data.day}&status=${data.status}&search=${data.search}&vehicle=${data.vehicle}`,
     );
     console.log(res.data.data);
     return {

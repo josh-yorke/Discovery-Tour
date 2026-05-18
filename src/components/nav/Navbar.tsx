@@ -21,6 +21,8 @@ import {
   RiBriefcase2Fill,
   RiHeartPulseLine,
   RiHeartPulseFill,
+  RiServiceLine,
+  RiServiceFill,
 } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router";
 import LogoutButton from "../button/LogoutButton";
@@ -47,7 +49,7 @@ const Navbar = () => {
   return (
     <>
       <div className="sticky top-0 left-0 w-full flex flex-col items-center justify-center z-30 bg-white shadow-black/6 shadow-2xl">
-        <div className=" w-full lg:w-4/5 flex flex-row items-center justify-between  px-6 lg:px-2 py-4  bg-white ">
+        <div className=" w-full flex flex-row items-center justify-between  px-6 py-4  bg-white ">
           <div onClick={handleLogoClick} className="cursor-pointer">
             <img src="/Logo.jpeg" alt="/" width={200} />
           </div>
@@ -178,6 +180,23 @@ const Navbar = () => {
                 )
               }
               title="Categories"
+            />
+
+            <LinkButton
+              to="/options-for-you"
+              style={`${
+                pathname.startsWith("/options-for-you")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/options-for-you") ? (
+                  <RiServiceFill size={16} />
+                ) : (
+                  <RiServiceLine size={16} />
+                )
+              }
+              title="Options For You"
             />
 
             <HoverLink
@@ -378,6 +397,23 @@ const Navbar = () => {
                 title="Categories"
               />
 
+              <LinkButton
+                to="/options-for-you"
+                style={`${
+                  pathname.startsWith("/options-for-you")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/options-for-you") ? (
+                    <RiServiceFill size={16} />
+                  ) : (
+                    <RiServiceLine size={16} />
+                  )
+                }
+                title="Options For You"
+              />
+
               <DropdownLink
                 options={[
                   "details",
@@ -403,6 +439,7 @@ const Navbar = () => {
                 }
                 title="Company"
               />
+
               <LinkButton
                 to="/users"
                 style={`${

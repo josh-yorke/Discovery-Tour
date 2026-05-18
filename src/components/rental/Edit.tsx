@@ -2,7 +2,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   addRentalSchema,
   type addRentalData,
@@ -14,6 +14,7 @@ import SearchableTransportDropdown from "../input/SearchableTransportDropdown";
 import SearchablePlanDropdown from "../input/SearchablePlanDropdown";
 import { updateRental } from "../../hooks/rental/rental";
 import DatePicker from "../input/DatePicker";
+import Modal from "../modal/Modal";
 
 interface EditProps extends addRentalData {
   id?: string;
@@ -21,17 +22,21 @@ interface EditProps extends addRentalData {
 
 const Edit = ({
   id: propId,
-  transport,
-  plan,
-  vehicle,
-  customer,
-  rental,
-  status,
+  transport: initialTransport,
+  plan: initialPlan,
+  vehicle: initialVehicle,
+  customer: initialCustomer,
+  rental: initialRental,
+  status: initialStatus,
 }: EditProps) => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { id: routeId } = useParams();
   const rentalId = propId || routeId || "";
+  const [modal, setModal] = useState<{
+    message: string;
+    isSuccess: boolean;
+  } | null>(null);
 
   const formatDateForInput = (isoDate: string): string => {
     if (!isoDate) return "";
@@ -39,29 +44,37 @@ const Edit = ({
     return isNaN(date.getTime()) ? "" : date.toISOString().split("T")[0];
   };
 
+  // Helper function to get string ID from object or string
+  const getIdFromValue = (value: any): string => {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    if (value._id) return value._id;
+    return "";
+  };
+
   const methods = useForm<addRentalData>({
     resolver: zodResolver(addRentalSchema),
     defaultValues: {
-      transport: transport || "",
-      plan: plan || "",
-      vehicle: vehicle || "",
+      transport: getIdFromValue(initialTransport),
+      plan: getIdFromValue(initialPlan),
+      vehicle: getIdFromValue(initialVehicle),
       customer: {
-        fullName: customer?.fullName || "",
-        email: customer?.email || "",
-        phone: customer?.phone || "",
-        nationality: customer?.nationality || "",
-        passportNumber: customer?.passportNumber || "",
+        fullName: initialCustomer?.fullName || "",
+        email: initialCustomer?.email || "",
+        phone: initialCustomer?.phone || "",
+        nationality: initialCustomer?.nationality || "",
+        passportNumber: initialCustomer?.passportNumber || "",
       },
       rental: {
         pickUpDate: "",
-        pickUpTime: rental?.pickUpTime || "",
-        pickUpLocation: rental?.pickUpLocation || "",
+        pickUpTime: initialRental?.pickUpTime || "",
+        pickUpLocation: initialRental?.pickUpLocation || "",
         dropOffDate: "",
-        dropOffTime: rental?.dropOffTime || "",
-        dropOffLocation: rental?.dropOffLocation || "",
-        specialRequests: rental?.specialRequests || "",
+        dropOffTime: initialRental?.dropOffTime || "",
+        dropOffLocation: initialRental?.dropOffLocation || "",
+        specialRequests: initialRental?.specialRequests || "",
       },
-      status: status || "pending",
+      status: initialStatus || "pending",
     },
   });
 
@@ -76,17 +89,17 @@ const Edit = ({
   } = methods;
 
   useEffect(() => {
-    if (rental) {
+    if (initialRental) {
       setValue(
         "rental.pickUpDate",
-        formatDateForInput(rental.pickUpDate || ""),
+        formatDateForInput(initialRental.pickUpDate || ""),
       );
       setValue(
         "rental.dropOffDate",
-        formatDateForInput(rental.dropOffDate || ""),
+        formatDateForInput(initialRental.dropOffDate || ""),
       );
     }
-  }, [rental, setValue]);
+  }, [initialRental, setValue]);
 
   const convertToMinutes = (time: string): number => {
     if (!time) return -1;
@@ -134,11 +147,27 @@ const Edit = ({
 
   const mutation = useMutation({
     mutationFn: (data: addRentalData) => updateRental(rentalId, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setModal({
+        message: data?.message || "Rental updated successfully!",
+        isSuccess: true,
+      });
       queryClient.invalidateQueries({ queryKey: ["rentals"], exact: false });
-      navigate(-1);
+    },
+    onError: (error: Error) => {
+      setModal({
+        message: error.message || "Failed to update rental",
+        isSuccess: false,
+      });
     },
   });
+
+  const handleModalClose = () => {
+    setModal(null);
+    if (modal?.isSuccess) {
+      navigate("/transport/vehicle hire");
+    }
+  };
 
   const onSubmit = (data: addRentalData) => {
     const isSameDay = data.rental.pickUpDate === data.rental.dropOffDate;
@@ -238,131 +267,141 @@ const Edit = ({
   ];
 
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={handleSubmit(onSubmit, (err) => console.log(err))}
-        className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
-      >
-        <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
-          <SearchableTransportDropdown
-            disabled={false}
-            title="Transport"
-            value={transportValue}
-            onChange={(transportId: string) =>
-              setValue("transport", transportId, { shouldValidate: true })
-            }
-            placeholder="Search for a transport..."
-          />
-
-          <SearchablePlanDropdown
-            disabled={false}
-            title="Plan"
-            value={planValue}
-            transportId={transportValue}
-            onChange={(planId: string, vehicleId: string) => {
-              setValue("plan", planId, { shouldValidate: true });
-              setValue("vehicle", vehicleId, { shouldValidate: true });
-            }}
-            placeholder="Search for a plan..."
-            error={errors.plan?.message || ""}
-          />
-
-          {customerFields.map((field) => (
-            <Input
-              key={field.name}
-              style="bg-white"
+    <>
+      <FormProvider {...methods}>
+        <form
+          onSubmit={handleSubmit(onSubmit, (err) => console.log(err))}
+          className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+        >
+          <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
+            <SearchableTransportDropdown
               disabled={false}
-              error={field.error}
-              title={field.title}
-              placeholder={field.placeholder}
-              type={field.type}
-              {...register(field.name)}
-            />
-          ))}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DatePicker
-              style="bg-white"
-              disabled={false}
-              error={getRentalError("pickUpDate")}
-              title="Pick-up Date"
-              placeholder="Select pick-up date"
-              name="rental.pickUpDate"
-              compareField="rental.dropOffDate"
-              comparisonType="before"
-              allowSameDay
+              title="Transport"
+              value={transportValue}
+              onChange={(transportId: string) =>
+                setValue("transport", transportId, { shouldValidate: true })
+              }
+              placeholder="Search for a transport..."
             />
 
-            <Input
-              style="bg-white"
+            <SearchablePlanDropdown
               disabled={false}
-              error={getRentalError("pickUpTime")}
-              title="Pick-up Time"
-              placeholder="Enter pick-up time (e.g., 09:00 AM)"
-              type="text"
-              {...register("rental.pickUpTime")}
+              title="Plan"
+              value={planValue}
+              transportId={transportValue}
+              onChange={(planId: string, vehicleId: string) => {
+                setValue("plan", planId, { shouldValidate: true });
+                setValue("vehicle", vehicleId, { shouldValidate: true });
+              }}
+              placeholder="Search for a plan..."
+              error={errors.plan?.message || ""}
+            />
+
+            {customerFields.map((field) => (
+              <Input
+                key={field.name}
+                style="bg-white"
+                disabled={false}
+                error={field.error}
+                title={field.title}
+                placeholder={field.placeholder}
+                type={field.type}
+                {...register(field.name)}
+              />
+            ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DatePicker
+                style="bg-white"
+                disabled={false}
+                error={getRentalError("pickUpDate")}
+                title="Pick-up Date"
+                placeholder="Select pick-up date"
+                name="rental.pickUpDate"
+                compareField="rental.dropOffDate"
+                comparisonType="before"
+                allowSameDay
+              />
+
+              <Input
+                style="bg-white"
+                disabled={false}
+                error={getRentalError("pickUpTime")}
+                title="Pick-up Time"
+                placeholder="Enter pick-up time (e.g., 09:00 AM)"
+                type="text"
+                {...register("rental.pickUpTime")}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DatePicker
+                style="bg-white"
+                disabled={false}
+                error={getRentalError("dropOffDate")}
+                title="Drop-off Date"
+                placeholder="Select drop-off date"
+                name="rental.dropOffDate"
+                compareField="rental.pickUpDate"
+                comparisonType="after"
+                allowSameDay
+              />
+
+              <Input
+                style="bg-white"
+                disabled={false}
+                error={getRentalError("dropOffTime")}
+                title="Drop-off Time"
+                placeholder="Enter drop-off time (e.g., 06:00 PM)"
+                type="text"
+                {...register("rental.dropOffTime")}
+              />
+            </div>
+
+            {errors.rental?.dropOffTime && (
+              <p className="text-red-600 text-sm -mt-2">
+                {errors.rental.dropOffTime.message}
+              </p>
+            )}
+
+            {rentalFields.map((field) => (
+              <Input
+                key={field.name}
+                style="bg-white"
+                disabled={false}
+                error={field.error}
+                title={field.title}
+                placeholder={field.placeholder}
+                type={field.type}
+                {...register(field.name)}
+              />
+            ))}
+
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Status"
+              options={["pending", "confirmed", "cancelled", "completed"]}
+              {...register("status")}
+            />
+
+            <Button
+              isLoading={mutation.isPending}
+              title="Update Rental"
+              style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
             />
           </div>
+        </form>
+      </FormProvider>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DatePicker
-              style="bg-white"
-              disabled={false}
-              error={getRentalError("dropOffDate")}
-              title="Drop-off Date"
-              placeholder="Select drop-off date"
-              name="rental.dropOffDate"
-              compareField="rental.pickUpDate"
-              comparisonType="after"
-              allowSameDay
-            />
-
-            <Input
-              style="bg-white"
-              disabled={false}
-              error={getRentalError("dropOffTime")}
-              title="Drop-off Time"
-              placeholder="Enter drop-off time (e.g., 06:00 PM)"
-              type="text"
-              {...register("rental.dropOffTime")}
-            />
-          </div>
-
-          {errors.rental?.dropOffTime && (
-            <p className="text-red-600 text-sm -mt-2">
-              {errors.rental.dropOffTime.message}
-            </p>
-          )}
-
-          {rentalFields.map((field) => (
-            <Input
-              key={field.name}
-              style="bg-white"
-              disabled={false}
-              error={field.error}
-              title={field.title}
-              placeholder={field.placeholder}
-              type={field.type}
-              {...register(field.name)}
-            />
-          ))}
-
-          <InputOption
-            disabled={false}
-            style="bg-white w-full"
-            title="Status"
-            options={["pending", "confirmed", "cancelled", "completed"]}
-            {...register("status")}
-          />
-
-          <Button
-            isLoading={mutation.isPending}
-            title="Update Rental"
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
-          />
-        </div>
-      </form>
-    </FormProvider>
+      {modal && (
+        <Modal
+          message={modal.message}
+          success={modal.isSuccess}
+          action={handleModalClose}
+        />
+      )}
+    </>
   );
 };
 

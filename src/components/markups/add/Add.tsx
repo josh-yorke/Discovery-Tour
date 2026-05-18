@@ -124,7 +124,7 @@ const AddMarkup = () => {
       {mutation.isError && (
         <Modal
           success={false}
-          action={() => navigate("/markups")}
+          action={() => navigate("/company/markups")}
           message={mutation.error.message}
         />
       )}
@@ -132,7 +132,7 @@ const AddMarkup = () => {
       {mutation.isSuccess && !mutation.isError && (
         <Modal
           success={true}
-          action={() => navigate("/markups")}
+          action={() => navigate("/company/markups")}
           message="Markup added successfully"
         />
       )}

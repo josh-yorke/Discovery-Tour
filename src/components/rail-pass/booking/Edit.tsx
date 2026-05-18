@@ -2,7 +2,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   addRailBookingSchema,
   type addRailBookingData,
@@ -15,6 +15,7 @@ import SearchableRailPlanDropdown from "../../input/SearchableRailPlanDropdown";
 import { updateBooking } from "../../../hooks/rail-passes/passBooking";
 import DatePicker from "../../input/DatePicker";
 import DestinationsInput from "../../input/DestinationsInput";
+import Modal from "../../modal/Modal";
 
 interface EditProps extends addRailBookingData {
   id?: string;
@@ -33,6 +34,10 @@ const Edit = ({
   const navigate = useNavigate();
   const { id: routeId } = useParams();
   const railpassId = propId || routeId || "";
+  const [modal, setModal] = useState<{
+    message: string;
+    isSuccess: boolean;
+  } | null>(null);
 
   const formatDateForInput = (isoDate: string): string => {
     if (!isoDate) return "";
@@ -82,14 +87,30 @@ const Edit = ({
 
   const mutation = useMutation({
     mutationFn: (data: addRailBookingData) => updateBooking(railpassId, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setModal({
+        message: data?.message || "Railpass booking updated successfully!",
+        isSuccess: true,
+      });
       queryClient.invalidateQueries({
         queryKey: ["railBookings"],
         exact: false,
       });
-      navigate(-1);
+    },
+    onError: (error: Error) => {
+      setModal({
+        message: error.message || "Failed to update railpass booking",
+        isSuccess: false,
+      });
     },
   });
+
+  const handleModalClose = () => {
+    setModal(null);
+    if (modal?.isSuccess) {
+      navigate(-1);
+    }
+  };
 
   const onSubmit = (data: addRailBookingData) => {
     mutation.mutate(data);
@@ -149,148 +170,160 @@ const Edit = ({
   ];
 
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={handleSubmit(onSubmit, (err) => console.log(err))}
-        className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
-      >
-        <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
-          <SearchableRailPassDropdown
-            disabled={false}
-            title="Railpass"
-            value={railpassValue}
-            onChange={(railpassId: string) =>
-              setValue("railpass", railpassId, { shouldValidate: true })
-            }
-            placeholder="Search for a railpass..."
-          />
+    <>
+      <FormProvider {...methods}>
+        <form
+          onSubmit={handleSubmit(onSubmit, (err) => console.log(err))}
+          className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+        >
+          <div className="w-full grid grid-cols-1 gap-4 items-start justify-start">
+            <SearchableRailPassDropdown
+              disabled={false}
+              title="Railpass"
+              value={railpassValue}
+              onChange={(railpassId: string) =>
+                setValue("railpass", railpassId, { shouldValidate: true })
+              }
+              placeholder="Search for a railpass..."
+            />
 
-          <SearchableRailPlanDropdown
-            disabled={false}
-            title="Plan"
-            value={planValue}
-            railPassId={railpassValue}
-            onChange={(planId: string) => {
-              setValue("plan", planId, { shouldValidate: true });
-            }}
-            placeholder="Search for a plan..."
-            error={errors.plan?.message || ""}
-          />
+            <SearchableRailPlanDropdown
+              disabled={false}
+              title="Plan"
+              value={planValue}
+              railPassId={railpassValue}
+              onChange={(planId: string) => {
+                setValue("plan", planId, { shouldValidate: true });
+              }}
+              placeholder="Search for a plan..."
+              error={errors.plan?.message || ""}
+            />
 
-          {customerFields.map((field) => (
+            {customerFields.map((field) => (
+              <Input
+                key={field.name}
+                style="bg-white"
+                disabled={false}
+                error={field.error}
+                title={field.title}
+                placeholder={field.placeholder}
+                type={field.type}
+                {...register(field.name)}
+              />
+            ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DatePicker
+                style="bg-white"
+                disabled={false}
+                error={getTravelError("dateFrom")}
+                title="Travel Start Date"
+                placeholder="Select start date"
+                name="travel.dateFrom"
+                compareField="travel.dateTo"
+                comparisonType="before"
+              />
+
+              <DatePicker
+                style="bg-white"
+                disabled={false}
+                error={getTravelError("dateTo")}
+                title="Travel End Date"
+                placeholder="Select end date"
+                name="travel.dateTo"
+                compareField="travel.dateFrom"
+                comparisonType="after"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                style="bg-white"
+                disabled={false}
+                error={getTravelError("numberOfAdults")}
+                title="Number of Adults"
+                placeholder="Enter number of adults"
+                type="number"
+                {...register("travel.numberOfAdults", { valueAsNumber: true })}
+              />
+
+              <Input
+                style="bg-white"
+                disabled={false}
+                error={getTravelError("numberOfChildren")}
+                title="Number of Children"
+                placeholder="Enter number of children"
+                type="number"
+                {...register("travel.numberOfChildren", {
+                  valueAsNumber: true,
+                })}
+              />
+            </div>
+
+            <DestinationsInput
+              disabled={false}
+              error={getTravelError("destinations")}
+              title="Destinations"
+              placeholder="Enter destinations (comma separated, e.g., Tokyo, Kyoto, Osaka)"
+              value={watch("travel.destinations") || []}
+              onChange={(destinationsArray) =>
+                setValue("travel.destinations", destinationsArray, {
+                  shouldValidate: true,
+                })
+              }
+            />
+
             <Input
-              key={field.name}
               style="bg-white"
               disabled={false}
-              error={field.error}
-              title={field.title}
-              placeholder={field.placeholder}
-              type={field.type}
-              {...register(field.name)}
-            />
-          ))}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DatePicker
-              style="bg-white"
-              disabled={false}
-              error={getTravelError("dateFrom")}
-              title="Travel Start Date"
-              placeholder="Select start date"
-              name="travel.dateFrom"
-              compareField="travel.dateTo"
-              comparisonType="before"
+              error={getTravelError("iteneraryDescription")}
+              title="Itinerary Description"
+              placeholder="Enter detailed itinerary description"
+              type="text"
+              {...register("travel.iteneraryDescription")}
             />
 
-            <DatePicker
+            <Input
               style="bg-white"
               disabled={false}
-              error={getTravelError("dateTo")}
-              title="Travel End Date"
-              placeholder="Select end date"
-              name="travel.dateTo"
-              compareField="travel.dateFrom"
-              comparisonType="after"
+              error={errors.remarks?.message || ""}
+              title="Remarks"
+              placeholder="Enter any additional remarks"
+              type="text"
+              {...register("remarks")}
+            />
+
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Status"
+              options={[
+                "pending",
+                "confirmed",
+                "cancelled",
+                "completed",
+                "delayed",
+              ]}
+              {...register("status")}
+            />
+
+            <Button
+              isLoading={mutation.isPending}
+              title="Update Railpass Booking"
+              style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
             />
           </div>
+        </form>
+      </FormProvider>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              style="bg-white"
-              disabled={false}
-              error={getTravelError("numberOfAdults")}
-              title="Number of Adults"
-              placeholder="Enter number of adults"
-              type="number"
-              {...register("travel.numberOfAdults", { valueAsNumber: true })}
-            />
-
-            <Input
-              style="bg-white"
-              disabled={false}
-              error={getTravelError("numberOfChildren")}
-              title="Number of Children"
-              placeholder="Enter number of children"
-              type="number"
-              {...register("travel.numberOfChildren", { valueAsNumber: true })}
-            />
-          </div>
-
-          <DestinationsInput
-            disabled={false}
-            error={getTravelError("destinations")}
-            title="Destinations"
-            placeholder="Enter destinations (comma separated, e.g., Tokyo, Kyoto, Osaka)"
-            value={watch("travel.destinations") || []}
-            onChange={(destinationsArray) =>
-              setValue("travel.destinations", destinationsArray, {
-                shouldValidate: true,
-              })
-            }
-          />
-
-          <Input
-            style="bg-white"
-            disabled={false}
-            error={getTravelError("iteneraryDescription")}
-            title="Itinerary Description"
-            placeholder="Enter detailed itinerary description"
-            type="text"
-            {...register("travel.iteneraryDescription")}
-          />
-
-          <Input
-            style="bg-white"
-            disabled={false}
-            error={errors.remarks?.message || ""}
-            title="Remarks"
-            placeholder="Enter any additional remarks"
-            type="text"
-            {...register("remarks")}
-          />
-
-          <InputOption
-            disabled={false}
-            style="bg-white w-full"
-            title="Status"
-            options={[
-              "pending",
-              "confirmed",
-              "cancelled",
-              "completed",
-              "delayed",
-            ]}
-            {...register("status")}
-          />
-
-          <Button
-            isLoading={mutation.isPending}
-            title="Update Railpass Booking"
-            style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
-          />
-        </div>
-      </form>
-    </FormProvider>
+      {modal && (
+        <Modal
+          message={modal.message}
+          success={modal.isSuccess}
+          action={handleModalClose}
+        />
+      )}
+    </>
   );
 };
 

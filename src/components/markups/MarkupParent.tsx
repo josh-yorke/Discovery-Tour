@@ -47,9 +47,6 @@ const MarkupParent = ({ markups, isLoading }: ParentProps) => {
               _id={markup._id}
               spread={markup.spread}
               markUp={markup.markUp}
-              ttb={markup.ttb}
-              tts={markup.tts}
-              ttm={markup.ttm}
               currencyPair={markup.currencyPair}
               onDelete={() => handleDelete(markup._id)}
             />

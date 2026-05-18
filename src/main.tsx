@@ -97,6 +97,10 @@ import EditMarkup from "./pages/markups/edit/EditMarkup";
 import AddMarkup from "./pages/markups/add/AddMarkup";
 import Scraper from "./pages/scraper/Scraper";
 import EditScraper from "./components/scraper/EditScraperConfig";
+import OptionsForYou from "./pages/options-for-you/OptionsForYou";
+import ViewOptionBooking from "./pages/options-for-you/ViewOptionBooking";
+import AddOptionBooking from "./pages/options-for-you/AddOptionBooking";
+import EditOptionBooking from "./pages/options-for-you/EditOptionBooking";
 
 const router = createBrowserRouter([
   {
@@ -806,6 +810,38 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditBooking />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/options-for-you",
+    element: (
+      <RouteProtection>
+        <OptionsForYou />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/options-for-you/add",
+    element: (
+      <RouteProtection>
+        <AddOptionBooking />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/options-for-you/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditOptionBooking />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/options-for-you/view/:id",
+    element: (
+      <RouteProtection>
+        <ViewOptionBooking />
       </RouteProtection>
     ),
   },

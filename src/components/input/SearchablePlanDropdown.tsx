@@ -7,36 +7,35 @@ import {
 } from "react";
 import { getTransportPricelists } from "../../hooks/visa/visa/getVisa";
 
-interface Vehicle {
-  _id: string;
-  vehicleName: string;
-  vehicleType: string;
-  brand: string;
-  model: string;
-  year: number;
-  seatingCapacity: number;
-  luggageCapacity: string;
-  transmission: string;
-  fuelType: string;
-  isAvailable: boolean;
-  status: string;
-  images: string[];
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-}
-
 interface Plan {
   _id: string;
   plan: string;
-  fee: number;
+  fee: number | null;
   description: string;
+  currency: string;
   filesAssociated: any[];
   visa: any;
   tour: any;
   railpass: any;
   transport: string;
-  vehicle: Vehicle;
+  vehicle: {
+    _id: string;
+    vehicleName: string;
+    vehicleType: string;
+    brand: string;
+    model: string;
+    year: number;
+    seatingCapacity: number;
+    luggageCapacity: string;
+    transmission: string;
+    fuelType: string;
+    isAvailable: boolean;
+    status: string;
+    images: string[];
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+  };
   dateAdded: string;
   __v: number;
 }
@@ -45,7 +44,7 @@ interface SearchablePlanDropdownProps {
   disabled: boolean;
   title: string;
   value: string;
-  onChange: (planId: string, vehicleId: string) => void; // Updated to return both IDs
+  onChange: (planId: string, vehicleId: string) => void;
   transportId?: string;
   placeholder?: string;
   error?: string;
@@ -70,18 +69,22 @@ const SearchablePlanDropdown = ({
   const isInitialMount = useRef(true);
 
   const getDisplayName = (plan: Plan): string => {
-    return `${plan.plan} - ${plan.vehicle?.vehicleName || "No Vehicle"} ($${
-      plan.fee
-    })`;
+    const vehicleInfo = plan.vehicle
+      ? ` - ${plan.vehicle.vehicleName} (${plan.vehicle.vehicleType})`
+      : "";
+    const feeDisplay =
+      plan.fee && plan.fee > 0
+        ? `${plan.currency || "USD"} ${plan.fee}`
+        : "Price TBD";
+    return `${plan.plan}${vehicleInfo} (${feeDisplay})`;
   };
 
-  // Initialize search term and plan details when value changes
   useEffect(() => {
     const initializePlan = async () => {
       if (value && value.trim() !== "" && transportId) {
         try {
           const { pricelists } = await getTransportPricelists(
-            transportId || ""
+            transportId || "",
           );
           const plan = pricelists.find((p: Plan) => p._id === value);
           if (plan) {
@@ -98,6 +101,11 @@ const SearchablePlanDropdown = ({
 
   const fetchPlans = useCallback(
     async (search: string) => {
+      if (!transportId) {
+        setPlans([]);
+        return;
+      }
+
       try {
         if (!isInitialMount.current) {
           setIsLoading(true);
@@ -110,10 +118,13 @@ const SearchablePlanDropdown = ({
           filteredPlans = pricelists.filter(
             (plan: Plan) =>
               plan.plan.toLowerCase().includes(search.toLowerCase()) ||
+              plan.description?.toLowerCase().includes(search.toLowerCase()) ||
               plan.vehicle?.vehicleName
                 .toLowerCase()
                 .includes(search.toLowerCase()) ||
-              plan.description?.toLowerCase().includes(search.toLowerCase())
+              plan.vehicle?.vehicleType
+                .toLowerCase()
+                .includes(search.toLowerCase()),
           );
         }
 
@@ -126,7 +137,7 @@ const SearchablePlanDropdown = ({
         isInitialMount.current = false;
       }
     },
-    [transportId]
+    [transportId],
   );
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -149,15 +160,13 @@ const SearchablePlanDropdown = ({
 
   const handlePlanSelect = (plan: Plan) => {
     setSearchTerm(getDisplayName(plan));
-
-    // Return both plan ID and vehicle ID
     onChange(plan._id, plan.vehicle?._id || "");
     setIsOpen(false);
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
-    if (!searchTerm && plans.length === 0) {
+    if (!searchTerm && plans.length === 0 && transportId) {
       fetchPlans("");
     }
   };
@@ -166,7 +175,9 @@ const SearchablePlanDropdown = ({
     setSearchTerm("");
     onChange("", ""); // Clear both plan and vehicle
     setIsOpen(true);
-    fetchPlans("");
+    if (transportId) {
+      fetchPlans("");
+    }
     requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
@@ -202,6 +213,16 @@ const SearchablePlanDropdown = ({
       }
     };
   }, []);
+
+  // Fetch plans when transportId changes
+  useEffect(() => {
+    if (transportId) {
+      fetchPlans("");
+    } else {
+      setPlans([]);
+      setSearchTerm("");
+    }
+  }, [transportId, fetchPlans]);
 
   return (
     <div
@@ -264,26 +285,36 @@ const SearchablePlanDropdown = ({
                     {plan.plan}
                   </div>
                   <div className="text-xs font-semibold text-blue-600">
-                    ${plan.fee}
+                    {plan.fee && plan.fee > 0
+                      ? `${plan.currency || "USD"} ${plan.fee}`
+                      : "Price TBD"}
                   </div>
                 </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Vehicle: {plan.vehicle?.vehicleName || "N/A"} •{" "}
-                  {plan.vehicle?.vehicleType || "N/A"}
-                  {plan.vehicle?._id && (
-                    <span className="ml-2 text-xs text-gray-400">
-                      (ID: {plan.vehicle._id.substring(0, 8)}...)
-                    </span>
-                  )}
-                </div>
+
+                {plan.vehicle && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    Vehicle: {plan.vehicle.vehicleName} •{" "}
+                    {plan.vehicle.vehicleType} • {plan.vehicle.brand}{" "}
+                    {plan.vehicle.model} ({plan.vehicle.year})
+                  </div>
+                )}
+
                 {plan.description && (
                   <div className="text-xs text-gray-400 mt-1 line-clamp-2">
                     {plan.description}
                   </div>
                 )}
+
+                {plan.vehicle && (
+                  <div className="text-xs text-gray-400 mt-1">
+                    Capacity: {plan.vehicle.seatingCapacity} seats •{" "}
+                    {plan.vehicle.luggageCapacity} • {plan.vehicle.transmission}{" "}
+                    • {plan.vehicle.fuelType}
+                  </div>
+                )}
+
                 <div className="text-xs text-gray-400 mt-1">
-                  Capacity: {plan.vehicle?.seatingCapacity} seats •{" "}
-                  {plan.vehicle?.luggageCapacity}
+                  Plan ID: {plan._id.substring(0, 8)}...
                 </div>
               </div>
             ))}

@@ -163,7 +163,7 @@ const ConversionRates = () => {
             Currency Conversion Rates
           </p>
           <p className="text-xs font-normal text-gray-600">
-            Real-time exchange rates with markup
+            Real-time exchange rates
           </p>
         </div>
       </div>
