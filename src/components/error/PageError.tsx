@@ -4,9 +4,21 @@ import Navbar from "../nav/Navbar";
 
 interface PageErrorProps {
   error?: string;
+  action?: () => void;
+  title?: string;
 }
 
-const PageError = ({ error }: PageErrorProps) => {
+const PageError = ({
+  error,
+  action,
+  title = "Return Home",
+}: PageErrorProps) => {
+  const handleAction = () => {
+    if (action) {
+      action();
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -23,13 +35,23 @@ const PageError = ({ error }: PageErrorProps) => {
             <p className="text-gray-600 mb-6">
               {error || "Please contact the admin for more information."}
             </p>
-            <NavLink
-              to="/"
-              className="flex flex-row items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-linear-to-tr from-[#1d2087] to-[#6468d9] text-sm text-white font-semibold cursor-pointer hover:shadow-lg transition-all"
-            >
-              <RiHome6Line size={16} />
-              Return Home
-            </NavLink>
+            {action ? (
+              <div
+                className="flex flex-row items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-linear-to-tr from-[#1d2087] to-[#6468d9] text-sm text-white font-semibold cursor-pointer hover:shadow-lg transition-all"
+                onClick={handleAction}
+              >
+                <RiHome6Line size={16} />
+                {title}
+              </div>
+            ) : (
+              <NavLink
+                to="/"
+                className="flex flex-row items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-linear-to-tr from-[#1d2087] to-[#6468d9] text-sm text-white font-semibold cursor-pointer hover:shadow-lg transition-all"
+              >
+                <RiHome6Line size={16} />
+                {title}
+              </NavLink>
+            )}
           </div>
         </div>
       </div>
