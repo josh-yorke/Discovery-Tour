@@ -148,7 +148,7 @@ const PageConfigManager = () => {
       <div className="max-w-5xl mx-auto px-6 py-8">
         <Header
           style="px-6 lg:px-0 py-6 bg-white"
-          title="Add Page Config"
+          title="Arrange Pages"
           url="/page-configs"
           id=""
         />
