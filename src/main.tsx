@@ -101,6 +101,10 @@ import OptionsForYou from "./pages/options-for-you/OptionsForYou";
 import ViewOptionBooking from "./pages/options-for-you/ViewOptionBooking";
 import AddOptionBooking from "./pages/options-for-you/AddOptionBooking";
 import EditOptionBooking from "./pages/options-for-you/EditOptionBooking";
+import PageConfigs from "./pages/page-config/PageConfigs";
+import EditPageConfig from "./pages/page-config/edit/EditPageConfig";
+import AddPageConfig from "./pages/page-config/add/AddPageConfig";
+import PageConfigManager from "./pages/page-config/ArrangePage";
 
 const router = createBrowserRouter([
   {
@@ -578,6 +582,38 @@ const router = createBrowserRouter([
     element: (
       <RouteProtection>
         <EditBlog />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/page-configs",
+    element: (
+      <RouteProtection>
+        <PageConfigs />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/page-configs/edit/:id",
+    element: (
+      <RouteProtection>
+        <EditPageConfig />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/page-configs/re-order",
+    element: (
+      <RouteProtection>
+        <PageConfigManager />
+      </RouteProtection>
+    ),
+  },
+  {
+    path: "/page-configs/add",
+    element: (
+      <RouteProtection>
+        <AddPageConfig />
       </RouteProtection>
     ),
   },

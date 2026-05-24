@@ -9,7 +9,7 @@ export const getOptionBookings = async (
 ) => {
   try {
     const res = await api.get(
-      `/options-for-you?page=${page}&limit=10&status=${status}&search=${search}`,
+      `/options-for-you?page=${page}&limit=2&status=${status}&search=${search}`,
     );
     console.log(res);
     return {

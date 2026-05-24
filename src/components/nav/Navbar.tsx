@@ -23,6 +23,8 @@ import {
   RiHeartPulseFill,
   RiServiceLine,
   RiServiceFill,
+  RiFolderSettingsFill,
+  RiFolderSettingsLine,
 } from "react-icons/ri";
 import { useLocation, useNavigate } from "react-router";
 import LogoutButton from "../button/LogoutButton";
@@ -197,6 +199,23 @@ const Navbar = () => {
                 )
               }
               title="Options For You"
+            />
+
+            <LinkButton
+              to="/page-configs"
+              style={`${
+                pathname.startsWith("/page-configs")
+                  ? "font-semibold text-[#1d2087]"
+                  : "font-normal"
+              } flex flex-row items-center justify-center text-sm  gap-2`}
+              icon={
+                pathname.startsWith("/page-configs") ? (
+                  <RiFolderSettingsFill size={16} />
+                ) : (
+                  <RiFolderSettingsLine size={16} />
+                )
+              }
+              title="Page Configs"
             />
 
             <HoverLink
@@ -412,6 +431,23 @@ const Navbar = () => {
                   )
                 }
                 title="Options For You"
+              />
+
+              <LinkButton
+                to="/page-configs"
+                style={`${
+                  pathname.startsWith("/page-configs")
+                    ? "font-semibold text-[#1d2087]"
+                    : "font-normal"
+                } flex flex-row items-center justify-center text-sm  gap-2`}
+                icon={
+                  pathname.startsWith("/page-configs") ? (
+                    <RiFolderSettingsFill size={16} />
+                  ) : (
+                    <RiFolderSettingsLine size={16} />
+                  )
+                }
+                title="Page Configs"
               />
 
               <DropdownLink

@@ -7,7 +7,7 @@ import Header from "../../components/users/Header";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
 import { getInsurance } from "../../hooks/insurances/insurance";
-import Edit from "../../components/insurances/Edit"; // Make sure this path is correct
+import Edit from "../../components/insurances/Edit";
 
 const EditInsurance = () => {
   const { id } = useParams();

@@ -63,7 +63,7 @@ const Login = () => {
             error={errors.password && errors.password.message}
             {...register("password")}
           />
-          <p className="text-[#1d2087]">Sign Up?</p>
+
           <Button
             isLoading={mutation.isPending}
             title="Login"
