@@ -105,809 +105,813 @@ import PageConfigs from "./pages/page-config/PageConfigs";
 import EditPageConfig from "./pages/page-config/edit/EditPageConfig";
 import AddPageConfig from "./pages/page-config/add/AddPageConfig";
 import PageConfigManager from "./pages/page-config/ArrangePage";
+import PageError from "./components/error/PageError";
+
+const withErrorHandler = (element: React.ReactElement) => ({
+  element,
+  errorElement: <PageError />,
+});
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Authorization />,
+    ...withErrorHandler(<Authorization />),
   },
   {
     path: "/login",
-    element: (
+    ...withErrorHandler(
       <PublicRoute>
         <Login />
-      </PublicRoute>
+      </PublicRoute>,
     ),
   },
   {
     path: "/dashboard",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Dashboard />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
-  //users
   {
     path: "/users",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Users />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/users/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddUser />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/users/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditUser />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/articles/happenings",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <News />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/news/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddNews />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/news/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditNews />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/news/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewNews />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/articles/promotions",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Promotions />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/promotions/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddPromotion />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/promotions/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditPromotion />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/promotions/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewPromotion />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/partners",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Partners />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/partners/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddPartner />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/partners/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditPartner />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/partners/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewPartner />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/careers",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Careers />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/careers/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddCareer />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/careers/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditCareer />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/careers/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewCareer />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/insurances",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Insurances />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddInsurance />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditInsurance />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/information/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddInsuranceInformation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/information/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditInsuranceInformation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewInsurance />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/bookings",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <InsuranceBookings />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/bookings/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewInsuranceBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/bookings/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddInsuranceBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/insurance/bookings/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditInsuranceBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/details",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Company />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/carousel",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Carousel />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/carousel/edit",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditCarousel />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/services",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Services />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/services/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddServices />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/services/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditServices />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/awards",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Awards />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/awards/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddAwards />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/awards/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditAwards />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/branches",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Branches />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/branches/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddBranches />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/branches/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditBranches />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/edit",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditCompany />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
-
   {
     path: "/company/scraper",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Scraper />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/scraper/edit",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditScraper />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/company/markups",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Markups />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/markups/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddMarkup />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/markups/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditMarkup />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/visas/visa",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Visas />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/visas/visa/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewVisa />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/visas/visa/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddVisa />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/visas/visa/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditVisa />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/visas/information/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddInformation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/visas/information/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditInformation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/articles/blogs",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Blogs />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/blogs/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewBlog />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/blogs/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddBlog />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/blogs/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditBlog />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/page-configs",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <PageConfigs />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/page-configs/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditPageConfig />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/page-configs/re-order",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <PageConfigManager />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/page-configs/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddPageConfig />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/tours",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Tours />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/tours/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddTour />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/tours/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditTour />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/tours/information/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddTourInfo />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/tours/information/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditTourInfo />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/tours/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewTour />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rail passes",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <RailPass />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rail-passes/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddRailPass />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rail-passes/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditRailPass />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rail-passes/information/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddRailPassInfo />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rail-passes/information/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditRailPassInfo />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rail-passes/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewRailPass />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/vehicles",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Vehicles />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/vehicles/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddVehicle />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/vehicles/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditVehicle />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/transportation",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Transportation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/transportation/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddTransport />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/transportation/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditTransportation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/transportation/information/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddTransportationInfo />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/transportation/information/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditTransportInfo />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/transportation/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewTransportation />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/vehicle hire",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Rental />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rental/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewRental />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rental/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddRental />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/rental/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditRental />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/bookings",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <Bookings />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/bookings/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/bookings/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/transport/bookings/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/options-for-you",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <OptionsForYou />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/options-for-you/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddOptionBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/options-for-you/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditOptionBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/options-for-you/view/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <ViewOptionBooking />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/types-categories",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <TypesCategories />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/types-categories/add",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <AddTypesCategories />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "/types-categories/edit/:id",
-    element: (
+    ...withErrorHandler(
       <RouteProtection>
         <EditTypesCategories />
-      </RouteProtection>
+      </RouteProtection>,
     ),
   },
   {
     path: "*",
-    element: <PageNotFound />,
+    ...withErrorHandler(<PageNotFound />),
   },
 ]);
 

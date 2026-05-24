@@ -1,20 +1,39 @@
-interface ErrorProps {
-  error: string;
-  action: () => void;
-  title: string;
+import { RiHome6Line } from "react-icons/ri";
+import { NavLink } from "react-router";
+import Navbar from "../nav/Navbar";
+
+interface PageErrorProps {
+  error?: string;
 }
 
-const PageError = ({ error, action, title }: ErrorProps) => {
+const PageError = ({ error }: PageErrorProps) => {
   return (
-    <div className="w-full flex flex-col items-center justify-center h-[60vh] gap-2">
-      <p className="text-sm font-normal">{`${error}` || "An Error occured!"}</p>
+    <>
+      <Navbar />
       <div
-        className="bg-[#1d2087] hover:bg-[#3b3eac] transition-colors ease-in-out duration-500 px-4 py-2 rounded-full text-white text-xs cursor-pointer"
-        onClick={action}
+        className="w-full bg-center bg-cover h-screen"
+        style={{ backgroundImage: `url(/Error.jpg)` }}
       >
-        {title}
+        <div className="w-full h-full bg-linear-to-tr from-white to-white/80 flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center text-center max-w-md mx-auto px-6">
+            <p className="text-6xl mb-4">😅</p>
+            <p className="text-2xl font-semibold text-gray-900 mb-3">
+              Oops! Something went wrong
+            </p>
+            <p className="text-gray-600 mb-6">
+              {error || "Please contact the admin for more information."}
+            </p>
+            <NavLink
+              to="/"
+              className="flex flex-row items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-linear-to-tr from-[#1d2087] to-[#6468d9] text-sm text-white font-semibold cursor-pointer hover:shadow-lg transition-all"
+            >
+              <RiHome6Line size={16} />
+              Return Home
+            </NavLink>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

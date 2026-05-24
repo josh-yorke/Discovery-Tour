@@ -12,6 +12,11 @@ import { useSearchParams } from "react-router-dom";
 const Blogs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  useEffect(() => {
+    const message = "an error occurred";
+    throw new Error(message);
+  }, []);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
