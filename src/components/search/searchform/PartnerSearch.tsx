@@ -1,7 +1,7 @@
 import { RiAddLine, RiSearchLine } from "react-icons/ri";
+import { useNavigate } from "react-router";
 import IconButton from "../../button/IconButton";
 import SearchInput from "../SearchInput";
-import { useNavigate } from "react-router";
 
 interface FormProps {
   searchValue: string;
@@ -24,31 +24,44 @@ const PartnerSearch = ({
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center gap-4">
-      <div className="">
-        <p className="text-md font-semibold text-[#1d2087]">Manage Partners</p>
+    <div className="w-full flex flex-col items-center justify-center gap-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-[#1d2087]">Manage Partners</h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Create, edit, and manage your partner relationships
+        </p>
       </div>
-      <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput
-          placeholder="search for partners"
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onKeyDown={handleSearchKeyDown}
-        />
-        <button
-          onClick={onSearchSubmit}
-          className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
-        >
-          <RiSearchLine size={14} color="white" />
-        </button>
+
+      <div className="w-full max-w-4xl">
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <SearchInput
+              placeholder="Search partners by name, email, or company..."
+              value={searchValue}
+              onChange={(e) => onSearchChange(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+            />
+          </div>
+          <button
+            onClick={onSearchSubmit}
+            className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] transition-all duration-200 cursor-pointer"
+          >
+            <RiSearchLine size={16} color="white" />
+          </button>
+        </div>
       </div>
-      <div className="w-full flex flex-row gap-2 items-center justify-center">
-        <IconButton
-          icon={<RiAddLine size={16} />}
-          title="New"
-          action={() => navigate("/partners/add")}
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
-        />
+
+      <div className="w-full max-w-4xl">
+        <div className="bg-white rounded-3xl shadow-sm border border-black/6 p-4">
+          <div className="flex justify-end">
+            <IconButton
+              icon={<RiAddLine size={14} />}
+              title="Create New Partner"
+              action={() => navigate("/partners/add")}
+              style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-2.5 rounded-full transition-all duration-200 text-xs font-medium"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

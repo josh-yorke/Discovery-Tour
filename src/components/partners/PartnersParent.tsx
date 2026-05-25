@@ -37,7 +37,7 @@ const PartnersParent = ({ partners, isLoading }: ParentProps) => {
   return (
     <>
       {partners && partners.length > 0 ? (
-        <div className="w-full lg:w-7xl flex flex-row gap-6">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {partners.map((partner: partnerData) => (
             <PartnerCard
               key={partner._id}

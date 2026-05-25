@@ -40,7 +40,7 @@ const PageConfigsParent = ({ configs, isLoading }: ParentProps) => {
   return (
     <>
       {configs && configs.length > 0 ? (
-        <div className="w-full md:w-2/4 space-y-4">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {configs.map((config: PageConfig) => (
             <PageConfigCard
               key={config._id}

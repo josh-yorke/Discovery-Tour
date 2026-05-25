@@ -45,11 +45,6 @@ const Insurance = () => {
     enabled: isInitialized,
   });
 
-  const handleStatusChange = (value: string) => {
-    setStatus(value);
-    setPage(1);
-  };
-
   const handleSearchChange = (value: string) => {
     setSearch(value);
   };
@@ -72,9 +67,7 @@ const Insurance = () => {
       <div className="w-full flex flex-col items-center justify-start bg-gray-100 min-h-svh px-6 py-12 gap-12">
         <InsuranceSearch
           searchValue={search}
-          statusValue={status}
           onSearchChange={handleSearchChange}
-          onStatusChange={handleStatusChange}
           onSearchSubmit={handleSearchSubmit}
         />
         {isError ? (

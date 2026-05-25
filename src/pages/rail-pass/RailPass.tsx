@@ -14,14 +14,12 @@ import { useSearchParams } from "react-router-dom";
 const RailPasses = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Initialize state from URL
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
   const [category, setCategory] = useState("");
   const [page, setPage] = useState(1);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize from URL - runs once on mount
   useEffect(() => {
     const urlPage = parseInt(searchParams.get("page") || "1");
     const urlSearch = searchParams.get("search") || "";
@@ -35,7 +33,6 @@ const RailPasses = () => {
     setIsInitialized(true);
   }, []);
 
-  // Update URL when state changes (but not on initial mount)
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -107,7 +104,6 @@ const RailPasses = () => {
   const countries = useMemo(() => countriesData || [], [countriesData]);
   const categories = useMemo(() => categoriesData || [], [categoriesData]);
 
-  // Don't render until initialized
   if (!isInitialized) {
     return <SectionLoader />;
   }

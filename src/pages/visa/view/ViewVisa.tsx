@@ -51,9 +51,9 @@ const ViewVisa = () => {
           <SectionLoader />
         ) : null
       ) : (
-        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100 px-6">
           <PageHeader style="py-6" title="View Visa" id={data._id} />
-          <div className="w-full lg:w-7xl flex flex-col py-6 gap-6 bg-gray-100">
+          <div className="w-full lg:w-9/10 flex flex-col py-6 gap-6 bg-gray-100">
             <ImageCard url={data.images} style="rounded-3xl" />
             <View
               country={data.country}

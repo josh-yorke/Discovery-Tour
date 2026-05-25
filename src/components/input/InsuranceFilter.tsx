@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { RiCloseLine } from "react-icons/ri";
 import { getInsurances } from "../../hooks/insurances/insurance";
 
 interface Insurance {
@@ -111,9 +112,12 @@ const InsuranceFilter = ({
     isOpen && !isLoading && insurances?.insurances?.length > 0;
 
   return (
-    <div className="w-full md:w-1/3 flex flex-col items-start justify-center gap-2">
+    <div className="w-full">
+      <label className="block text-xs font-medium text-gray-700 mb-2">
+        Filter by Insurance
+      </label>
       <div ref={containerRef} className="relative w-full">
-        <div className="px-4 py-2.5 rounded-full bg-white">
+        <div className="relative w-full">
           <input
             type="text"
             value={displayText}
@@ -121,33 +125,33 @@ const InsuranceFilter = ({
             onFocus={handleInputFocus}
             disabled={disabled}
             placeholder={placeholder}
-            className="w-full text-xs font-normal outline-none capitalize bg-transparent disabled:opacity-50"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-black/6 rounded-full text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1d2087] focus:border-transparent pr-10"
           />
 
           {displayText && !disabled && (
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              ✕
+              <RiCloseLine size={16} />
             </button>
           )}
 
           {isLoading && (
-            <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#1d2087] border-t-transparent"></div>
             </div>
           )}
         </div>
 
         {showDropdown && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-200">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg z-50 max-h-60 overflow-y-auto border border-black/6">
             {insurances?.insurances.map((insurance: Insurance) => (
               <div
                 key={insurance._id}
                 onClick={() => handleInsuranceSelect(insurance)}
-                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-black/6 last:border-b-0 transition-colors"
               >
                 <div className="text-sm font-medium text-gray-900">
                   {insurance.title}
@@ -165,6 +169,11 @@ const InsuranceFilter = ({
           </div>
         )}
       </div>
+      {value && (
+        <p className="text-xs text-gray-500 mt-2">
+          Showing bookings for selected insurance
+        </p>
+      )}
     </div>
   );
 };

@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ImageCard from "../../../components/cards/ImageCard";
 import { useState } from "react";
 import Modal from "../../../components/modal/Modal";
-import PageHeader from "../../../components/users/PageHeader";
 import SectionError from "../../../components/error/SectionError";
 import SectionLoader from "../../../components/loader/SectionLoader";
 import { deleteBlog } from "../../../hooks/blogs/deleteBlog";
@@ -52,9 +51,8 @@ const ViewBlog = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader style="p-6" title="View Blog" id={data._id} />
-          <div className="w-full lg:w-7xl flex flex-col gap-6 p-6 bg-gray-100">
-            <ImageCard url={data.images} style="" />
+          <ImageCard url={data.images} style="" />
+          <div className="w-full lg:w-9/10 flex flex-col p-6 gap-6 bg-gray-100">
             <View
               onDelete={() => handleDelete(data._id)}
               title={data.title}

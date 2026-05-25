@@ -11,7 +11,7 @@ const PageHeader = ({ title, id, style }: HeaderProps) => {
   const navigate = useNavigate();
   return (
     <div
-      className={`w-full lg:w-7xl flex flex-row items-center justify-start gap-4 bg-gray-100 ${style}`}
+      className={`w-full lg:w-9/10 flex flex-row items-center justify-start gap-4 bg-gray-100 ${style}`}
     >
       <button
         onClick={() => navigate(-1)}

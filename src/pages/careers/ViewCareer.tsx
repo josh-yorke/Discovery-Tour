@@ -6,7 +6,6 @@ import Navbar from "../../components/nav/Navbar";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
 import ImageCard from "../../components/cards/ImageCard";
-import PageHeader from "../../components/users/PageHeader";
 import Modal from "../../components/modal/Modal";
 import View from "../../components/careers/view/View";
 
@@ -51,11 +50,10 @@ const ViewCareer = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader style="p-6" title="View Career" id={data._id} />
-          <div className="w-full lg:w-7xl flex flex-col p-6 gap-6">
-            {data.images && data.images.length > 0 && (
-              <ImageCard url={data.images} style="" />
-            )}
+          {data.images && data.images.length > 0 && (
+            <ImageCard url={data.images} style="" />
+          )}
+          <div className="w-full lg:w-9/10 flex flex-col p-6 gap-6">
             <View
               onDelete={() => handleDelete(data._id)}
               title={data.title}

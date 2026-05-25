@@ -2,7 +2,7 @@ import { useNavigate } from "react-router";
 
 interface LinkProps {
   title: string;
-  url: string;
+  url?: string;
   style: string;
 }
 
@@ -12,7 +12,9 @@ const LinkText = ({ title, url, style }: LinkProps) => {
   return (
     <p
       className={`${style} text-md cursor-pointer text-[#1d2087] hover:text-[#8f92ff] duration-300`}
-      onClick={() => navigate(url)}
+      onClick={() => {
+        url && navigate(url);
+      }}
     >
       {title}
     </p>

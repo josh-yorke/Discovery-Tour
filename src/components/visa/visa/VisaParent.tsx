@@ -37,12 +37,9 @@ const VisaParent = ({ visas, isLoading }: ParentProps) => {
   return (
     <>
       {visas && visas.length > 0 ? (
-        <div className="w-full lg:w-7xl flex flex-wrap gap-6">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {visas.map((visa: visaData) => (
-            <div
-              key={visa._id}
-              className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
-            >
+            <div key={visa._id} className="w-full">
               <VisaCard
                 id={visa._id}
                 onDelete={() => handleDelete(visa._id)}

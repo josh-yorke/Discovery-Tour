@@ -30,7 +30,7 @@ const ViewServices = ({ services }: companyServices) => {
     if (!companyData) return;
 
     const updatedServices = (companyData.services || []).filter(
-      (s: Service) => s._id !== id
+      (s: Service) => s._id !== id,
     );
 
     const formData = new FormData();
@@ -56,7 +56,7 @@ const ViewServices = ({ services }: companyServices) => {
 
   return (
     <div className="w-full flex flex-col gap-2 items-center justify-center">
-      <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {services.map((service) => (
           <div
             className="w-full flex flex-col items-center justify-center p-12 rounded-3xl gap-6 bg-white"

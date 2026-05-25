@@ -16,14 +16,12 @@ import { useSearchParams } from "react-router-dom";
 const Visas = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Initialize state from URL on component mount
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
   const [type, setType] = useState("");
   const [page, setPage] = useState(1);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize from URL - this runs once on mount
   useEffect(() => {
     const urlPage = parseInt(searchParams.get("page") || "1");
     const urlSearch = searchParams.get("search") || "";
@@ -35,9 +33,8 @@ const Visas = () => {
     setCountry(urlCountry);
     setType(urlType);
     setIsInitialized(true);
-  }, []); // Empty dependency array - runs once on mount
+  }, []);
 
-  // Update URL when state changes (but not on initial mount)
   useEffect(() => {
     if (!isInitialized) return;
 
@@ -62,7 +59,7 @@ const Visas = () => {
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["visas", { page, search, country, type }],
     queryFn: () => getVisas({ page, search, country, type }),
-    enabled: isInitialized, // Only run query after initialization
+    enabled: isInitialized,
   });
 
   const handleCountryChange = (value: string) => {
@@ -96,7 +93,6 @@ const Visas = () => {
       (c): c is string => typeof c === "string",
     ) || [];
 
-  // Don't render until initialized
   if (!isInitialized) {
     return <SectionLoader />;
   }

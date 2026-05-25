@@ -37,7 +37,7 @@ const InsuranceParent = ({ insurances, isLoading }: ParentProps) => {
   return (
     <>
       {insurances && insurances.length > 0 ? (
-        <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {insurances.map((insurance: insuranceData) => (
             <InsuranceCard
               key={insurance._id}

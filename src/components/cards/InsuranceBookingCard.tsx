@@ -35,8 +35,8 @@ interface CardProps {
   _id: string;
   customer: Customer;
   travel: Travel;
-  insurance: Insurance;
-  plan: Plan;
+  insurance: Insurance | null;
+  plan: Plan | null;
   status: string;
   dateAdded: string;
   onDelete: () => void;
@@ -130,14 +130,30 @@ const InsuranceBookingCard = ({
             <span className="font-medium">Travel Dates:</span>{" "}
             {formatDate(travel.dateFrom)} - {formatDate(travel.dateTo)}
           </p>
-          <p className="text-xs font-normal text-gray-600">
-            <span className="font-medium">Policy:</span> {insurance.title} (
-            {insurance.insurancePartner})
-          </p>
-          <p className="text-xs font-normal text-gray-600">
-            <span className="font-medium">Plan:</span> {plan.plan} -{" "}
-            {formatCurrency(plan.fee, plan.currency)}
-          </p>
+
+          {/* Handle null insurance */}
+          {insurance ? (
+            <p className="text-xs font-normal text-gray-600">
+              <span className="font-medium">Policy:</span> {insurance.title} (
+              {insurance.insurancePartner})
+            </p>
+          ) : (
+            <p className="text-xs font-normal text-gray-400">
+              <span className="font-medium">Policy:</span> Insurance not found
+            </p>
+          )}
+
+          {/* Handle null plan */}
+          {plan ? (
+            <p className="text-xs font-normal text-gray-600">
+              <span className="font-medium">Plan:</span> {plan.plan} -{" "}
+              {formatCurrency(plan.fee, plan.currency)}
+            </p>
+          ) : (
+            <p className="text-xs font-normal text-gray-400">
+              <span className="font-medium">Plan:</span> Plan not found
+            </p>
+          )}
         </div>
         <p className="text-xs font-normal text-gray-500 mt-2">
           Booked on {formatDate(dateAdded)}

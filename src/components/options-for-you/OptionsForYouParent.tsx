@@ -59,7 +59,7 @@ const OptionsForYouParent = ({
   return (
     <>
       {bookings && bookings.length > 0 ? (
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {bookings.map((booking: OptionBooking) => (
             <OptionBookingCard
               key={booking._id}

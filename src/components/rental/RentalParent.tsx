@@ -40,7 +40,7 @@ const RentalParent = ({ rentals, isLoading }: ParentProps) => {
   return (
     <>
       {rentals && rentals.length > 0 ? (
-        <div className="w-full lg:w-4xl flex flex-wrap gap-6">
+        <div className="w-full lg:w-9/10 flex flex-col gap-6">
           {rentals.map((rental: rentalData) => (
             <div key={rental._id} className="w-full">
               <RentalCard

@@ -7,7 +7,6 @@ import View from "../../../components/news/view/View";
 import { useState } from "react";
 import { deleteNews } from "../../../hooks/news/deleteNews";
 import Modal from "../../../components/modal/Modal";
-import PageHeader from "../../../components/users/PageHeader";
 import SectionError from "../../../components/error/SectionError";
 import SectionLoader from "../../../components/loader/SectionLoader";
 
@@ -52,9 +51,8 @@ const ViewNews = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <PageHeader style="p-6" title="View News" id={data._id} />
-          <div className="w-full lg:w-7xl flex flex-col p-6 gap-6 bg-gray-100">
-            <ImageCard url={data.images} style="" />
+          <ImageCard url={data.images} style="" />
+          <div className="w-full lg:w-9/10 flex flex-col p-6 gap-6 bg-gray-100">
             <View
               relatedLinks={data.relatedLinks}
               slug={data.slug}

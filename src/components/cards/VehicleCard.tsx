@@ -1,5 +1,4 @@
 import {
-  RiArrowRightDownLine,
   RiCarFill,
   RiUserFill,
   RiDeleteBin4Fill,
@@ -27,10 +26,6 @@ const VehicleCard = ({
 }: CardProps) => {
   const handleEditClick = () => {
     window.location.href = `/transport/vehicles/edit/${_id}`;
-  };
-
-  const handleViewClick = () => {
-    window.location.href = `/transport/vehicles/view/${_id}`;
   };
 
   return (
@@ -62,7 +57,6 @@ const VehicleCard = ({
         <div className="w-3/4 flex flex-col gap-1 items-start justify-center">
           <LinkText
             title={vehicleName}
-            url={`/transport/vehicles/view/${_id}`}
             style="font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
           />
           <div className="w-full flex flex-row items-center justify-start gap-2">
@@ -76,15 +70,6 @@ const VehicleCard = ({
               <p className="text-xs font-normal truncate">{year}</p>
             </div>
           </div>
-        </div>
-        <div
-          className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
-          onClick={handleViewClick}
-        >
-          <RiArrowRightDownLine
-            className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
-            size={16}
-          />
         </div>
       </div>
     </div>

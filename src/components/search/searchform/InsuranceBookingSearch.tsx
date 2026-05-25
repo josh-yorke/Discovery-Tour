@@ -1,8 +1,8 @@
-import { RiAddLine, RiSearchLine } from "react-icons/ri";
+import { RiAddLine, RiFilter3Line, RiSearchLine } from "react-icons/ri";
 import { useNavigate } from "react-router";
+import { useState } from "react";
 import IconButton from "../../button/IconButton";
 import SearchInput from "../SearchInput";
-import Options from "../Options";
 import InsuranceFilter from "../../input/InsuranceFilter";
 
 interface FormProps {
@@ -39,6 +39,7 @@ const InsuranceBookingSearch = ({
   statuses,
 }: FormProps) => {
   const navigate = useNavigate();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onStatusChange(e.target.value);
@@ -63,72 +64,194 @@ const InsuranceBookingSearch = ({
     }
   };
 
+  const handleClearFilters = () => {
+    onSearchChange("");
+    onStatusChange("");
+    onMonthChange("");
+    onDayChange("");
+    onYearChange("");
+    onInsuranceChange("");
+  };
+
   const months = Array.from({ length: 12 }, (_, i) => (i + 1).toString());
-
   const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
-
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 11 }, (_, i) =>
     (currentYear - 5 + i).toString(),
   );
 
+  const hasActiveFilters =
+    searchValue !== "" ||
+    statusValue !== "" ||
+    monthValue !== "" ||
+    dayValue !== "" ||
+    yearValue !== "" ||
+    insuranceValue !== "";
+  const activeFiltersCount =
+    (searchValue ? 1 : 0) +
+    (statusValue ? 1 : 0) +
+    (monthValue ? 1 : 0) +
+    (dayValue ? 1 : 0) +
+    (yearValue ? 1 : 0) +
+    (insuranceValue ? 1 : 0);
+
   return (
-    <div className="w-full relative flex flex-col items-center justify-center gap-4">
-      <div className="">
-        <p className="text-md font-semibold text-[#1d2087]">
+    <div className="w-full flex flex-col items-center justify-center gap-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-[#1d2087]">
           Manage Insurance Bookings
+        </h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Create, edit, and manage your insurance bookings
         </p>
       </div>
-      <div className="w-full lg:w-2/4 flex items-center justify-center gap-2">
-        <SearchInput
-          placeholder="search bookings"
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onKeyDown={handleSearchKeyDown}
-        />
-        <button
-          onClick={onSearchSubmit}
-          className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] duration-300 cursor-pointer"
-        >
-          <RiSearchLine size={14} color="white" />
-        </button>
+
+      <div className="w-full max-w-4xl">
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <SearchInput
+              placeholder="Search bookings by customer name, policy, or reference number..."
+              value={searchValue}
+              onChange={(e) => onSearchChange(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+            />
+          </div>
+          <button
+            onClick={onSearchSubmit}
+            className="p-3.5 rounded-full bg-[#1d2087] hover:bg-[#3b3eac] transition-all duration-200 cursor-pointer"
+          >
+            <RiSearchLine size={16} color="white" />
+          </button>
+        </div>
       </div>
 
-      <div className="w-full flex flex-row gap-2 items-center justify-center flex-wrap">
-        <Options
-          options={statuses}
-          value={statusValue}
-          onChange={handleStatusChange}
-          title="Status"
-        />
+      <div className="w-full max-w-4xl">
+        <div className="bg-white rounded-3xl shadow-sm border border-black/6 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-all text-xs font-medium ${
+                  isFilterOpen || hasActiveFilters
+                    ? "bg-[#1d2087] text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                <RiFilter3Line size={14} />
+                <span>Filters</span>
+                {hasActiveFilters && (
+                  <span className="ml-1 bg-white text-[#1d2087] text-xs rounded-full px-1.5 py-0.5">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </button>
 
-        <Options
-          options={months}
-          value={monthValue}
-          onChange={handleMonthChange}
-          title="Month"
-        />
-        <Options
-          options={days}
-          value={dayValue}
-          onChange={handleDayChange}
-          title="Day"
-        />
-        <Options
-          options={years}
-          value={yearValue}
-          onChange={handleYearChange}
-          title="Year"
-        />
+              {hasActiveFilters && (
+                <button
+                  onClick={handleClearFilters}
+                  className="text-xs text-red-600 hover:text-red-700 px-2 py-1"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
 
-        <IconButton
-          icon={<RiAddLine size={16} />}
-          title="New"
-          action={() => navigate("/insurance/bookings/add")}
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-3.5 rounded-full"
-        />
+            <IconButton
+              icon={<RiAddLine size={14} />}
+              title="Create New Booking"
+              action={() => navigate("/insurance/bookings/add")}
+              style="bg-[#1d2087] hover:bg-[#3b3eac] text-white px-4 py-2.5 rounded-full transition-all duration-200 text-xs font-medium"
+            />
+          </div>
+
+          {isFilterOpen && (
+            <div className="mt-4 pt-4 border-t border-black/6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Filter by Status
+                  </label>
+                  <select
+                    value={statusValue}
+                    onChange={handleStatusChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-black/6 rounded-full text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1d2087] focus:border-transparent"
+                  >
+                    <option value="">All Statuses</option>
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                  {statusValue && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Showing bookings with status: {statusValue}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <InsuranceFilter
+                    value={insuranceValue}
+                    onChange={onInsuranceChange}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label className="block text-xs font-medium text-gray-700 mb-2">
+                  Filter by Date
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <select
+                    value={monthValue}
+                    onChange={handleMonthChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-black/6 rounded-full text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1d2087] focus:border-transparent"
+                  >
+                    <option value="">Month</option>
+                    {months.map((month) => (
+                      <option key={month} value={month}>
+                        {month}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={dayValue}
+                    onChange={handleDayChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-black/6 rounded-full text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1d2087] focus:border-transparent"
+                  >
+                    <option value="">Day</option>
+                    {days.map((day) => (
+                      <option key={day} value={day}>
+                        {day}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={yearValue}
+                    onChange={handleYearChange}
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-black/6 rounded-full text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1d2087] focus:border-transparent"
+                  >
+                    <option value="">Year</option>
+                    {years.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {(monthValue || dayValue || yearValue) && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Showing bookings for {monthValue}/{dayValue}/{yearValue}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-      <InsuranceFilter value={insuranceValue} onChange={onInsuranceChange} />
     </div>
   );
 };

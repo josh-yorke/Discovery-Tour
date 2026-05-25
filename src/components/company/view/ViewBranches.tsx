@@ -76,9 +76,8 @@ const ViewBranches = ({ branches }: companyBranches) => {
   return (
     <>
       <div className="w-full flex flex-col gap-2 items-center justify-center">
-        <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {branches.map((branch) => {
-            // Add null checks for branch properties
             const contact = branch.contact || {};
             const socials = branch.socials || {};
             const hasContactInfo =

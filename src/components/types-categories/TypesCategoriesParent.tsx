@@ -73,26 +73,21 @@ const TypesCategoriesParent = ({
   return (
     <>
       {typeCategories && typeCategories.length > 0 ? (
-        <div className="w-full lg:w-7xl flex flex-wrap gap-6">
+        <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {typeCategories.map((typeCategory: typesCategoriesData) => (
-            <div
+            <TypesCategoriesCard
+              onDelete={() => handleDelete(typeCategory._id)}
               key={typeCategory._id}
-              className="w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
-            >
-              <TypesCategoriesCard
-                onDelete={() => handleDelete(typeCategory._id)}
-                key={typeCategory._id}
-                _id={typeCategory._id}
-                savedAt={typeCategory.savedAt}
-                visaType={typeCategory.visaType}
-                tourType={typeCategory.tourType}
-                railPassType={typeCategory.railPassType}
-                transportType={typeCategory.transportType}
-                railPassCategory={typeCategory.railPassCategory}
-                country={typeCategory.country}
-                type={type}
-              />
-            </div>
+              _id={typeCategory._id}
+              savedAt={typeCategory.savedAt}
+              visaType={typeCategory.visaType}
+              tourType={typeCategory.tourType}
+              railPassType={typeCategory.railPassType}
+              transportType={typeCategory.transportType}
+              railPassCategory={typeCategory.railPassCategory}
+              country={typeCategory.country}
+              type={type}
+            />
           ))}
         </div>
       ) : (

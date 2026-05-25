@@ -111,7 +111,7 @@ const ViewAwards = ({ awards, refetchAwards }: ViewAwardsProps) => {
 
   return (
     <>
-      <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="w-full lg:w-9/10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {awards.map((award: Award) => (
           <AwardCard
             key={award._id}
