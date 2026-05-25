@@ -11,14 +11,13 @@ export const addTypesCategories = async (data: addTypesCategoriesData) => {
       message: res.data.message,
     };
   } catch (error: any) {
-
     let initialErrorMessage = error.response.data.message;
-    let finalErrorMessage =  null;
-    
+    let finalErrorMessage = null;
+
     if (initialErrorMessage === "Server error") {
       initialErrorMessage = error.response.data.error;
       if (initialErrorMessage.includes("E11000")) {
-        finalErrorMessage = `The name for this ${data.type.toUpperCase()} already exists!`
+        finalErrorMessage = `The name for this ${data.type.toUpperCase()} already exists!`;
       }
     }
 

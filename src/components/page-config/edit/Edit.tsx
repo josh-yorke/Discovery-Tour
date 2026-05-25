@@ -191,7 +191,7 @@ const Edit = ({
           />
 
           <Input
-            disabled={false}
+            disabled={true}
             style="bg-white"
             error={errors.key?.message || ""}
             title="Key"

@@ -1,65 +1,96 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { companyAwards } from "../../../types/company/companyDataTypes";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { fetchImageFiles } from "../../../utils/fetchImageFiles";
 import { addBranch } from "../../../hooks/company/addBranch";
 import AwardCard from "../../cards/AwardCard";
 import Modal from "../../modal/Modal";
-import { getDetails } from "../../../hooks/company/getDetails";
+import { getAllAwards, getDetails } from "../../../hooks/company/getDetails";
+import { type Award } from "../../../hooks/company/getAwards";
 
-interface ViewAwardsProps {
-  awards: companyAwards["awards"];
+interface CompanyData {
+  name: string;
+  about: string;
+  mission: string;
+  vision: string;
+  coreValues: string;
 }
 
-const ViewAwards = ({ awards }: ViewAwardsProps) => {
-  const queryClient = useQueryClient();
-  const [modal, showModal] = useState(false);
-  const [companyData, setCompanyData] = useState<any>(null);
+interface ViewAwardsProps {
+  awards: Award[];
+  refetchAwards: () => void;
+}
 
-  const { data: companyDetails } = useQuery({
+const ViewAwards = ({ awards, refetchAwards }: ViewAwardsProps) => {
+  const queryClient = useQueryClient();
+  const [modal, showModal] = useState<boolean>(false);
+  const [modalMessage, setModalMessage] = useState<string>("");
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  const { data: companyData } = useQuery<CompanyData>({
     queryKey: ["companyDetails"],
     queryFn: getDetails,
   });
 
-  useEffect(() => {
-    if (companyDetails) {
-      setCompanyData(companyDetails);
-    }
-  }, [companyDetails]);
+  const { data: allAwards, refetch: refetchAllAwards } = useQuery<Award[]>({
+    queryKey: ["allAwards"],
+    queryFn: getAllAwards,
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (awardId: string) => {
-      if (!companyData) throw new Error("Company data not found");
+      if (!companyData || !allAwards) {
+        throw new Error("Required data not found");
+      }
 
-      const updatedAwards = awards.filter((award) => award._id !== awardId);
+      const remainingAwards = allAwards.filter(
+        (award: Award) => award._id !== awardId,
+      );
+      const formattedAwards = remainingAwards.map((award: Award) => ({
+        date: award.date?.split("T")[0] || award.date,
+        description: award.description,
+      }));
 
       const allFiles = await Promise.all(
-        updatedAwards.map(async (award) => {
-          const files = await fetchImageFiles(award.images || []);
-          return files;
-        }),
+        remainingAwards.map((award: Award) =>
+          fetchImageFiles(award.images || []),
+        ),
       );
 
       const formData = new FormData();
-      formData.append("name", companyData.name || "");
-      formData.append("about", companyData.about || "");
-      formData.append("mission", companyData.mission || "");
-      formData.append("vision", companyData.vision || "");
-      formData.append("coreValues", companyData.coreValues || "");
-      formData.append("awards", JSON.stringify(updatedAwards));
-
-      allFiles.flat().forEach((file) => {
-        formData.append("awards", file);
+      const fields = [
+        "name",
+        "about",
+        "mission",
+        "vision",
+        "coreValues",
+      ] as const;
+      fields.forEach((field) => {
+        formData.append(field, companyData[field] || "");
       });
+      formData.append("awards", JSON.stringify(formattedAwards));
+      allFiles.flat().forEach((file: File) => formData.append("awards", file));
 
       return addBranch(formData);
     },
     onSuccess: () => {
+      setIsSuccess(true);
+      setModalMessage("Award deleted successfully");
       showModal(true);
-      queryClient.invalidateQueries({ queryKey: ["companyDetails"] });
-      queryClient.invalidateQueries({ queryKey: ["awards"] });
+
+      const queries = ["companyDetails", "awards", "allAwards"];
+      queries.forEach((key) =>
+        queryClient.invalidateQueries({ queryKey: [key] }),
+      );
+
+      setTimeout(() => {
+        refetchAwards();
+        refetchAllAwards();
+        window.location.reload();
+      }, 1500);
     },
-    onError: () => {
+    onError: (error: Error) => {
+      setIsSuccess(false);
+      setModalMessage(error.message || "Failed to delete award");
       showModal(true);
     },
   });
@@ -70,7 +101,7 @@ const ViewAwards = ({ awards }: ViewAwardsProps) => {
     }
   };
 
-  if (!awards || awards.length === 0) {
+  if (!awards?.length) {
     return (
       <div className="h-[60vh] flex items-center justify-center">
         <p className="text-sm font-normal">No Awards Found</p>
@@ -81,14 +112,14 @@ const ViewAwards = ({ awards }: ViewAwardsProps) => {
   return (
     <>
       <div className="w-full lg:w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {awards.map((award) => (
+        {awards.map((award: Award) => (
           <AwardCard
             key={award._id}
             id={award._id}
             url={award.images}
             description={award.description}
             style="aspect-[3/2] w-full rounded-lg"
-            date={award.date}
+            date={new Date(award.date).toLocaleDateString()}
             action={() => handleDelete(award._id)}
           />
         ))}
@@ -96,12 +127,8 @@ const ViewAwards = ({ awards }: ViewAwardsProps) => {
 
       {modal && (
         <Modal
-          success={!deleteMutation.isError}
-          message={
-            deleteMutation.isError
-              ? deleteMutation.error.message
-              : "Award deleted successfully"
-          }
+          success={isSuccess}
+          message={modalMessage}
           action={() => showModal(false)}
         />
       )}

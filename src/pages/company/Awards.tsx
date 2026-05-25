@@ -1,73 +1,86 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { RiAddLine } from "react-icons/ri";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import ViewAwards from "../../components/company/view/ViewAwards";
 import IconButton from "../../components/button/IconButton";
 import Navbar from "../../components/nav/Navbar";
-import { getAwards, type AwardsResponse } from "../../hooks/company/getAwards";
-import YearPicker from "../../components/input/YearInput";
+import { type Award } from "../../hooks/company/getAwards";
 import SectionLoader from "../../components/loader/SectionLoader";
 import SectionError from "../../components/error/SectionError";
-import { getCompanyId } from "../../hooks/company/getDetails";
+import { getAwards } from "../../hooks/company/getDetails";
+
+interface MonthOption {
+  number: number;
+  name: string;
+}
 
 const Awards = () => {
   const navigate = useNavigate();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-
-  const {
-    data: companyId,
-    isLoading: isLoadingCompany,
-    isError: isCompanyError,
-    error: companyError,
-  } = useQuery({
-    queryKey: ["companyId"],
-    queryFn: getCompanyId,
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonthNumber = currentDate.getMonth() + 1;
+  const currentMonthName = currentDate.toLocaleString("default", {
+    month: "long",
   });
+
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedMonthName, setSelectedMonthName] =
+    useState<string>(currentMonthName);
 
   const {
     data: awardsData,
-    isLoading: isLoadingAwards,
+    isLoading,
     refetch,
-    isError: isAwardsError,
-    error: awardsError,
-  } = useQuery<AwardsResponse>({
-    queryKey: ["awards", companyId],
-    queryFn: () =>
-      companyId
-        ? getAwards(companyId)
-        : Promise.reject(new Error("Company ID not found")),
-    enabled: !!companyId,
+    isError,
+    error,
+  } = useQuery<Award[]>({
+    queryKey: ["awards", selectedYear, selectedMonthName],
+    queryFn: () => getAwards(selectedYear.toString(), selectedMonthName),
   });
 
-  useEffect(() => {
-    if (awardsData?.years.length) {
-      const mostRecentYear = awardsData.years[0];
-      setSelectedDate(new Date(mostRecentYear, 0, 1));
+  const availableYears = useMemo<number[]>(() => {
+    const currentYearNum = new Date().getFullYear();
+    const years: number[] = [];
+    for (let year = 2020; year <= currentYearNum; year++) {
+      years.push(year);
     }
-  }, [awardsData]);
+    return years.sort((a, b) => b - a);
+  }, []);
 
-  const selectedYearAwards = useMemo(() => {
+  const availableMonths = useMemo<MonthOption[]>(() => {
+    const months: MonthOption[] = [];
+    const maxMonth = selectedYear === currentYear ? currentMonthNumber : 12;
+
+    for (let month = 1; month <= maxMonth; month++) {
+      const date = new Date(2000, month - 1, 1);
+      months.push({
+        number: month,
+        name: date.toLocaleString("default", { month: "long" }),
+      });
+    }
+    return months;
+  }, [selectedYear, currentYear, currentMonthNumber]);
+
+  const filteredAwards = useMemo<Award[]>(() => {
     if (!awardsData) return [];
-    const selectedYear = selectedDate.getFullYear();
-    const yearData = awardsData.awardsByYear.find(
-      (year) => year.year === selectedYear,
+    return awardsData.filter(
+      (award: Award) =>
+        award.year === selectedYear && award.monthName === selectedMonthName,
     );
-    return yearData ? yearData.awards : [];
-  }, [awardsData, selectedDate]);
+  }, [awardsData, selectedYear, selectedMonthName]);
 
-  const selectedYear = selectedDate.getFullYear();
+  const handleYearChange = useCallback(
+    (year: number) => {
+      setSelectedYear(year);
+      setSelectedMonthName(year === currentYear ? currentMonthName : "January");
+    },
+    [currentYear, currentMonthName],
+  );
 
-  const handleDateChange = (newDate: Date) => {
-    setSelectedDate(newDate);
-  };
-
-  const isLoading = isLoadingCompany || isLoadingAwards;
-  const isError = isCompanyError || isAwardsError;
-  const errorMessage =
-    companyError?.message || awardsError?.message || "An error occurred";
-
-  const availableYears = awardsData?.years || [];
+  const handleMonthChange = useCallback((monthName: string) => {
+    setSelectedMonthName(monthName);
+  }, []);
 
   if (isLoading) {
     return (
@@ -85,7 +98,10 @@ const Awards = () => {
       <>
         <Navbar />
         <div className="w-full flex items-center justify-center bg-gray-100 min-h-svh px-6 py-12">
-          <SectionError action={refetch} error={errorMessage} />
+          <SectionError
+            action={refetch}
+            error={error?.message || "An error occurred"}
+          />
         </div>
       </>
     );
@@ -106,22 +122,42 @@ const Awards = () => {
         </div>
 
         <div className="w-full flex flex-col gap-6 items-center justify-center">
-          {availableYears.length > 0 && (
-            <div className="w-full lg:w-1/4">
-              <YearPicker
-                selectedDate={selectedDate}
-                onDateChange={handleDateChange}
-                availableYears={availableYears}
-              />
-            </div>
-          )}
+          <div className="w-full lg:w-1/2 flex gap-4">
+            <select
+              value={selectedYear}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                handleYearChange(Number(e.target.value))
+              }
+              className="w-full p-2 border rounded-lg bg-white"
+            >
+              {availableYears.map((year: number) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
 
-          {selectedYearAwards.length > 0 ? (
-            <ViewAwards awards={selectedYearAwards} />
+            <select
+              value={selectedMonthName}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                handleMonthChange(e.target.value)
+              }
+              className="w-full p-2 border rounded-lg bg-white"
+            >
+              {availableMonths.map((month: MonthOption) => (
+                <option key={month.name} value={month.name}>
+                  {month.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {filteredAwards.length > 0 ? (
+            <ViewAwards awards={filteredAwards} refetchAwards={refetch} />
           ) : (
             <div className="h-[60vh] flex items-center justify-center">
               <p className="text-sm font-normal">
-                No Awards found for {selectedYear}
+                No Awards found for {selectedMonthName} {selectedYear}
               </p>
             </div>
           )}

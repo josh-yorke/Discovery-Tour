@@ -1,20 +1,37 @@
 import axios from "axios";
+import { logout } from "../hooks/auth/useLogout";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
-let isProcessing401 = false;
+// Add mock interceptor for development only
+if (import.meta.env.DEV) {
+  api.interceptors.request.use((config) => {
+    // Check for test mode
+    const testMode =
+      localStorage.getItem("testSessionExpired") === "true" ||
+      new URLSearchParams(window.location.search).get("testExpired") === "true";
+
+    // Simulate expired session on ALL requests except the refresh endpoint itself
+    if (testMode && !config.url?.includes("/users/refresh")) {
+      console.log("🔴 Simulating session expired for:", config.url);
+      return Promise.reject({
+        response: {
+          status: 401,
+          data: { message: "Token expired" },
+        },
+      });
+    }
+    return config;
+  });
+}
 
 api.interceptors.response.use(
   (response) => response,
-  async (error: any) => {
+  async (error) => {
     const originalRequest = error.config;
-
-    if (window.location.pathname === "/login" || isProcessing401) {
-      return Promise.reject(error);
-    }
 
     if (originalRequest._isRefreshRequest) {
       return Promise.reject(error);
@@ -28,7 +45,6 @@ api.interceptors.response.use(
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
-      isProcessing401 = true;
 
       try {
         const res = await api.post("/users/refresh", null, {
@@ -36,30 +52,22 @@ api.interceptors.response.use(
         });
 
         if (res.data.message === "No refresh token!") {
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
-
           alert("Session expired. Please login again");
-
-          window.location.href = "/login";
+          await logout();
+          window.location.href = "/";
           return Promise.reject(new Error("No refresh token"));
         }
 
-        isProcessing401 = false;
         return api(originalRequest);
       } catch (refreshError) {
         console.log("Refresh failed", refreshError);
-
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-
         alert("Session expired. Please login again");
+        await logout();
         window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
 
-    isProcessing401 = false;
     return Promise.reject(error);
   },
 );

@@ -8,20 +8,31 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormProvider, useForm } from "react-hook-form";
 import { getDetails } from "../../../hooks/company/getDetails";
-import { useNavigate } from "react-router";
 import Input from "../../input/Input";
 import Button from "../../button/Button";
 import { addBranch } from "../../../hooks/company/addBranch";
 import AwardImageInput from "../../input/AwardImageInput";
 import { fetchImageFiles } from "../../../utils/fetchImageFiles";
 
+interface CompanyData {
+  name: string;
+  about: string;
+  mission: string;
+  vision: string;
+  coreValues: string;
+  awards?: Array<{
+    date: string;
+    description: string;
+    images: string[];
+  }>;
+}
+
 const AddAward = () => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [existingAwardFiles, setExistingAwardFiles] = useState<File[]>([]);
   const [existingAwards, setExistingAwards] = useState<any[]>([]);
 
-  const { data: companyData, isLoading } = useQuery({
+  const { data: companyData, isLoading } = useQuery<CompanyData>({
     queryKey: ["companyDetails"],
     queryFn: getDetails,
   });
@@ -33,20 +44,13 @@ const AddAward = () => {
 
     const fetchOldImages = async () => {
       try {
-        console.log("Fetching old award images:", companyData.awards);
-
         const allAwardFiles = await Promise.all(
-          companyData.awards.map(async (award: any) => {
+          companyData.awards!.map(async (award) => {
             const files = await fetchImageFiles(award.images || []);
             return files;
-          })
+          }),
         );
-
-        // Flatten the array of arrays into a single file array
-        const flattenedFiles = allAwardFiles.flat();
-        setExistingAwardFiles(flattenedFiles);
-
-        console.log("Loaded existing award files:", flattenedFiles);
+        setExistingAwardFiles(allAwardFiles.flat());
       } catch (error) {
         console.error("Error fetching old award images:", error);
       }
@@ -75,11 +79,13 @@ const AddAward = () => {
     reset,
   } = methods;
 
-  const mutation = useMutation<string, Error, FormData>({
+  const mutation = useMutation({
     mutationFn: addBranch,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companyDetails"] });
-      navigate("/company/awards");
+      queryClient.invalidateQueries({ queryKey: ["awards"] });
+      // Refresh the whole page
+      window.location.href = "/company/awards";
     },
   });
 
@@ -102,29 +108,23 @@ const AddAward = () => {
     const newAward = {
       date: data.awards[0].date,
       description: data.awards[0].description,
-      images: [],
     };
 
     const updatedAwards = [...existingAwards, newAward];
-
     const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("about", data.about);
-    formData.append("mission", data.mission);
-    formData.append("vision", data.vision);
-    formData.append("coreValues", data.coreValues);
+
+    formData.append("name", data.name || "");
+    formData.append("about", data.about || "");
+    formData.append("mission", data.mission || "");
+    formData.append("vision", data.vision || "");
+    formData.append("coreValues", data.coreValues || "");
     formData.append("awards", JSON.stringify(updatedAwards));
 
-    // Handle files differently - ensure we're getting all files
     const newAwardFiles = data.awards[0].images;
-
-    // Convert to array immediately to ensure we have all files
     let allFiles: File[] = [...existingAwardFiles];
 
     if (newAwardFiles) {
       let newFiles: File[] = [];
-
-      // Handle both FileList and single File cases
       if (newAwardFiles instanceof FileList) {
         newFiles = Array.from(newAwardFiles);
       } else if (newAwardFiles instanceof File) {
@@ -132,18 +132,12 @@ const AddAward = () => {
       } else if (Array.isArray(newAwardFiles)) {
         newFiles = newAwardFiles;
       }
-
-      console.log("New files to add:", newFiles.length);
       allFiles = [...allFiles, ...newFiles];
     }
 
-    // Append all files
-    allFiles.forEach((file, index) => {
-      console.log(`Appending file ${index}:`, file.name);
+    allFiles.forEach((file: File) => {
       formData.append("awards", file);
     });
-
-    console.log("Total files appended:", allFiles.length);
 
     mutation.mutate(formData);
   };

@@ -81,6 +81,10 @@ const TypesCategories = () => {
               type={service}
               typeCategories={data?.typesCategories}
               isLoading={isLoading}
+              refetch={refetch}
+              currentPage={page}
+              onPageChange={handlePageChange}
+              totalPages={data?.totalPages || 1}
             />
             {data?.totalPages > 1 && (
               <Pagination

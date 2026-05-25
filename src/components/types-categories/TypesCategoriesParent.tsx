@@ -10,26 +10,47 @@ interface ParentProps {
   typeCategories: typesCategoriesData[];
   isLoading: boolean;
   type: string;
+  refetch: () => void;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  totalPages: number;
 }
 
 const TypesCategoriesParent = ({
   typeCategories,
   isLoading,
-  type
+  type,
+  refetch,
+  currentPage,
+  onPageChange,
 }: ParentProps) => {
   const queryClient = useQueryClient();
   const [modal, showModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTypesCategories(id, type),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setIsSuccess(true);
+      setModalMessage(data || "Deleted successfully");
       showModal(true);
       queryClient.invalidateQueries({
         queryKey: ["typesCategories"],
         exact: false,
       });
+
+      if (typeCategories.length === 1 && currentPage > 1) {
+        onPageChange(currentPage - 1);
+      } else {
+        setTimeout(() => {
+          refetch();
+        }, 500);
+      }
     },
-    onError: () => {
+    onError: (error: Error) => {
+      setIsSuccess(false);
+      setModalMessage(error.message || "Failed to delete");
       showModal(true);
     },
   });
@@ -37,6 +58,13 @@ const TypesCategoriesParent = ({
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this type or category?")) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleModalClose = () => {
+    showModal(false);
+    if (isSuccess && typeCategories.length > 1) {
+      refetch();
     }
   };
 
@@ -74,13 +102,9 @@ const TypesCategoriesParent = ({
       )}
       {modal && (
         <Modal
-          success={deleteMutation.isError ? false : true}
-          message={
-            deleteMutation.isError
-              ? deleteMutation.error.message
-              : deleteMutation.data
-          }
-          action={() => showModal(false)}
+          success={isSuccess}
+          message={modalMessage}
+          action={handleModalClose}
         />
       )}
     </>
