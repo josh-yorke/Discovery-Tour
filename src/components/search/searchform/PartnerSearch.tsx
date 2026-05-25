@@ -28,7 +28,7 @@ const PartnerSearch = ({
       <div className="text-center">
         <h2 className="text-2xl font-bold text-[#1d2087]">Manage Partners</h2>
         <p className="text-xs text-gray-500 mt-1">
-          Create, edit, and manage your partner relationships
+          Create, edit, and manage your partners
         </p>
       </div>
 

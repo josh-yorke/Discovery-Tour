@@ -63,7 +63,7 @@ const RailPassSearch = ({
           Manage Rail Passes
         </h2>
         <p className="text-xs text-gray-500 mt-1">
-          Create, edit, and manage your rail pass products
+          Create, edit, and manage your rail pass
         </p>
       </div>
 
