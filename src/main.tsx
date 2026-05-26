@@ -106,6 +106,8 @@ import EditPageConfig from "./pages/page-config/edit/EditPageConfig";
 import AddPageConfig from "./pages/page-config/add/AddPageConfig";
 import PageConfigManager from "./pages/page-config/ArrangePage";
 import PageError from "./components/error/PageError";
+import ForgotPassword from "./pages/forgot-password/ForgotPassword";
+import ResetPassword from "./pages/forgot-password/ResetPassword";
 
 const withErrorHandler = (element: React.ReactElement) => ({
   element,
@@ -122,6 +124,22 @@ const router = createBrowserRouter([
     ...withErrorHandler(
       <PublicRoute>
         <Login />
+      </PublicRoute>,
+    ),
+  },
+  {
+    path: "/user/reset-password",
+    ...withErrorHandler(
+      <PublicRoute>
+        <ForgotPassword />
+      </PublicRoute>,
+    ),
+  },
+  {
+    path: "/user/reset-password/:token",
+    ...withErrorHandler(
+      <PublicRoute>
+        <ResetPassword />
       </PublicRoute>,
     ),
   },

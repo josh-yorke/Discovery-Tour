@@ -5,12 +5,27 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const publicEndpoints = [
+  "/users/forgot-password",
+  "/users/reset-password",
+  "/users/login",
+  "/users/register",
+];
+
 let isProcessing401 = false;
 
 api.interceptors.response.use(
   (response) => response,
   async (error: any) => {
     const originalRequest = error.config;
+
+    const isPublicEndpoint = publicEndpoints.some((endpoint) =>
+      originalRequest.url?.includes(endpoint),
+    );
+
+    if (isPublicEndpoint) {
+      return Promise.reject(error);
+    }
 
     if (window.location.pathname === "/login" || isProcessing401) {
       return Promise.reject(error);
