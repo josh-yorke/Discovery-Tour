@@ -32,7 +32,9 @@ interface ViewProps {
     passportNumber: string;
   };
   travel: {
-    destination: string;
+    destination: {
+      country: string;
+    };
     dateFrom: string;
     dateTo: string;
   };
@@ -59,7 +61,7 @@ const View = ({ insurance, plan, customer, travel, status }: ViewProps) => {
         passportNumber: customer?.passportNumber || "",
       },
       travel: {
-        destination: travel?.destination || "",
+        destination: travel?.destination.country || "",
         dateFrom: formatDateForInput(travel?.dateFrom || ""),
         dateTo: formatDateForInput(travel?.dateTo || ""),
       },
