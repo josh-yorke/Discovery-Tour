@@ -11,6 +11,7 @@ import TitleText from "../../../cards/TitleText";
 import Tags from "../../../tags/Tags";
 import type { insuranceData } from "../../../../types/insurances/insuranceDataTypes";
 import IconButton from "../../../button/IconButton";
+import { useNavigate } from "react-router";
 
 interface Props extends insuranceData {
   onDelete: (_id: string) => void;
@@ -30,6 +31,7 @@ const InsuranceInformation = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [displayCountry, setDisplayCountry] = useState(country);
   const [displayPartner, setDisplayPartner] = useState(insurancePartner);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (countryV2?.country) {
@@ -68,7 +70,7 @@ const InsuranceInformation = ({
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/insurance/edit/${_id}`, "_blank");
+                navigate(`/insurance/edit/${_id}`);
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}

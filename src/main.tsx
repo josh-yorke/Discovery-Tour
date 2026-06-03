@@ -688,7 +688,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/transport/rail passes",
+    path: "/transport/rail-passes",
     ...withErrorHandler(
       <RouteProtection>
         <RailPass />

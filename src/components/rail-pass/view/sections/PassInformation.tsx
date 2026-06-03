@@ -9,6 +9,7 @@ import TitleText from "../../../cards/TitleText";
 import Tags from "../../../tags/Tags";
 import type { RailPassData } from "../../../../types/rail-pass/railPassDataTypes";
 import IconButton from "../../../button/IconButton";
+import { useNavigate } from "react-router";
 
 interface Props extends RailPassData {
   onDelete: (_id: string) => void;
@@ -24,6 +25,7 @@ const PassInformation = ({
   onDelete,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const navigate = useNavigate();
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -41,7 +43,7 @@ const PassInformation = ({
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/transport/rail-passes/edit/${_id}`, "_blank");
+                navigate(`/transport/rail-passes/edit/${_id}`);
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}

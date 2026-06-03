@@ -9,6 +9,7 @@ import type { transportationData } from "../../../types/transportation/transport
 import TitleText from "../../cards/TitleText";
 import Tags from "../../tags/Tags";
 import IconButton from "../../button/IconButton";
+import { useNavigate } from "react-router";
 
 interface Props extends transportationData {
   onDelete: (_id: string) => void;
@@ -23,6 +24,7 @@ const TransportInformation = ({
   onDelete,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const navigate = useNavigate();
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -40,7 +42,7 @@ const TransportInformation = ({
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/transport/transportation/edit/${_id}`, "_blank");
+                navigate(`/transport/transportation/edit/${_id}`);
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}

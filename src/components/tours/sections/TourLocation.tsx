@@ -10,6 +10,7 @@ import TitleText from "../../cards/TitleText";
 import Tags from "../../tags/Tags";
 import ImageCard from "../../cards/ImageCard";
 import IconButton from "../../button/IconButton";
+import { useNavigate } from "react-router";
 
 interface Props extends tourData {
   onDelete: (_id: string) => void;
@@ -26,6 +27,7 @@ const TourLocation = ({
   typeV2,
   onDelete,
 }: Props) => {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isTourExpanded, setIsTourExpanded] = useState(true);
 
@@ -51,7 +53,7 @@ const TourLocation = ({
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/tours/edit/${_id}`, "_blank");
+                navigate(`/tours/edit/${_id}`);
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}

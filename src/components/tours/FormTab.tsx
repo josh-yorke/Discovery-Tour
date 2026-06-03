@@ -18,128 +18,49 @@ interface FormTabsProps {
 }
 
 const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
+  const tabs = [
+    {
+      id: "accommodation" as const,
+      icon: RiBuildingFill,
+      title: "Accommodation",
+    },
+    { id: "city" as const, icon: RiMapPinAddFill, title: "City" },
+    { id: "scope" as const, icon: RiListCheck2, title: "Scope" },
+    { id: "itinerary" as const, icon: RiCalendarTodoFill, title: "Itinerary" },
+    {
+      id: "pricelist" as const,
+      icon: RiShoppingBasketFill,
+      title: "Pricelist",
+    },
+    { id: "process" as const, icon: RiTimer2Fill, title: "Process" },
+    { id: "payment" as const, icon: RiMoneyCnyCircleFill, title: "Payment" },
+    { id: "term" as const, icon: RiLayoutRight2Fill, title: "Terms" },
+    { id: "document" as const, icon: RiFolder3Fill, title: "Documents" },
+    { id: "faq" as const, icon: RiQuestionFill, title: "FAQs" },
+  ];
+
   return (
     <div className="flex flex-row mb-6 bg-white rounded-xl p-2">
-      <button
-        type="button"
-        onClick={() => setFormType("accommodation")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "accommodation"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Accommodation"
-      >
-        <RiBuildingFill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("city")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "city"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="City"
-      >
-        <RiMapPinAddFill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("scope")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "scope"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Scope"
-      >
-        <RiListCheck2 size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("itinerary")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "itinerary"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Itinerary"
-      >
-        <RiCalendarTodoFill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("pricelist")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "pricelist"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Pricelist"
-      >
-        <RiShoppingBasketFill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("process")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "process"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Process"
-      >
-        <RiTimer2Fill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("payment")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "payment"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Payment"
-      >
-        <RiMoneyCnyCircleFill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("term")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "term"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Terms"
-      >
-        <RiLayoutRight2Fill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("document")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "document"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="Documents"
-      >
-        <RiFolder3Fill size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => setFormType("faq")}
-        className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
-          formType === "faq"
-            ? "bg-[#1d2087] text-white"
-            : "bg-white text-gray-700 hover:bg-gray-50"
-        }`}
-        title="FAQs"
-      >
-        <RiQuestionFill size={16} />
-      </button>
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = formType === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setFormType(tab.id)}
+            className={`flex items-center justify-center p-3 rounded-lg text-sm duration-300 ${
+              isActive
+                ? "bg-[#1d2087] text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50"
+            }`}
+            title={tab.title}
+          >
+            <Icon size={16} />
+          </button>
+        );
+      })}
     </div>
   );
 };

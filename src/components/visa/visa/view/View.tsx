@@ -13,6 +13,7 @@ import Payments from "../../../../pages/visa/view/sections/Payments";
 import IconButton from "../../../button/IconButton";
 import Faqs from "../../../../pages/visa/view/sections/Faqs";
 import ConversionRates from "../../../../pages/visa/view/sections/ConversionRates";
+import { useNavigate } from "react-router";
 
 interface ViewProps extends visaData {
   savedAt: string;
@@ -122,6 +123,7 @@ const View = ({
   const [flagUrl, setFlagUrl] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hasError, setHasError] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const loadFlag = useCallback(() => {
     if (!country) {
@@ -167,7 +169,7 @@ const View = ({
           <IconButton
             style="px-3 py-2 rounded-full bg-gray-200"
             action={() => {
-              window.open(`/visas/visa/edit/${_id}`, "_blank");
+              navigate(`/visas/visa/edit/${_id}`);
             }}
             title="Edit"
             icon={<RiPencilFill size={16} />}
