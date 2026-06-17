@@ -109,7 +109,7 @@ const Edit = ({
           />
 
           <CustomImageInput
-            title="Logo Image"
+            title="Image"
             disabled={false}
             initialFiles={image}
             setValue={setValue}

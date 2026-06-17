@@ -48,7 +48,7 @@ const mergedSchema = z
         if (typeof val === "string") return parseFloat(val);
         return val;
       }),
-    description: z.string().min(1, "Description is required"),
+    description: z.string().optional(),
     priceCurrency: z.string().min(1, "Currency is required"),
     fileTitle: z.string().optional(),
     file: z.any().optional(),
@@ -69,7 +69,7 @@ const mergedSchema = z
 type MergedSchemaType = {
   plan: string;
   fee?: string | number;
-  description: string;
+  description?: string;
   priceCurrency: string;
   fileTitle?: string;
   file?: FileList;
@@ -136,7 +136,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
         } else {
           const pricelistItem: addPricelistData = {
             plan: result.data.plan,
-            description: result.data.description,
+            description: result.data.description || "",
             priceCurrency: result.data.priceCurrency,
           };
 
@@ -337,8 +337,8 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             error={
               hasContent && descriptionError ? String(descriptionError) : ""
             }
-            title="Plan Description *"
-            placeholder="Enter detailed description of what this plan includes"
+            title="Plan Description"
+            placeholder="Enter detailed description of what this plan includes (optional)"
             {...register(`pricelists.${index}.description` as const)}
           />
 
@@ -346,9 +346,7 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
 
           <div className="text-xs text-gray-500">
             <p>• Fields marked with * are required</p>
-            <p>
-              • Fee amount is optional - leave empty for plans with no fixed fee
-            </p>
+            <p>• Fee amount and description are optional</p>
           </div>
         </div>
       </div>

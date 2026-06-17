@@ -172,6 +172,7 @@ const AddAward = () => {
           title="Award Date"
           placeholder="Award date"
           type="date"
+          max={new Date().toISOString().split("T")[0]}
           {...register("awards.0.date")}
           error={errors.awards?.[0]?.date?.message || ""}
         />

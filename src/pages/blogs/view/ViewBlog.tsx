@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import ImageCard from "../../../components/cards/ImageCard";
 import { useState } from "react";
 import Modal from "../../../components/modal/Modal";
 import SectionError from "../../../components/error/SectionError";
@@ -9,6 +8,7 @@ import SectionLoader from "../../../components/loader/SectionLoader";
 import { deleteBlog } from "../../../hooks/blogs/deleteBlog";
 import { getBlog } from "../../../hooks/blogs/getBlog";
 import View from "../../../components/blogs/view/View";
+import InfiniteImageCarousel from "../../../components/cards/InfiniteImageCarousel";
 
 const ViewBlog = () => {
   const { id } = useParams();
@@ -51,7 +51,9 @@ const ViewBlog = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <ImageCard url={data.images} style="" />
+          <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden">
+            <InfiniteImageCarousel images={data.images} />
+          </div>
           <div className="w-full lg:w-9/10 flex flex-col p-6 gap-6 bg-gray-100">
             <View
               onDelete={() => handleDelete(data._id)}

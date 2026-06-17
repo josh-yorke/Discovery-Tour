@@ -112,7 +112,7 @@ const Edit = ({
     const formData = new FormData();
 
     formData.append("title", data.title);
-    formData.append("description", data.description);
+    formData.append("description", data.description || "");
     formData.append("country", data.country);
     formData.append("insurancePartner", data.insurancePartner);
 

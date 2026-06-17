@@ -1,4 +1,4 @@
-import { RiArrowRightDownLine } from "react-icons/ri";
+import { PiPawPrintFill } from "react-icons/pi";
 import Navbar from "../nav/Navbar";
 import IconButton from "../button/IconButton";
 import { useNavigate } from "react-router";
@@ -32,7 +32,7 @@ const PageNotFound = () => {
           <IconButton
             action={() => navigate("/")}
             icon={
-              <RiArrowRightDownLine
+              <PiPawPrintFill
                 size={16}
                 color="white"
                 className="rotate-0 group-hover:rotate-360 duration-300 ease-in-out transition-transform"

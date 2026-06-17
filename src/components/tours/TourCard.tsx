@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router";
 import {
   RiAddLine,
-  RiArrowRightDownLine,
   RiHashtag,
   RiLandscapeAiFill,
   RiDeleteBin4Fill,
@@ -12,6 +11,7 @@ import IconButton from "../button/IconButton";
 import ImageCard from "../cards/ImageCard";
 import LinkText from "../nav/LinkText";
 import { useMemo, useState, useEffect } from "react";
+import { PiPawPrintFill } from "react-icons/pi";
 
 interface CardProps {
   id: string;
@@ -151,7 +151,7 @@ const TourCard = ({
           className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
           onClick={() => navigate(`/tours/view/${id}`)}
         >
-          <RiArrowRightDownLine
+          <PiPawPrintFill
             className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
             size={16}
           />

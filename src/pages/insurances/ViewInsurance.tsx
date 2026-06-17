@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
-import ImageCard from "../../components/cards/ImageCard";
 import SectionLoader from "../../components/loader/SectionLoader";
 import SectionError from "../../components/error/SectionError";
 import Navbar from "../../components/nav/Navbar";
@@ -11,6 +10,7 @@ import {
 import { useState } from "react";
 import Modal from "../../components/modal/Modal";
 import View from "../../components/insurances/view/View";
+import InfiniteImageCarousel from "../../components/cards/InfiniteImageCarousel";
 
 const ViewInsurance = () => {
   const { id } = useParams();
@@ -60,7 +60,9 @@ const ViewInsurance = () => {
       ) : (
         <>
           <div className="w-full flex flex-col items-center justify-center bg-black/6">
-            <ImageCard url={data.images} style="" />
+            <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden">
+              <InfiniteImageCarousel images={data.images} />
+            </div>
             <div className="w-full lg:w-9/10 flex flex-col p-6 pb-24 gap-6">
               <View
                 onDelete={() => handleDelete(data._id)}

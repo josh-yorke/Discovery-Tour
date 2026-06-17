@@ -8,9 +8,9 @@ import type { tourData } from "../../../types/tours/tourDataTypes";
 import { useState } from "react";
 import TitleText from "../../cards/TitleText";
 import Tags from "../../tags/Tags";
-import ImageCard from "../../cards/ImageCard";
 import IconButton from "../../button/IconButton";
 import { useNavigate } from "react-router";
+import InfiniteImageCarousel from "../../cards/InfiniteImageCarousel";
 
 interface Props extends tourData {
   onDelete: (_id: string) => void;
@@ -38,6 +38,10 @@ const TourLocation = ({
   const toggleTourExpand = () => {
     setIsTourExpanded(!isTourExpanded);
   };
+
+  const hasMainDescription = mainDescription && mainDescription.trim() !== "";
+  const hasMainLocationDescription =
+    mainLocationDescription && mainLocationDescription.trim() !== "";
 
   return (
     <>
@@ -88,81 +92,85 @@ const TourLocation = ({
           </div>
         </div>
 
-        {/* About this Tour section */}
-        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
-          <div className="w-full flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-                <RiInformationFill size={20} className="text-white" />
+        {hasMainDescription && (
+          <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+            <div className="w-full flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+                  <RiInformationFill size={20} className="text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-base md:text-lg font-semibold text-black uppercase">
+                    About this Tour
+                  </p>
+                  <p className="text-xs font-normal text-gray-600">
+                    Overview and main description
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-base md:text-lg font-semibold text-black uppercase">
-                  About this Tour
-                </p>
-                <p className="text-xs font-normal text-gray-600">
-                  Overview and main description
-                </p>
-              </div>
+              <RiArrowUpSLine
+                size={24}
+                className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
+                  isTourExpanded ? "rotate-180" : ""
+                }`}
+                onClick={toggleTourExpand}
+              />
             </div>
-            <RiArrowUpSLine
-              size={24}
-              className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
-                isTourExpanded ? "rotate-180" : ""
-              }`}
-              onClick={toggleTourExpand}
-            />
+
+            {isTourExpanded && (
+              <>
+                <div className="w-full border-b border-black/6" />
+                <div className="w-full pt-2">
+                  <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
+                    {mainDescription}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
+        )}
 
-          {isTourExpanded && (
-            <>
-              <div className="w-full border-b border-black/6" />
-              <div className="w-full pt-2">
-                <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
-                  {mainDescription}
-                </p>
+        {hasMainLocationDescription && (
+          <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+            <div className="w-full flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+                  <RiInformationFill size={20} className="text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-base md:text-lg font-semibold text-black uppercase">
+                    About {mainLocationName}
+                  </p>
+                  <p className="text-xs font-normal text-gray-600">
+                    Learn more about this destination
+                  </p>
+                </div>
               </div>
-            </>
-          )}
-        </div>
-
-        {/* About Location section */}
-        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
-          <div className="w-full flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-                <RiInformationFill size={20} className="text-white" />
-              </div>
-              <div className="flex flex-col">
-                <p className="text-base md:text-lg font-semibold text-black uppercase">
-                  About {mainLocationName}
-                </p>
-                <p className="text-xs font-normal text-gray-600">
-                  Learn more about this destination
-                </p>
-              </div>
+              <RiArrowUpSLine
+                size={24}
+                className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+                onClick={toggleExpand}
+              />
             </div>
-            <RiArrowUpSLine
-              size={24}
-              className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-              onClick={toggleExpand}
-            />
+
+            {isExpanded && (
+              <>
+                <div className="w-full border-b border-black/6" />
+                <div className="w-full pt-2">
+                  <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
+                    {mainLocationDescription}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
+        )}
 
-          {isExpanded && (
-            <>
-              <div className="w-full border-b border-black/6" />
-              <div className="w-full pt-2">
-                <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
-                  {mainLocationDescription}
-                </p>
-              </div>
-            </>
-          )}
+        <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden rounded-3xl">
+          <InfiniteImageCarousel images={mainLocationImages} />
         </div>
-
-        <ImageCard url={mainLocationImages} style="" />
       </div>
     </>
   );

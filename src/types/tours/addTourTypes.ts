@@ -8,15 +8,15 @@ export const addTourSchema = z.object({
     .any()
     .refine(
       (value) => value instanceof FileList && value.length > 0,
-      "At least one image is required"
+      "At least one image is required",
     ),
-  mainDescription: z.string().min(2, "description is required"),
+  mainDescription: z.string().optional(),
   category: z.string().min(2, "category is required"),
   mainLocationImages: z
     .any()
     .refine(
       (value) => value instanceof FileList && value.length > 0,
-      "At least one image is required"
+      "At least one image is required",
     ),
   mainLocationName: z.string().min(2, "location name is required"),
   mainLocationDescription: z

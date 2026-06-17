@@ -35,7 +35,6 @@ const Edit = ({
   country,
   type,
   mainDescription,
-  eligibleApplicants,
   images,
 }: EditInputsProps) => {
   const [message, setMessage] = useState<string | null>(null);
@@ -51,7 +50,6 @@ const Edit = ({
       country,
       type,
       mainDescription,
-      eligibleApplicants,
       images,
     },
   });
@@ -115,8 +113,7 @@ const Edit = ({
     const formData = new FormData();
     formData.append("country", data.country);
     formData.append("type", data.type);
-    formData.append("eligibleApplicants", data.eligibleApplicants);
-    formData.append("mainDescription", data.mainDescription);
+    formData.append("mainDescription", data.mainDescription || "");
 
     Array.from(data.images).forEach((file: any) => {
       formData.append("images", file);
@@ -172,14 +169,6 @@ const Edit = ({
               options={types}
               value={currentType || ""}
               {...register("type")}
-            />
-
-            <TextArea
-              disabled={false}
-              error={errors.eligibleApplicants?.message || ""}
-              title="Eligible Applicants"
-              placeholder="eligible applicants"
-              {...register("eligibleApplicants")}
             />
 
             <TextArea

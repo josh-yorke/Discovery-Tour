@@ -114,7 +114,7 @@ const Add = () => {
     formData.append("country", data.country);
     formData.append("type", data.type);
     formData.append("title", data.title);
-    formData.append("mainDescription", data.mainDescription);
+    formData.append("mainDescription", data.mainDescription || "");
     formData.append("category", data.category);
     formData.append("mainLocationName", data.mainLocationName);
     formData.append("mainLocationDescription", data.mainLocationDescription);

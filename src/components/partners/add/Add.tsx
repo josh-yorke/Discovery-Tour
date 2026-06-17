@@ -126,7 +126,7 @@ const Add = () => {
             />
 
             <CustomImageInput
-              title="Logo Image"
+              title="Image"
               disabled={false}
               setValue={setValue}
               register={register}

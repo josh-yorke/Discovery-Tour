@@ -54,12 +54,10 @@ const hasPricelistContent = (pricelist: {
 
 const hasCompletePricelist = (pricelist: {
   plan?: string;
-  description?: string;
   priceCurrency?: string;
 }): boolean => {
   return (
     (pricelist.plan?.trim() ?? "").length > 0 &&
-    (pricelist.description?.trim() ?? "").length > 0 &&
     (pricelist.priceCurrency?.trim() ?? "").length > 0
   );
 };
@@ -68,7 +66,7 @@ const mergedSchema = z
   .object({
     plan: z.string().min(1, "Plan name is required"),
     fee: z.string().optional().or(z.literal("")),
-    description: z.string().min(1, "Description is required"),
+    description: z.string().optional(),
     priceCurrency: z.string().min(1, "Currency is required"),
     fileTitle: z.string().optional(),
     file: z.any().optional(),
@@ -89,7 +87,7 @@ const mergedSchema = z
 type MergedSchemaType = {
   plan: string;
   fee?: string;
-  description: string;
+  description?: string;
   priceCurrency: string;
   fileTitle?: string;
   file?: FileList;
@@ -186,9 +184,12 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
           if (hasCompleteData) {
             const pricelistItem: addPricelistData = {
               plan: pricelist.plan,
-              description: pricelist.description,
               priceCurrency: pricelist.priceCurrency,
             };
+
+            if (pricelist.description) {
+              pricelistItem.description = pricelist.description;
+            }
 
             if (pricelist.fee && pricelist.fee.trim() !== "") {
               pricelistItem.fee = parseFloat(pricelist.fee);
@@ -205,12 +206,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               setError(`pricelists.${index}.plan` as any, {
                 type: "manual",
                 message: "Plan name is required",
-              });
-            }
-            if (!pricelist.description?.trim()) {
-              setError(`pricelists.${index}.description` as any, {
-                type: "manual",
-                message: "Description is required",
               });
             }
             if (!pricelist.priceCurrency?.trim()) {
@@ -403,6 +398,7 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       const planError = errors.pricelists?.[index]?.plan?.message;
       const feeError = errors.pricelists?.[index]?.fee?.message;
       const descriptionError = errors.pricelists?.[index]?.description?.message;
+      const currencyError = errors.pricelists?.[index]?.priceCurrency?.message;
 
       return (
         <div
@@ -436,6 +432,11 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               options={["USD", "KRW", "JPY", "PHP"]}
               {...register(`pricelists.${index}.priceCurrency` as const)}
             />
+            {hasContent && currencyError && (
+              <p className="text-red-500 text-xs mt-1">
+                {String(currencyError)}
+              </p>
+            )}
 
             <NumberInput
               style="bg-white"
@@ -452,8 +453,8 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               error={
                 hasContent && descriptionError ? String(descriptionError) : ""
               }
-              title="Plan Description *"
-              placeholder="Enter detailed description of what this plan includes"
+              title="Plan Description"
+              placeholder="Enter detailed description of what this plan includes (optional)"
               {...register(`pricelists.${index}.description` as const)}
             />
 

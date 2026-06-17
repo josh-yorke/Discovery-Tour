@@ -2,13 +2,13 @@ import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOneNews } from "../../../hooks/news/getOneNews";
-import ImageCard from "../../../components/cards/ImageCard";
 import View from "../../../components/news/view/View";
 import { useState } from "react";
 import { deleteNews } from "../../../hooks/news/deleteNews";
 import Modal from "../../../components/modal/Modal";
 import SectionError from "../../../components/error/SectionError";
 import SectionLoader from "../../../components/loader/SectionLoader";
+import InfiniteImageCarousel from "../../../components/cards/InfiniteImageCarousel";
 
 const ViewNews = () => {
   const { id } = useParams();
@@ -51,7 +51,9 @@ const ViewNews = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          <ImageCard url={data.images} style="" />
+          <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden">
+            <InfiniteImageCarousel images={data.images} />
+          </div>
           <div className="w-full lg:w-9/10 flex flex-col p-6 gap-6 bg-gray-100">
             <View
               relatedLinks={data.relatedLinks}

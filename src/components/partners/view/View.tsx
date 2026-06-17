@@ -9,8 +9,8 @@ import {
 } from "react-icons/ri";
 import { useState } from "react";
 import TitleText from "../../cards/TitleText";
-import ImageCard from "../../cards/ImageCard";
 import IconButton from "../../button/IconButton";
+import { useNavigate } from "react-router";
 
 interface Props {
   _id: string;
@@ -22,7 +22,6 @@ interface Props {
     savedAt: string;
   };
   websiteUrl: string;
-  image: string;
   dateAdded: string;
   onDelete: (_id: string) => void;
 }
@@ -33,11 +32,11 @@ const View = ({
   type,
   typeV2,
   websiteUrl,
-  image,
   dateAdded,
   onDelete,
 }: Props) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const navigate = useNavigate();
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
@@ -53,7 +52,7 @@ const View = ({
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
               action={() => {
-                window.open(`/partners/edit/${_id}`, "_blank");
+                navigate(`/partners/edit/${_id}`);
               }}
               title="Edit"
               icon={<RiPencilFill size={16} />}
@@ -162,8 +161,6 @@ const View = ({
             </>
           )}
         </div>
-
-        <ImageCard url={[image]} style="" />
       </div>
     </>
   );

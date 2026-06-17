@@ -183,7 +183,7 @@ const Navbar = () => {
         "vehicles",
         "transportation",
         "vehicle hire",
-        "rail passes",
+        "rail-passes",
         "bookings",
       ],
     },

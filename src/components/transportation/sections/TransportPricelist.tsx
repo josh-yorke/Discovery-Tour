@@ -26,6 +26,7 @@ import {
 } from "../../../hooks/visa/visa/getVisa";
 import SectionLoader from "../../loader/SectionLoader";
 import SectionError from "../../error/SectionError";
+import ImageCard from "../../cards/ImageCard";
 
 interface FileData {
   _id: string;
@@ -76,7 +77,6 @@ interface TransportPricelistProps {
   transportId: string;
 }
 
-// Currency symbol mapping
 const currencySymbols: Record<string, string> = {
   USD: "$",
   KRW: "₩",
@@ -301,7 +301,7 @@ const TransportPricelist = ({ transportId }: TransportPricelistProps) => {
                           {pricelist.description}
                         </p>
 
-                        {/* Vehicle Information Card - Similar to VehicleCard */}
+                        {/* Vehicle Information Card - with ImageCard */}
                         {vehicleData && (
                           <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200">
                             <div className="flex items-center gap-2 mb-3">
@@ -310,6 +310,17 @@ const TransportPricelist = ({ transportId }: TransportPricelistProps) => {
                                 Vehicle Information
                               </p>
                             </div>
+
+                            {vehicleData.images &&
+                              vehicleData.images.length > 0 && (
+                                <div className="mb-4">
+                                  <ImageCard
+                                    url={vehicleData.images}
+                                    style="rounded-xl lg:h-[60vh] h-full w-full"
+                                    tags={false}
+                                  />
+                                </div>
+                              )}
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                               {/* Vehicle Name */}

@@ -6,9 +6,9 @@ export const addTransportationSchema = z.object({
     .any()
     .refine(
       (value) => value instanceof FileList && value.length > 0,
-      "At least one image is required"
+      "At least one image is required",
     ),
-  description: z.string().min(2, "description is required"),
+  description: z.string().optional(),
   title: z.string().min(2, "title is required"),
   type: z.string().min(2, "transport type is required"),
 });

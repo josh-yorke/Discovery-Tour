@@ -31,6 +31,8 @@ const PassInformation = ({
     setIsExpanded(!isExpanded);
   };
 
+  const hasDescription = description && description.trim() !== "";
+
   return (
     <div className="w-full flex flex-col gap-6">
       <div className="w-full flex flex-col gap-6">
@@ -79,41 +81,43 @@ const PassInformation = ({
           </div>
         </div>
 
-        <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
-          <div className="w-full flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-                <RiInformationFill size={20} className="text-white" />
+        {hasDescription && (
+          <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
+            <div className="w-full flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
+                  <RiInformationFill size={20} className="text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-base md:text-lg font-semibold text-black uppercase">
+                    About
+                  </p>
+                  <p className="text-xs font-normal text-gray-600">
+                    Learn more about this rail pass
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="text-base md:text-lg font-semibold text-black uppercase">
-                  About
-                </p>
-                <p className="text-xs font-normal text-gray-600">
-                  Learn more about this rail pass
-                </p>
-              </div>
+              <RiArrowUpSLine
+                size={24}
+                className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
+                  isExpanded ? "rotate-180" : ""
+                }`}
+                onClick={toggleExpand}
+              />
             </div>
-            <RiArrowUpSLine
-              size={24}
-              className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
-                isExpanded ? "rotate-180" : ""
-              }`}
-              onClick={toggleExpand}
-            />
-          </div>
 
-          {isExpanded && (
-            <>
-              <div className="w-full border-b border-black/6" />
-              <div className="w-full pt-2">
-                <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
-                  {description}
-                </p>
-              </div>
-            </>
-          )}
-        </div>
+            {isExpanded && (
+              <>
+                <div className="w-full border-b border-black/6" />
+                <div className="w-full pt-2">
+                  <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
+                    {description}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

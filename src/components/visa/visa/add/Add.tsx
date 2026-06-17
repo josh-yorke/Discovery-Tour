@@ -80,8 +80,8 @@ const Add = () => {
 
     formData.append("country", data.country);
     formData.append("type", data.type);
-    formData.append("eligibleApplicants", data.eligibleApplicants);
-    formData.append("mainDescription", data.mainDescription);
+    data.mainDescription &&
+      formData.append("mainDescription", data.mainDescription);
 
     Array.from(data.images).forEach((file: any) => {
       formData.append("images", file);
@@ -101,7 +101,7 @@ const Add = () => {
       if (redirectTo === "information") {
         navigate(`/visas/information/add`);
       } else {
-        navigate(-1); // Go back to previous page
+        navigate(-1);
       }
     }
   };
@@ -135,13 +135,6 @@ const Add = () => {
               {...register("type")}
             />
 
-            <TextArea
-              disabled={false}
-              error={errors.eligibleApplicants?.message || ""}
-              title="Eligible Applicants"
-              placeholder="eligible applicants"
-              {...register("eligibleApplicants")}
-            />
             <TextArea
               disabled={false}
               error={errors.mainDescription?.message || ""}

@@ -221,10 +221,12 @@ const Add = () => {
               pricelistItem.priceCurrency,
             );
           }
-          pricelistFormDataToSubmit.append(
-            "description",
-            pricelistItem.description,
-          );
+          if (pricelistItem.description) {
+            pricelistFormDataToSubmit.append(
+              "description",
+              pricelistItem.description,
+            );
+          }
           pricelistFormDataToSubmit.append("insurance", insuranceId);
 
           if (pricelistFileUploadIds[i]) {

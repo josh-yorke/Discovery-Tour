@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   RiAddLine,
-  RiArrowRightDownLine,
   RiHashtag,
   RiTimeFill,
   RiDeleteBin4Fill,
@@ -12,6 +11,7 @@ import ImageCard from "./ImageCard";
 import LinkText from "../nav/LinkText";
 import GlassTag from "../tags/GlassTag";
 import type { blogData } from "../../types/blogs/blogDataTypes";
+import { PiPawPrintFill } from "react-icons/pi";
 
 interface CardProps extends blogData {
   _id: string;
@@ -152,7 +152,7 @@ const BlogCard = ({
           className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
           onClick={handleViewClick}
         >
-          <RiArrowRightDownLine
+          <PiPawPrintFill
             className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
             size={16}
           />

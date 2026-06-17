@@ -86,7 +86,7 @@ const Add = () => {
 
     formData.append("country", data.country);
     formData.append("type", data.type || "JR-SOUTH");
-    formData.append("description", data.description);
+    formData.append("description", data.description || "");
     formData.append("title", data.title);
 
     Array.from(data.images).forEach((file: any) => {

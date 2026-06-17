@@ -218,10 +218,12 @@ const Add = () => {
               pricelistItem.fee.toString(),
             );
           }
-          pricelistFormDataToSubmit.append(
-            "description",
-            pricelistItem.description,
-          );
+          if (pricelistItem.description) {
+            pricelistFormDataToSubmit.append(
+              "description",
+              pricelistItem.description,
+            );
+          }
           pricelistFormDataToSubmit.append("railpass", railPassId);
 
           if (pricelistFileUploadIds[i]) {

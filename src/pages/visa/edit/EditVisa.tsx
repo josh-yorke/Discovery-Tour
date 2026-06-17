@@ -52,7 +52,6 @@ const EditVisa = () => {
             type={data.type}
             country={data.country}
             mainDescription={data.mainDescription}
-            eligibleApplicants={data.eligibleApplicants}
             images={images}
             id={data._id}
           />

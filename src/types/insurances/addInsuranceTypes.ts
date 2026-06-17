@@ -4,7 +4,7 @@ export const addInsuranceSchema = z.object({
   country: z.string().min(1, "Country is required"),
   insurancePartner: z.string().min(1, "Insurance partner is required"),
   title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
+  description: z.string().optional(),
   images: z
     .any()
     .refine((files) => files?.length > 0, "At least one image is required")

@@ -447,10 +447,12 @@ const Add = () => {
               pricelistItem.fee.toString(),
             );
           }
-          pricelistFormDataToSubmit.append(
-            "description",
-            pricelistItem.description,
-          );
+          if (pricelistItem.description) {
+            pricelistFormDataToSubmit.append(
+              "description",
+              pricelistItem.description,
+            );
+          }
           pricelistFormDataToSubmit.append("tour", tourId);
 
           if (pricelistFileUploadIds[i]) {

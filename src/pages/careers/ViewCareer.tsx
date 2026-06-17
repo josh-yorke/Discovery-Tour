@@ -5,9 +5,9 @@ import { deleteCareer, getCareer } from "../../hooks/careers/careers";
 import Navbar from "../../components/nav/Navbar";
 import SectionError from "../../components/error/SectionError";
 import SectionLoader from "../../components/loader/SectionLoader";
-import ImageCard from "../../components/cards/ImageCard";
 import Modal from "../../components/modal/Modal";
 import View from "../../components/careers/view/View";
+import InfiniteImageCarousel from "../../components/cards/InfiniteImageCarousel";
 
 const ViewCareer = () => {
   const { id } = useParams();
@@ -50,9 +50,9 @@ const ViewCareer = () => {
         ) : null
       ) : (
         <div className="w-full flex flex-col items-center justify-center bg-gray-100">
-          {data.images && data.images.length > 0 && (
-            <ImageCard url={data.images} style="" />
-          )}
+          <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden">
+            <InfiniteImageCarousel images={data.images} />
+          </div>
           <div className="w-full lg:w-9/10 flex flex-col p-6 gap-6">
             <View
               onDelete={() => handleDelete(data._id)}

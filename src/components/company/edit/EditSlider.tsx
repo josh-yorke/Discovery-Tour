@@ -11,6 +11,7 @@ import {
   type editCarouselData,
 } from "../../../types/company/editCompanyTypes";
 import CarouselInput from "../../input/CarouselInput";
+import Modal from "../../modal/Modal";
 
 const EditSlider = ({
   carousel,
@@ -75,30 +76,39 @@ const EditSlider = ({
   if (isLoading) return <PageLoader />;
 
   return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full lg:w-2xl min-h-[100svh] flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
-      >
-        <CarouselInput
-          title="Carousel Images"
-          disabled={false}
-          register={register}
-          setValue={setValue}
-          error={
-            typeof errors.carousel?.message === "string"
-              ? errors.carousel.message
-              : ""
-          }
-          initialFiles={carousel}
+    <>
+      <FormProvider {...methods}>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full lg:w-2xl min-h-svh flex flex-col items-center justify-start p-6 gap-6 bg-gray-100"
+        >
+          <CarouselInput
+            title="Carousel Images"
+            disabled={false}
+            register={register}
+            setValue={setValue}
+            error={
+              typeof errors.carousel?.message === "string"
+                ? errors.carousel.message
+                : ""
+            }
+            initialFiles={carousel}
+          />
+          <Button
+            isLoading={mutation.isPending}
+            title="Update Carousel"
+            style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
+          />
+        </form>
+      </FormProvider>
+      {mutation.isError && (
+        <Modal
+          success={mutation.isError}
+          action={() => navigate("/company/carousel")}
+          message={mutation.error.message}
         />
-        <Button
-          isLoading={mutation.isPending}
-          title="Update Carousel"
-          style="bg-[#1d2087] hover:bg-[#3b3eac] text-white duration-300 mt-4"
-        />
-      </form>
-    </FormProvider>
+      )}
+    </>
   );
 };
 

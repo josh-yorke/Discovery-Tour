@@ -128,7 +128,7 @@ const Edit = ({
     const formData = new FormData();
     formData.append("country", data.country);
     formData.append("type", data.type);
-    formData.append("description", data.description);
+    formData.append("description", data.description || "");
     formData.append("title", data.title);
     formData.append("category", data.category);
 

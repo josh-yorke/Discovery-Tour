@@ -219,10 +219,12 @@ const Add = () => {
             "priceCurrency",
             pricelistItem.priceCurrency,
           );
-          pricelistFormDataToSubmit.append(
-            "description",
-            pricelistItem.description,
-          );
+          if (pricelistItem.description) {
+            pricelistFormDataToSubmit.append(
+              "description",
+              pricelistItem.description,
+            );
+          }
           pricelistFormDataToSubmit.append("transport", transportId);
 
           if (pricelistFileUploadIds[i]) {

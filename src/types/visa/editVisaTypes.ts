@@ -3,14 +3,13 @@ import z from "zod";
 export const editVisaSchema = z.object({
   country: z.string().min(2, "visa country is required"),
   type: z.string().min(2, "visa type is required"),
-  mainDescription: z.string().min(2, "visa description is required"),
+  mainDescription: z.string().optional(),
   images: z
     .any()
     .refine(
       (value) => value instanceof FileList && value.length > 0,
-      "At least one image is required"
+      "At least one image is required",
     ),
-  eligibleApplicants: z.string().min(2, "specify eligible applicants"),
 });
 
 export type editVisaData = z.infer<typeof editVisaSchema>;

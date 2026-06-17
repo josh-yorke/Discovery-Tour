@@ -1,6 +1,5 @@
 import {
   RiAddLine,
-  RiArrowRightDownLine,
   RiWindow2Fill,
   RiDeleteBin4Fill,
   RiPencilFill,
@@ -13,6 +12,7 @@ import ImageCard from "./ImageCard";
 import LinkText from "../nav/LinkText";
 import GlassTag from "../tags/GlassTag";
 import { useEffect, useMemo, useState } from "react";
+import { PiPawPrintFill } from "react-icons/pi";
 
 interface CardProps {
   id: string;
@@ -192,7 +192,7 @@ const InsuranceCard = ({
           className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
           onClick={handleViewClick}
         >
-          <RiArrowRightDownLine
+          <PiPawPrintFill
             className="text-white rotate-0 group-hover:rotate-360 duration-300 ease-in-out"
             size={16}
           />

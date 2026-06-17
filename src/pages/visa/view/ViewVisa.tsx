@@ -1,15 +1,14 @@
 import { useNavigate, useParams } from "react-router";
 import Navbar from "../../../components/nav/Navbar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import ImageCard from "../../../components/cards/ImageCard";
 import { useState } from "react";
 import Modal from "../../../components/modal/Modal";
 import { getVisa } from "../../../hooks/visa/visa/getVisa";
 import View from "../../../components/visa/visa/view/View";
 import { deleteVisa } from "../../../hooks/visa/visa/deleteVisa";
-import PageHeader from "../../../components/users/PageHeader";
 import SectionError from "../../../components/error/SectionError";
 import SectionLoader from "../../../components/loader/SectionLoader";
+import InfiniteImageCarousel from "../../../components/cards/InfiniteImageCarousel";
 
 const ViewVisa = () => {
   const { id } = useParams();
@@ -51,10 +50,11 @@ const ViewVisa = () => {
           <SectionLoader />
         ) : null
       ) : (
-        <div className="w-full flex flex-col items-center justify-center bg-gray-100 px-6">
-          <PageHeader style="py-6" title="View Visa" id={data._id} />
+        <div className="w-full flex flex-col items-center justify-center bg-gray-100">
+          <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden">
+            <InfiniteImageCarousel images={data.images} />
+          </div>
           <div className="w-full lg:w-9/10 flex flex-col py-6 gap-6 bg-gray-100">
-            <ImageCard url={data.images} style="rounded-3xl" />
             <View
               country={data.country}
               type={data.type}
