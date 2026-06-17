@@ -1501,24 +1501,33 @@ const Edit = () => {
 
         for (let i = 0; i < safeDocumentData.length; i++) {
           const documentItem = safeDocumentData[i];
-          const documentFormDataToSubmit = new FormData();
-          documentFormDataToSubmit.append("type", "document");
-          documentFormDataToSubmit.append(
-            "docTitle",
-            documentItem.docTitle || "",
-          );
-          documentFormDataToSubmit.append(
-            "docDescription",
-            documentItem.docDescription || "",
-          );
-          documentFormDataToSubmit.append("visa", id);
+
+          // ✅ Create JSON object instead of FormData
+          const documentDataToSubmit: any = {
+            type: "document",
+            docTitle: documentItem.docTitle || "",
+            docDescription: documentItem.docDescription || "",
+            visa: id,
+          };
 
           if (documentFileUploadIds[i]) {
-            documentFormDataToSubmit.append(
-              "filesAssociated",
-              documentFileUploadIds[i],
+            documentDataToSubmit.filesAssociated = documentFileUploadIds[i];
+          }
+
+          // ✅ Add formattedLinksForDocument if they exist
+          if (
+            documentItem.formattedLinksForDocument &&
+            documentItem.formattedLinksForDocument.length > 0
+          ) {
+            documentDataToSubmit.formattedLinksForDocument =
+              documentItem.formattedLinksForDocument;
+            console.log(
+              "Adding formattedLinksForDocument:",
+              documentItem.formattedLinksForDocument,
             );
           }
+
+          console.log("Submitting document:", documentDataToSubmit);
 
           const hasExistingData = !!editDocumentArray[i]?._id;
           const mutation = getMutationFunction("document", hasExistingData);
@@ -1527,12 +1536,12 @@ const Edit = () => {
             submissions.push(
               (mutation as any).mutateAsync({
                 id: editDocumentArray[i]._id,
-                data: documentFormDataToSubmit,
+                data: documentDataToSubmit, // ✅ Send JSON instead of FormData
               }),
             );
           } else {
             submissions.push(
-              (mutation as any).mutateAsync(documentFormDataToSubmit),
+              (mutation as any).mutateAsync(documentDataToSubmit), // ✅ Send JSON instead of FormData
             );
           }
         }

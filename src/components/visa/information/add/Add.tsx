@@ -64,7 +64,7 @@ const Add = () => {
     mutationFn: addTerm,
   });
 
-  const documentMutation = useMutation<string, Error, FormData>({
+  const documentMutation = useMutation<string, Error, any>({
     mutationFn: addDocument,
   });
 
@@ -154,7 +154,7 @@ const Add = () => {
       const paymentFormData = await paymentFormRef.current?.getFormData();
       const termFormData = await termFormRef.current?.getFormData();
       const documentFormData = await documentFormRef.current?.getFormData();
-      const faqFormData = await faqFormRef.current?.getFormData(); // Get FAQ form data
+      const faqFormData = await faqFormRef.current?.getFormData();
 
       const allFormsEmpty = [
         pricelistFormData,
@@ -397,32 +397,34 @@ const Add = () => {
         );
         const safeDocumentData = Array.isArray(documentData)
           ? documentData
-          : [documentData];
+          : ([documentData] as any);
 
         for (let i = 0; i < safeDocumentData.length; i++) {
           const documentItem = safeDocumentData[i];
-          const documentFormDataToSubmit = new FormData();
-          documentFormDataToSubmit.append("type", "document");
-          documentFormDataToSubmit.append("docTitle", documentItem.docTitle);
-          documentFormDataToSubmit.append(
-            "docDescription",
-            documentItem.docDescription,
-          );
-          documentFormDataToSubmit.append("visa", visaId);
 
-          if (documentFileUploadIds[i]) {
-            documentFormDataToSubmit.append(
-              "filesAssociated",
-              documentFileUploadIds[i],
-            );
+          const documentDataToSubmit: any = {
+            type: "document",
+            docTitle: documentItem.docTitle,
+            docDescription: documentItem.docDescription,
+            visa: visaId,
+            filesAssociated: documentFileUploadIds[i] || "",
+          };
+
+          if (
+            documentItem.formattedLinksForDocument &&
+            documentItem.formattedLinksForDocument.length > 0
+          ) {
+            documentDataToSubmit.formattedLinksForDocument =
+              documentItem.formattedLinksForDocument;
           }
 
+          console.log("Submitting document:", documentDataToSubmit);
+
           allSubmissions.push(
-            documentMutation.mutateAsync(documentFormDataToSubmit),
+            documentMutation.mutateAsync(documentDataToSubmit),
           );
         }
       }
-
       if (faqFormData && hasFormData(faqFormData)) {
         const safeFaqData = Array.isArray(faqFormData)
           ? faqFormData
@@ -431,20 +433,33 @@ const Add = () => {
         for (let i = 0; i < safeFaqData.length; i++) {
           const faqItem = safeFaqData[i];
 
-          const faqDataToSubmit: any = {
+          const faqFormDataToSubmit = new FormData();
+          faqFormDataToSubmit.append("type", "faq");
+          faqFormDataToSubmit.append("question", faqItem.question);
+          faqFormDataToSubmit.append("answer", faqItem.answer);
+          faqFormDataToSubmit.append("visa", visaId);
+
+          // ✅ Use 'formattedLinks' for FAQs
+          if (faqItem.formattedLinks && faqItem.formattedLinks.length > 0) {
+            faqFormDataToSubmit.append(
+              "formattedLinks",
+              JSON.stringify(faqItem.formattedLinks),
+            );
+            console.log(
+              "Adding formattedLinks to FAQ:",
+              faqItem.formattedLinks,
+            );
+          }
+
+          console.log("FAQ submission data:", {
             type: "faq",
             question: faqItem.question,
             answer: faqItem.answer,
             visa: visaId,
-          };
+            formattedLinks: faqItem.formattedLinks || [],
+          });
 
-          if (faqItem.formattedLinks && faqItem.formattedLinks.length > 0) {
-            faqDataToSubmit.formattedLinks = faqItem.formattedLinks;
-          }
-
-          console.log("Submitting FAQ with data:", faqDataToSubmit);
-
-          allSubmissions.push(faqMutation.mutateAsync(faqDataToSubmit));
+          allSubmissions.push(faqMutation.mutateAsync(faqFormDataToSubmit));
         }
       }
 

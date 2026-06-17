@@ -13,6 +13,7 @@ import {
 } from "../../types/document/addDocumentType";
 import TextArea from "../input/TextArea";
 import IconButton from "../button/IconButton";
+import FormattedLinkInput from "../input/FormattedLinkInput";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 
 export interface DocumentFormHandle {
@@ -22,17 +23,24 @@ export interface DocumentFormHandle {
   } | null>;
 }
 
+interface FormattedLink {
+  title: string;
+  link: string;
+}
+
 const hasDocumentContent = (document: {
   docTitle?: string;
   docDescription?: string;
   fileTitle?: string;
   file?: FileList;
+  formattedLinks?: FormattedLink[];
 }): boolean => {
   return (
     (document.docTitle?.trim() ?? "").length > 0 ||
     (document.docDescription?.trim() ?? "").length > 0 ||
     (document.fileTitle?.trim() ?? "").length > 0 ||
-    (document.file?.length ?? 0) > 0
+    (document.file?.length ?? 0) > 0 ||
+    (document.formattedLinks?.length ?? 0) > 0
   );
 };
 
@@ -41,6 +49,17 @@ const mergedSchema = addDocumentSchema
     addVisaFileSchema.omit({ file: true, fileTitle: true }).extend({
       file: addVisaFileSchema.shape.file.optional(),
       fileTitle: z.string().optional(),
+      formattedLinksForDocument: z
+        .array(
+          z.object({
+            title: z.string().min(1, "Title is required"),
+            link: z
+              .string()
+              .url("Must be a valid URL")
+              .min(1, "URL is required"),
+          }),
+        )
+        .default([]),
     }),
   )
   .refine(
@@ -64,6 +83,7 @@ const DEFAULT_DOCUMENT: MergedSchemaType = {
   docDescription: "",
   fileTitle: "",
   file: undefined,
+  formattedLinksForDocument: [],
 };
 
 const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
@@ -117,6 +137,8 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
           documentData.push({
             docTitle: document.docTitle,
             docDescription: document.docDescription,
+            formattedLinksForDocument:
+              result.data.formattedLinksForDocument || [],
           });
 
           documentFileData.push({
@@ -292,6 +314,15 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
           />
 
           {renderFileSection(index)}
+
+          <FormattedLinkInput
+            control={control}
+            register={register}
+            errors={errors.documents?.[index]?.formattedLinksForDocument}
+            faqIndex={index}
+            fieldName="documents"
+            fieldKey="formattedLinksForDocument"
+          />
         </div>
       </div>
     );
@@ -307,7 +338,6 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
           icon={<RiAddFill size={16} />}
         />
       </div>
-
       <div className="w-full space-y-6">{fields.map(renderDocumentForm)}</div>
     </div>
   );

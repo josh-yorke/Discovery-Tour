@@ -1,5 +1,5 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { RiFolder3Fill } from "react-icons/ri";
+import { RiFolder3Fill, RiLinkM } from "react-icons/ri";
 import api from "../../../../hooks/axios/axios";
 import {
   getVisaDocuments,
@@ -15,11 +15,20 @@ interface FileData {
   __v: number;
 }
 
+interface FormattedLink {
+  title: string;
+  link: string;
+  _id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface DocumentData {
   _id: string;
   title: string;
   description: string;
   filesAssociated: string[];
+  formattedLinks?: FormattedLink[] | FormattedLink;
   visa: string;
   __v: number;
 }
@@ -68,6 +77,12 @@ const getFileUrl = (filename: string): string => {
   return `${baseURL.replace(/\/$/, "")}/api/files/${filename}`;
 };
 
+const getFormattedLinksArray = (links: any): FormattedLink[] => {
+  if (!links) return [];
+  if (Array.isArray(links)) return links;
+  return [links];
+};
+
 const Documents = ({ visaId }: DocumentsProps) => {
   const {
     data: documentsData,
@@ -106,10 +121,8 @@ const Documents = ({ visaId }: DocumentsProps) => {
   const isLoading =
     isLoadingDocuments || (documents.length > 0 && isLoadingFiles);
 
-  // Don't render anything if no visaId is provided
   if (!visaId) return null;
 
-  // Don't render anything if there are no documents (and not loading or in error state)
   if (!isLoading && !isErrorDocuments && documents.length === 0) {
     return null;
   }
@@ -158,6 +171,10 @@ const Documents = ({ visaId }: DocumentsProps) => {
               document.filesAssociated.includes(q.data?.file?._id || ""),
             );
 
+            const formattedLinks = getFormattedLinksArray(
+              document.formattedLinks,
+            );
+
             return (
               <div key={document._id} className="space-y-3 sm:space-y-4">
                 <div className="flex flex-col gap-1 sm:gap-2">
@@ -168,6 +185,26 @@ const Documents = ({ visaId }: DocumentsProps) => {
                     {document.description}
                   </pre>
                 </div>
+
+                {formattedLinks.length > 0 && (
+                  <div className="flex flex-col gap-2">
+                    <div className="w-full flex flex-row items-center justify-start gap-2 flex-wrap">
+                      {formattedLinks.map((link, index) => (
+                        <button
+                          key={link._id || index}
+                          onClick={() => window.open(link.link, "_blank")}
+                          className="flex flex-row items-center justify-center gap-1 px-4 py-2 rounded-full bg-white inset-shadow-sm shadow-black text-sm font-semibold cursor-pointer"
+                        >
+                          <RiLinkM size={16} />
+                          <span className="underline font-normal">
+                            {link.title}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="w-full border-b border-black/6" />
+                  </div>
+                )}
 
                 {document.filesAssociated.length > 0 && (
                   <div className="space-y-3 sm:space-y-4">

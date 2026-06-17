@@ -1,6 +1,6 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { useState } from "react";
-import { RiFolder3Fill, RiArrowUpSLine } from "react-icons/ri";
+import { RiFolder3Fill, RiArrowUpSLine, RiLinkM } from "react-icons/ri";
 import api from "../../../hooks/axios/axios";
 import { getVisaFile } from "../../../hooks/visa/visa/getVisa";
 import SectionLoader from "../../loader/SectionLoader";
@@ -14,16 +14,24 @@ interface FileData {
   __v: number;
 }
 
+interface FormattedLink {
+  title: string;
+  link: string;
+  _id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface DocumentData {
   _id: string;
   title: string;
   description: string;
   filesAssociated: string[];
+  formattedLinks?: FormattedLink[] | FormattedLink;
   transport: string;
   __v: number;
 }
 
-// The API returns the data directly as an array, not wrapped in a "documents" key
 type DocumentsResponse = DocumentData[];
 
 interface TransportDocumentsProps {
@@ -66,6 +74,12 @@ const getFileUrl = (filename: string): string => {
   return `${baseURL.replace(/\/$/, "")}/files/${filename}`;
 };
 
+const getFormattedLinksArray = (links: any): FormattedLink[] => {
+  if (!links) return [];
+  if (Array.isArray(links)) return links;
+  return [links];
+};
+
 const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -73,7 +87,6 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
     setIsExpanded(!isExpanded);
   };
 
-  // Only enable the query if transportId is provided
   const {
     data: documentsData,
     isLoading: isLoadingDocuments,
@@ -83,14 +96,11 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
   } = useQuery<DocumentsResponse>({
     queryKey: ["transport-documents", transportId],
     queryFn: () => getTransportDocument(transportId),
-    enabled: !!transportId, // Only run if transportId exists
+    enabled: !!transportId,
   });
 
-  // Since API returns array directly, use it as is
   const documents = documentsData || [];
 
-  // CRITICAL: Only run useQueries if we have documents with files
-  // This prevents the hook from running prematurely
   const allFileIds =
     documents.length > 0 ? documents.flatMap((doc) => doc.filesAssociated) : [];
 
@@ -98,7 +108,7 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
     queries: allFileIds.map((fileId) => ({
       queryKey: ["transport-document-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId && documents.length > 0, // Only enable if fileId exists AND we have documents
+      enabled: !!fileId && documents.length > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
@@ -114,12 +124,9 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
 
-  // Important: Only show loading if documents query is loading
-  // OR if we have documents and files are loading
   const isLoading =
     isLoadingDocuments || (documents.length > 0 && isLoadingFiles);
 
-  // Early return - don't display anything if no transportId
   if (!transportId) {
     return null;
   }
@@ -132,8 +139,6 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
     );
   }
 
-  // CRITICAL: Return null if no documents after loading
-  // This prevents the component from rendering anything when there's no data
   if (documents.length === 0) {
     return null;
   }
@@ -178,6 +183,10 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
                   document.filesAssociated.includes(q.data?.file?._id || ""),
                 );
 
+                const formattedLinks = getFormattedLinksArray(
+                  document.formattedLinks,
+                );
+
                 return (
                   <div key={document._id} className="space-y-3 sm:space-y-4">
                     <div className="flex flex-col gap-1 sm:gap-2">
@@ -188,6 +197,26 @@ const TransportDocument = ({ transportId }: TransportDocumentsProps) => {
                         {document.description}
                       </p>
                     </div>
+
+                    {formattedLinks.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <div className="w-full flex flex-row items-center justify-start gap-2 flex-wrap">
+                          {formattedLinks.map((link, index) => (
+                            <button
+                              key={link._id || index}
+                              onClick={() => window.open(link.link, "_blank")}
+                              className="flex flex-row items-center justify-center gap-1 px-4 py-2 rounded-full bg-white inset-shadow-sm shadow-black text-sm font-semibold cursor-pointer"
+                            >
+                              <RiLinkM size={16} />
+                              <span className="underline font-normal">
+                                {link.title}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="w-full border-b border-black/6" />
+                      </div>
+                    )}
 
                     {document.filesAssociated.length > 0 && (
                       <div className="space-y-3 sm:space-y-4">

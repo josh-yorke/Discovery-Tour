@@ -327,7 +327,7 @@ const useFormMutations = () => {
         updateTerm(id, data),
     }),
     document: useMutation({
-      mutationFn: ({ id, data }: { id: string; data: FormData }) =>
+      mutationFn: ({ id, data }: { id: string; data: any }) =>
         updateDocument(id, data),
     }),
     faq: useMutation({
@@ -848,6 +848,113 @@ const Edit = () => {
     [updateMutations, addMutations],
   );
 
+  const processDocumentSubmission = async (
+    formData: any,
+    fileIds: string[][],
+    setFileIds: React.Dispatch<React.SetStateAction<string[][]>>,
+    editDataArray: any[],
+  ) => {
+    if (!formData || !hasFormData(formData)) return [];
+
+    const { documentData, documentFileData } = formData;
+
+    if (
+      !documentData ||
+      (Array.isArray(documentData) && documentData.length === 0)
+    ) {
+      return [];
+    }
+
+    const safeFileData = Array.isArray(documentFileData)
+      ? documentFileData
+      : documentFileData
+        ? [documentFileData]
+        : [];
+    const safeData = Array.isArray(documentData)
+      ? documentData
+      : documentData
+        ? [documentData]
+        : [];
+
+    const fileUploadPromises: Promise<string>[] = safeData.map(async (_, i) => {
+      const fileDataItem = safeFileData[i];
+      const existingFileId = fileIds[i]?.[0] || "";
+
+      if (fileDataItem?.file && fileDataItem.file.length > 0) {
+        try {
+          return await handleFile(
+            fileDataItem.file,
+            fileDataItem.fileTitle,
+            existingFileId,
+          );
+        } catch (error) {
+          console.error("Error uploading file for document:", error);
+          return existingFileId;
+        }
+      }
+      return existingFileId;
+    });
+
+    const uploadedFileIds = await Promise.all(fileUploadPromises);
+
+    if (
+      uploadedFileIds.some((id) => id !== fileIds.map((f) => f[0]).join(""))
+    ) {
+      setFileIds(uploadedFileIds.map((fileId) => [fileId]));
+    }
+
+    const submissions = [];
+    const editArray = Array.isArray(editDataArray)
+      ? editDataArray
+      : editDataArray
+        ? [editDataArray]
+        : [];
+
+    for (let i = 0; i < safeData.length; i++) {
+      const item = safeData[i];
+      if (!item) continue;
+
+      const documentDataToSubmit: any = {
+        type: "document",
+        docTitle: item.docTitle || "",
+        docDescription: item.docDescription || "",
+        tour: id!,
+      };
+
+      if (uploadedFileIds[i]) {
+        documentDataToSubmit.filesAssociated = uploadedFileIds[i];
+      }
+
+      if (
+        item.formattedLinksForDocument &&
+        item.formattedLinksForDocument.length > 0
+      ) {
+        documentDataToSubmit.formattedLinksForDocument =
+          item.formattedLinksForDocument;
+      }
+
+      const hasExistingData = !!editArray[i]?._id;
+      const mutation = getMutationFunction("document", hasExistingData);
+
+      try {
+        if (hasExistingData) {
+          submissions.push(
+            (mutation as any).mutateAsync({
+              id: editArray[i]._id,
+              data: documentDataToSubmit,
+            }),
+          );
+        } else {
+          submissions.push((mutation as any).mutateAsync(documentDataToSubmit));
+        }
+      } catch (error) {
+        console.error("Error creating document submission:", error);
+      }
+    }
+
+    return submissions;
+  };
+
   const processFormSubmission = async (
     formData: any,
     formType: string,
@@ -855,7 +962,7 @@ const Edit = () => {
     setFileIds: React.Dispatch<React.SetStateAction<string[][]>>,
     editDataArray: any[],
   ) => {
-    if (!formData) return [];
+    if (!formData || !hasFormData(formData)) return [];
 
     const dataField = `${formType}Data`;
     const fileField = `${formType}FileData`;
@@ -929,10 +1036,6 @@ const Edit = () => {
         formDataToSubmit.append("type", "terms");
         formDataToSubmit.append("title", item.title || "");
         formDataToSubmit.append("terms", item.terms || "");
-      } else if (formType === "document") {
-        formDataToSubmit.append("type", "document");
-        formDataToSubmit.append("docTitle", item.docTitle || "");
-        formDataToSubmit.append("docDescription", item.docDescription || "");
       }
 
       if (uploadedFileIds[i]) {
@@ -982,7 +1085,6 @@ const Edit = () => {
           throw new Error("Question and answer are required");
         }
 
-        // Create object instead of FormData
         const faqData: any = {
           type: "faq",
           question: item.question,
@@ -990,12 +1092,9 @@ const Edit = () => {
           tour: id,
         };
 
-        // Add formattedLinks if they exist
         if (item.formattedLinks && item.formattedLinks.length > 0) {
           faqData.formattedLinks = item.formattedLinks;
         }
-
-        console.log("Submitting FAQ with data:", faqData);
 
         const hasExistingData = !!editArray[i]?._id;
         const mutation = getMutationFunction("faq", hasExistingData);
@@ -1015,7 +1114,6 @@ const Edit = () => {
       return submissions;
     }
 
-    // Rest of your existing code for other form types...
     const { [`${formType}Data`]: data } = formData;
     if (!data) return [];
 
@@ -1260,9 +1358,8 @@ const Edit = () => {
           setTermFileIds,
           editData.term || [],
         ),
-        processFormSubmission(
+        processDocumentSubmission(
           documentFormData,
-          "document",
           documentFileIds,
           setDocumentFileIds,
           editData.document || [],

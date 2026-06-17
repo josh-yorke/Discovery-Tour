@@ -64,7 +64,7 @@ const Add = () => {
     mutationFn: addTerm,
   });
 
-  const documentMutation = useMutation<string, Error, FormData>({
+  const documentMutation = useMutation<string, Error, any>({
     mutationFn: addDocument,
   });
 
@@ -402,24 +402,28 @@ const Add = () => {
 
         for (let i = 0; i < safeDocumentData.length; i++) {
           const documentItem = safeDocumentData[i];
-          const documentFormDataToSubmit = new FormData();
-          documentFormDataToSubmit.append("type", "document");
-          documentFormDataToSubmit.append("docTitle", documentItem.docTitle);
-          documentFormDataToSubmit.append(
-            "docDescription",
-            documentItem.docDescription,
-          );
-          documentFormDataToSubmit.append("railpass", railPassId);
+
+          const documentDataToSubmit: any = {
+            type: "document",
+            docTitle: documentItem.docTitle,
+            docDescription: documentItem.docDescription,
+            railpass: railPassId,
+          };
 
           if (documentFileUploadIds[i]) {
-            documentFormDataToSubmit.append(
-              "filesAssociated",
-              documentFileUploadIds[i],
-            );
+            documentDataToSubmit.filesAssociated = documentFileUploadIds[i];
+          }
+
+          if (
+            documentItem.formattedLinksForDocument &&
+            documentItem.formattedLinksForDocument.length > 0
+          ) {
+            documentDataToSubmit.formattedLinksForDocument =
+              documentItem.formattedLinksForDocument;
           }
 
           allSubmissions.push(
-            documentMutation.mutateAsync(documentFormDataToSubmit),
+            documentMutation.mutateAsync(documentDataToSubmit),
           );
         }
       }

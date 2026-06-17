@@ -64,7 +64,7 @@ const Add = () => {
     mutationFn: addTerm,
   });
 
-  const documentMutation = useMutation<string, Error, FormData>({
+  const documentMutation = useMutation<string, Error, any>({
     mutationFn: addDocument,
   });
 
@@ -174,7 +174,6 @@ const Add = () => {
 
       const allSubmissions = [];
 
-      // Pricelist Form Submission
       if (pricelistFormData && hasFormData(pricelistFormData)) {
         const { pricelistData, pricelistFileData } = pricelistFormData;
 
@@ -242,7 +241,6 @@ const Add = () => {
         }
       }
 
-      // Process Form Submission
       if (processFormData && hasFormData(processFormData)) {
         const { processData, processFileData } = processFormData;
 
@@ -296,7 +294,6 @@ const Add = () => {
         }
       }
 
-      // Payment Form Submission
       if (paymentFormData && hasFormData(paymentFormData)) {
         const { paymentData } = paymentFormData;
 
@@ -332,7 +329,6 @@ const Add = () => {
         }
       }
 
-      // Term Form Submission
       if (termFormData && hasFormData(termFormData)) {
         const { termData, termFileData } = termFormData;
 
@@ -377,7 +373,6 @@ const Add = () => {
         }
       }
 
-      // Document Form Submission
       if (documentFormData && hasFormData(documentFormData)) {
         const { documentData, documentFileData } = documentFormData;
 
@@ -409,24 +404,28 @@ const Add = () => {
 
         for (let i = 0; i < safeDocumentData.length; i++) {
           const documentItem = safeDocumentData[i];
-          const documentFormDataToSubmit = new FormData();
-          documentFormDataToSubmit.append("type", "document");
-          documentFormDataToSubmit.append("docTitle", documentItem.docTitle);
-          documentFormDataToSubmit.append(
-            "docDescription",
-            documentItem.docDescription,
-          );
-          documentFormDataToSubmit.append("insurance", insuranceId);
+
+          const documentDataToSubmit: any = {
+            type: "document",
+            docTitle: documentItem.docTitle,
+            docDescription: documentItem.docDescription,
+            insurance: insuranceId,
+          };
 
           if (documentFileUploadIds[i]) {
-            documentFormDataToSubmit.append(
-              "filesAssociated",
-              documentFileUploadIds[i],
-            );
+            documentDataToSubmit.filesAssociated = documentFileUploadIds[i];
+          }
+
+          if (
+            documentItem.formattedLinksForDocument &&
+            documentItem.formattedLinksForDocument.length > 0
+          ) {
+            documentDataToSubmit.formattedLinksForDocument =
+              documentItem.formattedLinksForDocument;
           }
 
           allSubmissions.push(
-            documentMutation.mutateAsync(documentFormDataToSubmit),
+            documentMutation.mutateAsync(documentDataToSubmit),
           );
         }
       }
@@ -458,7 +457,6 @@ const Add = () => {
 
       await Promise.all(allSubmissions);
 
-      // Invalidate all relevant queries
       queryClient.invalidateQueries({
         queryKey: ["insurance-pricelist"],
         exact: false,

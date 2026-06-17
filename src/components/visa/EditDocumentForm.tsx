@@ -1,17 +1,18 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { useImperativeHandle, forwardRef, useCallback, useEffect } from "react";
+import { z } from "zod";
+import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
-import EditFileInput from "../input/EditFileInput";
 import {
   type addDocumentData,
   type editDocumentData,
 } from "../../types/document/addDocumentType";
-import Input from "../input/Input";
 import type { visaFileData } from "../../types/visafile/visaFileDataTypes";
+import Input from "../input/Input";
 import TextArea from "../input/TextArea";
+import EditFileInput from "../input/EditFileInput";
 import IconButton from "../button/IconButton";
-import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
-import { z } from "zod";
+import FormattedLinkInput from "../input/FormattedLinkInput";
 
 export interface DocumentFormHandle {
   getFormData: () => Promise<{
@@ -30,17 +31,24 @@ interface DocumentFormProps {
   isDeletingDocument?: boolean;
 }
 
+interface FormattedLink {
+  title: string;
+  link: string;
+}
+
 const hasDocumentContent = (document: {
   docTitle?: string;
   docDescription?: string;
   fileTitle?: string;
   file?: FileList;
+  formattedLinks?: FormattedLink[];
 }): boolean => {
   return (
     (document.docTitle?.trim() ?? "").length > 0 ||
     (document.docDescription?.trim() ?? "").length > 0 ||
     (document.fileTitle?.trim() ?? "").length > 0 ||
-    (document.file?.length ?? 0) > 0
+    (document.file?.length ?? 0) > 0 ||
+    (document.formattedLinks?.length ?? 0) > 0
   );
 };
 
@@ -60,6 +68,14 @@ const mergedSchema = z
     docDescription: z.string().min(1, "Document description is required"),
     fileTitle: z.string().optional(),
     file: z.any().optional(),
+    formattedLinksForDocument: z
+      .array(
+        z.object({
+          title: z.string().min(1, "Title is required"),
+          link: z.string().url("Must be a valid URL").min(1, "URL is required"),
+        }),
+      )
+      .default([]),
   })
   .refine(
     (data) => {
@@ -79,6 +95,7 @@ type MergedSchemaType = {
   docDescription: string;
   fileTitle?: string;
   file?: FileList;
+  formattedLinksForDocument?: FormattedLink[];
 };
 
 type FormData = { documents: MergedSchemaType[] };
@@ -88,6 +105,7 @@ const DEFAULT_DOCUMENT: MergedSchemaType = {
   docDescription: "",
   fileTitle: "",
   file: undefined,
+  formattedLinksForDocument: [],
 };
 
 const mapEditDataToDefaultValues = (
@@ -101,6 +119,8 @@ const mapEditDataToDefaultValues = (
     docDescription: data?.description || "",
     fileTitle: data?.fileTitle || fileData[index]?.fileTitle || "",
     file: undefined,
+    formattedLinksForDocument:
+      (data as any)?.formattedLinks || data?.formattedLinksForDocument || [],
   }));
 };
 
@@ -147,7 +167,6 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       const documentData: addDocumentData[] = [];
       const documentFileData: addVisaFileData[] = [];
       let isValid = true;
-      let hasAnyCompleteData = false;
 
       clearErrors();
 
@@ -173,10 +192,11 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
           }
 
           if (hasCompleteData) {
-            hasAnyCompleteData = true;
             documentData.push({
               docTitle: document.docTitle,
               docDescription: document.docDescription,
+              formattedLinksForDocument:
+                document.formattedLinksForDocument || [],
             });
 
             documentFileData.push({
@@ -209,7 +229,7 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
         }
       });
 
-      return { isValid, documentData, documentFileData, hasAnyCompleteData };
+      return { isValid, documentData, documentFileData };
     }, [getValues, setError, clearErrors]);
 
     const addDocument = useCallback(() => {
@@ -384,10 +404,15 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       const docDescriptionError =
         errors.documents?.[index]?.docDescription?.message;
 
+      const existingLinks =
+        (editData[index] as any)?.formattedLinks ||
+        editData[index]?.formattedLinksForDocument ||
+        [];
+
       return (
         <div
           key={field.id}
-          className="w-full flex flex-col items-end justify-center"
+          className="w-full flex flex-col items-end justify-center border-b border-gray-200 pb-6 last:border-0"
         >
           {fields.length >= 1 && (
             <IconButton
@@ -421,6 +446,18 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
             />
 
             {renderFileSection(index)}
+
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <FormattedLinkInput
+                control={control}
+                register={register}
+                errors={errors.documents?.[index]?.formattedLinksForDocument}
+                faqIndex={index}
+                fieldName="documents"
+                fieldKey="formattedLinksForDocument"
+                defaultValues={existingLinks}
+              />
+            </div>
           </div>
         </div>
       );

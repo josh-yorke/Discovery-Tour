@@ -1,6 +1,7 @@
 import { useFieldArray } from "react-hook-form";
 import { RiAddLine, RiDeleteBin2Line } from "react-icons/ri";
 import Input from "./Input";
+import { useEffect } from "react";
 
 interface FormattedLinkInputProps {
   control: any;
@@ -8,6 +9,9 @@ interface FormattedLinkInputProps {
   errors: any;
   faqIndex: number;
   disabled?: boolean;
+  fieldName?: string;
+  fieldKey?: string;
+  defaultValues?: any[]; // ✅ Add this prop
 }
 
 const FormattedLinkInput = ({
@@ -16,11 +20,21 @@ const FormattedLinkInput = ({
   errors,
   faqIndex,
   disabled = false,
+  fieldName = "faqs",
+  fieldKey = "formattedLinks",
+  defaultValues = [],
 }: FormattedLinkInputProps) => {
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
-    name: `faqs.${faqIndex}.formattedLinks`,
+    name: `${fieldName}.${faqIndex}.${fieldKey}`,
   });
+
+  // ✅ Initialize with default values when they change
+  useEffect(() => {
+    if (defaultValues && defaultValues.length > 0 && fields.length === 0) {
+      replace(defaultValues);
+    }
+  }, [defaultValues, replace, fields.length]);
 
   return (
     <div className="w-full flex flex-col gap-2">
@@ -46,7 +60,9 @@ const FormattedLinkInput = ({
             title=""
             placeholder="Link Title"
             type="text"
-            {...register(`faqs.${faqIndex}.formattedLinks.${linkIndex}.title`)}
+            {...register(
+              `${fieldName}.${faqIndex}.${fieldKey}.${linkIndex}.title`,
+            )}
           />
 
           <Input
@@ -56,7 +72,9 @@ const FormattedLinkInput = ({
             title=""
             placeholder="https://example.com"
             type="url"
-            {...register(`faqs.${faqIndex}.formattedLinks.${linkIndex}.link`)}
+            {...register(
+              `${fieldName}.${faqIndex}.${fieldKey}.${linkIndex}.link`,
+            )}
           />
 
           {!disabled && (
@@ -71,10 +89,8 @@ const FormattedLinkInput = ({
         </div>
       ))}
 
-      {errors?.formattedLinks?.message && (
-        <p className="text-xs font-semibold text-red-500">
-          {errors.formattedLinks.message}
-        </p>
+      {errors?.message && (
+        <p className="text-xs font-semibold text-red-500">{errors.message}</p>
       )}
     </div>
   );
