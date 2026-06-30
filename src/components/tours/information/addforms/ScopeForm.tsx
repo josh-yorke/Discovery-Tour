@@ -19,13 +19,11 @@ export interface ScopeFormHandle {
 
 const hasScopeContent = (scope: {
   scopeCategory?: string;
-  scopeType?: string;
   scopeTitle?: string;
   scopeDescription?: string;
 }): boolean => {
   return (
     (scope.scopeCategory?.trim() ?? "").length > 0 ||
-    (scope.scopeType?.trim() ?? "").length > 0 ||
     (scope.scopeTitle?.trim() ?? "").length > 0 ||
     (scope.scopeDescription?.trim() ?? "").length > 0
   );
@@ -38,7 +36,6 @@ type FormData = { scopes: ScopeSchemaType[] };
 
 const DEFAULT_SCOPE: ScopeSchemaType = {
   scopeCategory: "",
-  scopeType: "",
   scopeTitle: "",
   scopeDescription: "",
 };
@@ -90,9 +87,8 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
         } else {
           scopeData.push({
             scopeCategory: scope.scopeCategory,
-            scopeType: scope.scopeType,
             scopeTitle: scope.scopeTitle,
-            scopeDescription: scope.scopeDescription,
+            scopeDescription: scope.scopeDescription || "",
           });
         }
       }
@@ -128,7 +124,6 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
   const renderScopeForm = (field: { id: string }, index: number) => {
     const currentScope = getValues().scopes[index];
     const hasContent = hasScopeContent(currentScope);
-    const typeError = errors.scopes?.[index]?.scopeType?.message;
     const titleError = errors.scopes?.[index]?.scopeTitle?.message;
     const descriptionError = errors.scopes?.[index]?.scopeDescription?.message;
 
@@ -147,24 +142,13 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
         )}
 
         <div className="w-full flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputOption
-              disabled={false}
-              style="bg-white w-full"
-              title="Scope Category"
-              options={["inclusion", "exclusion"]}
-              {...register(`scopes.${index}.scopeCategory` as const)}
-            />
-            <Input
-              style="bg-white"
-              disabled={false}
-              error={hasContent && typeError ? String(typeError) : ""}
-              title="Scope Type"
-              placeholder="Enter scope type (e.g., Standard, Premium, Optional)"
-              type="text"
-              {...register(`scopes.${index}.scopeType` as const)}
-            />
-          </div>
+          <InputOption
+            disabled={false}
+            style="bg-white w-full"
+            title="Scope Category"
+            options={["inclusion", "exclusion"]}
+            {...register(`scopes.${index}.scopeCategory` as const)}
+          />
 
           <Input
             style="bg-white"
@@ -181,8 +165,8 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
             error={
               hasContent && descriptionError ? String(descriptionError) : ""
             }
-            title="Scope Description"
-            placeholder="Enter detailed description of what this scope includes"
+            title="Scope Description (Optional)"
+            placeholder="Enter detailed description of what this scope includes (optional)"
             {...register(`scopes.${index}.scopeDescription` as const)}
           />
 
@@ -191,9 +175,8 @@ const ScopeForm = forwardRef<ScopeFormHandle>((_props, ref) => {
               • Scope category defines the main classification
               (Inclusions/Exclusions)
             </p>
-            <p>• Scope type indicates the level or tier of the scope</p>
             <p>• Scope title should be clear and descriptive</p>
-            <p>• Provide comprehensive details in the description</p>
+            <p>• Description is optional but recommended for clarity</p>
           </div>
         </div>
       </div>

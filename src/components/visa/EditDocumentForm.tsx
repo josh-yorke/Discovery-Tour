@@ -52,20 +52,10 @@ const hasDocumentContent = (document: {
   );
 };
 
-const hasCompleteDocument = (document: {
-  docTitle?: string;
-  docDescription?: string;
-}): boolean => {
-  return (
-    (document.docTitle?.trim() ?? "").length > 0 &&
-    (document.docDescription?.trim() ?? "").length > 0
-  );
-};
-
 const mergedSchema = z
   .object({
-    docTitle: z.string().min(1, "Document title is required"),
-    docDescription: z.string().min(1, "Document description is required"),
+    docTitle: z.string().optional(),
+    docDescription: z.string().optional(),
     fileTitle: z.string().optional(),
     file: z.any().optional(),
     formattedLinksForDocument: z
@@ -88,11 +78,29 @@ const mergedSchema = z
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
     },
+  )
+  .refine(
+    (data) => {
+      if (
+        data.formattedLinksForDocument &&
+        data.formattedLinksForDocument.length > 0
+      ) {
+        const hasValidLinks = data.formattedLinksForDocument.every(
+          (link) => link.title?.trim() && link.link?.trim(),
+        );
+        return hasValidLinks;
+      }
+      return true;
+    },
+    {
+      message: "All formatted links must have title and URL",
+      path: ["formattedLinksForDocument"],
+    },
   );
 
 type MergedSchemaType = {
-  docTitle: string;
-  docDescription: string;
+  docTitle?: string;
+  docDescription?: string;
   fileTitle?: string;
   file?: FileList;
   formattedLinksForDocument?: FormattedLink[];
@@ -173,7 +181,6 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       values.documents.forEach((document, index) => {
         const hasContent = hasDocumentContent(document);
         const hasFile = (document.file?.length ?? 0) > 0;
-        const hasCompleteData = hasCompleteDocument(document);
 
         if (hasContent) {
           const result = mergedSchema.safeParse(document);
@@ -189,12 +196,10 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
                 });
               }
             });
-          }
-
-          if (hasCompleteData) {
+          } else {
             documentData.push({
-              docTitle: document.docTitle,
-              docDescription: document.docDescription,
+              docTitle: document.docTitle || "",
+              docDescription: document.docDescription || "",
               formattedLinksForDocument:
                 document.formattedLinksForDocument || [],
             });
@@ -203,27 +208,17 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
               fileTitle: document.fileTitle || "",
               file: document.file,
             });
-          } else if (hasContent && !hasCompleteData) {
-            isValid = false;
-            if (!document.docTitle?.trim()) {
-              setError(`documents.${index}.docTitle` as any, {
-                type: "manual",
-                message: "Document title is required",
-              });
-            }
-            if (!document.docDescription?.trim()) {
-              setError(`documents.${index}.docDescription` as any, {
-                type: "manual",
-                message: "Document description is required",
-              });
-            }
           }
 
-          if (hasFile && !hasCompleteData) {
+          if (
+            hasFile &&
+            !document.docTitle?.trim() &&
+            !document.docDescription?.trim()
+          ) {
             isValid = false;
             setError(`documents.${index}.docTitle` as any, {
               type: "manual",
-              message: "Complete all fields before uploading a file",
+              message: "Title or description is required when uploading a file",
             });
           }
         }
@@ -260,10 +255,13 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
         }
 
         const currentDocument = watchDocuments?.[index];
-        if (!hasCompleteDocument(currentDocument)) {
+        if (
+          !currentDocument?.docTitle?.trim() &&
+          !currentDocument?.docDescription?.trim()
+        ) {
           setError(`documents.${index}.docTitle` as any, {
             type: "manual",
-            message: "Complete all fields before uploading a file",
+            message: "Title or description is required before uploading a file",
           });
           return;
         }
@@ -317,7 +315,6 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
       const hasContent = hasDocumentContent(currentDocument);
       const fileTitleError = errors.documents?.[index]?.fileTitle?.message;
       const fileError = errors.documents?.[index]?.file?.message;
-      const docTitleError = errors.documents?.[index]?.docTitle?.message;
 
       return (
         <div className="space-y-4">
@@ -340,13 +337,7 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
               }
             }}
             onChange={(files) => handleFileSelect(files, index)}
-            error={
-              hasContent && fileError
-                ? String(fileError)
-                : docTitleError
-                  ? String(docTitleError)
-                  : ""
-            }
+            error={hasContent && fileError ? String(fileError) : ""}
           />
 
           {hasExistingFile && currentFileData && (
@@ -389,7 +380,10 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
           )}
 
           <div className="text-xs text-gray-500">
-            <p>• Complete all fields before uploading a file</p>
+            <p>
+              • Complete at least one field (title or description) before
+              uploading a file
+            </p>
             <p>• File title is required if you upload a file</p>
             <p>• If you upload a new file, it will replace the existing one</p>
           </div>
@@ -428,8 +422,8 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
               style="bg-white"
               disabled={false}
               error={hasContent && docTitleError ? String(docTitleError) : ""}
-              title="Document Title *"
-              placeholder="Enter document title"
+              title="Document Title (Optional)"
+              placeholder="Enter document title (optional)"
               type="text"
               {...register(`documents.${index}.docTitle` as const)}
             />
@@ -440,8 +434,8 @@ const EditDocumentForm = forwardRef<DocumentFormHandle, DocumentFormProps>(
                   ? String(docDescriptionError)
                   : ""
               }
-              title="Document Description *"
-              placeholder="Enter document description"
+              title="Document Description (Optional)"
+              placeholder="Enter document description (optional)"
               {...register(`documents.${index}.docDescription` as const)}
             />
 

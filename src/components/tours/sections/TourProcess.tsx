@@ -114,33 +114,31 @@ const TourProcesses = ({ tourId }: TourProcessesProps) => {
     enabled: !!tourId,
   });
 
-  // Don't render anything if no tourId is provided
-  if (!tourId) return null;
-
-  // Show loader if main query is loading
-  if (isLoadingProcesses) return <SectionLoader />;
-
-  // Show error if main query failed
-  if (isErrorProcesses)
-    return (
-      <SectionError error={processesError?.message} action={refetchProcesses} />
-    );
-
-  // After loading and error checks, if no data, return null
-  if (!processes || processes.length === 0) {
-    return null;
-  }
-
-  const allFileIds = processes.flatMap((process) => process.filesAssociated);
+  const allFileIds = processes
+    ? processes.flatMap((process) => process.filesAssociated)
+    : [];
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
       queryKey: ["tour-process-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId,
+      enabled: !!fileId && !!tourId && !!processes && processes.length > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
+
+  if (!tourId) return null;
+
+  if (isLoadingProcesses) return <SectionLoader />;
+
+  if (isErrorProcesses)
+    return (
+      <SectionError error={processesError?.message} action={refetchProcesses} />
+    );
+
+  if (!processes || processes.length === 0) {
+    return null;
+  }
 
   const filesMap = fileQueries.reduce(
     (acc, query) => {
@@ -153,7 +151,6 @@ const TourProcesses = ({ tourId }: TourProcessesProps) => {
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
 
-  // Show loader if files are still loading
   if (isLoadingFiles) return <SectionLoader />;
 
   return (
@@ -167,9 +164,6 @@ const TourProcesses = ({ tourId }: TourProcessesProps) => {
             <div className="flex flex-col">
               <p className="text-base md:text-lg font-semibold text-black uppercase">
                 Tour Process
-              </p>
-              <p className="text-xs font-normal text-gray-600">
-                Step-by-step guide for tour booking and preparation
               </p>
             </div>
           </div>

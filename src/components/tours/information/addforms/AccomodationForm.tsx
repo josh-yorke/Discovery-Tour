@@ -98,7 +98,6 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
           });
         }
 
-        // Always push the data, even if validation fails
         accommodationData.push({
           accommodationName: accommodation.accommodationName || "",
           accommodationDescription:
@@ -260,9 +259,8 @@ const AccommodationForm = forwardRef<AccommodationFormHandle>((_props, ref) => {
           <TextArea
             disabled={false}
             error={descriptionError ? String(descriptionError) : ""}
-            title="Accommodation Description *"
-            placeholder="Enter detailed description of the accommodation including amenities, location, and features"
-            required
+            title="Accommodation Description (Optional)"
+            placeholder="Enter detailed description of the accommodation including amenities, location, and features (optional)"
             {...register(
               `accommodations.${index}.accommodationDescription` as const,
             )}

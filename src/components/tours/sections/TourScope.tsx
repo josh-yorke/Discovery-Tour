@@ -4,6 +4,7 @@ import {
   RiCheckboxCircleFill,
   RiArrowUpSLine,
   RiCloseCircleFill,
+  RiListCheck2,
 } from "react-icons/ri";
 import SectionLoader from "../../loader/SectionLoader";
 import SectionError from "../../error/SectionError";
@@ -13,7 +14,6 @@ interface ScopeData {
   _id: string;
   tour: string;
   scopeCategory: "inclusion" | "exclusion";
-  scopeType: string;
   scopeTitle: string;
   scopeDescription: string;
   dateAdded: string;
@@ -57,20 +57,16 @@ const TourScope = ({ tourId }: TourScopeProps) => {
     enabled: !!tourId,
   });
 
-  // Don't render anything if no tourId is provided
   if (!tourId) return null;
 
-  // Show loader if main query is loading
   if (isLoading) return <SectionLoader />;
 
-  // Show error if main query failed
   if (isError) return <SectionError error={error?.message} action={refetch} />;
 
   const sortedScopes = [...(scopes || [])].sort(
     (a, b) => new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime(),
   );
 
-  // After loading and error checks, if no data, return null
   if (sortedScopes.length === 0) {
     return null;
   }
@@ -88,14 +84,11 @@ const TourScope = ({ tourId }: TourScopeProps) => {
         <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-              <RiCheckboxCircleFill size={20} className="text-white" />
+              <RiListCheck2 size={20} className="text-white" />
             </div>
             <div className="flex flex-col">
               <p className="text-base md:text-lg font-semibold text-black uppercase">
                 Tour Scope
-              </p>
-              <p className="text-xs font-normal text-gray-600">
-                What's included and excluded in this tour
               </p>
             </div>
           </div>

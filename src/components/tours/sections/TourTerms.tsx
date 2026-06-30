@@ -114,31 +114,27 @@ const TourTerms = ({ tourId }: TourTermsProps) => {
     enabled: !!tourId,
   });
 
-  // Don't render anything if no tourId is provided
-  if (!tourId) return null;
-
-  // Show loader if main query is loading
-  if (isLoadingTerms) return <SectionLoader />;
-
-  // Show error if main query failed
-  if (isErrorTerms)
-    return <SectionError error={termsError?.message} action={refetchTerms} />;
-
-  // After loading and error checks, if no data, return null
-  if (!terms || terms.length === 0) {
-    return null;
-  }
-
-  const allFileIds = terms.flatMap((term) => term.filesAssociated);
+  const allFileIds = terms ? terms.flatMap((term) => term.filesAssociated) : [];
 
   const fileQueries = useQueries({
     queries: allFileIds.map((fileId) => ({
       queryKey: ["tour-term-file", fileId],
       queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId,
+      enabled: !!fileId && !!tourId && !!terms && terms.length > 0,
       staleTime: 5 * 60 * 1000,
     })),
   });
+
+  if (!tourId) return null;
+
+  if (isLoadingTerms) return <SectionLoader />;
+
+  if (isErrorTerms)
+    return <SectionError error={termsError?.message} action={refetchTerms} />;
+
+  if (!terms || terms.length === 0) {
+    return null;
+  }
 
   const filesMap = fileQueries.reduce(
     (acc, query) => {
@@ -151,7 +147,6 @@ const TourTerms = ({ tourId }: TourTermsProps) => {
   const isLoadingFiles = fileQueries.some((q) => q.isLoading && !q.isError);
   const isErrorFiles = fileQueries.some((q) => q.isError);
 
-  // Show loader if files are still loading
   if (isLoadingFiles) return <SectionLoader />;
 
   return (
@@ -165,9 +160,6 @@ const TourTerms = ({ tourId }: TourTermsProps) => {
             <div className="flex flex-col">
               <p className="text-base md:text-lg font-semibold text-black uppercase">
                 Terms and Conditions
-              </p>
-              <p className="text-xs font-normal text-gray-600">
-                Important terms and conditions for tour booking
               </p>
             </div>
           </div>

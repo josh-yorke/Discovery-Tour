@@ -438,6 +438,18 @@ const hasFormData = (formData: any): boolean => {
     Array.isArray(formData[fieldName]) &&
     formData[fieldName].length > 0;
 
+  const hasDocumentData = (() => {
+    if (!formData.documentData || !Array.isArray(formData.documentData))
+      return false;
+    return formData.documentData.some((doc: any) => {
+      const hasTitle = doc.docTitle?.trim()?.length > 0;
+      const hasDescription = doc.docDescription?.trim()?.length > 0;
+      const hasFile = doc.file?.length > 0;
+      const hasLinks = doc.formattedLinksForDocument?.length > 0;
+      return hasTitle || hasDescription || hasFile || hasLinks;
+    });
+  })();
+
   return (
     checkData("accommodationData") ||
     checkData("cityData") ||
@@ -447,7 +459,7 @@ const hasFormData = (formData: any): boolean => {
     checkData("processData") ||
     checkData("paymentData") ||
     checkData("termData") ||
-    checkData("documentData")
+    hasDocumentData
   );
 };
 
@@ -916,10 +928,16 @@ const Edit = () => {
 
       const documentDataToSubmit: any = {
         type: "document",
-        docTitle: item.docTitle || "",
-        docDescription: item.docDescription || "",
         tour: id!,
       };
+
+      if (item.docTitle && item.docTitle.trim()) {
+        documentDataToSubmit.docTitle = item.docTitle;
+      }
+
+      if (item.docDescription && item.docDescription.trim()) {
+        documentDataToSubmit.docDescription = item.docDescription;
+      }
 
       if (uploadedFileIds[i]) {
         documentDataToSubmit.filesAssociated = uploadedFileIds[i];
@@ -1159,22 +1177,19 @@ const Edit = () => {
 
         switch (formType) {
           case "accommodation":
-            if (
-              !item.accommodationName?.trim() ||
-              !item.accommodationDescription?.trim()
-            ) {
-              throw new Error(
-                "Accommodation name and description are required",
-              );
+            if (!item.accommodationName?.trim()) {
+              throw new Error("Accommodation name is required");
             }
             formDataToSubmit.append(
               "accommodationName",
               item.accommodationName || "",
             );
-            formDataToSubmit.append(
-              "accommodationDescription",
-              item.accommodationDescription || "",
-            );
+            if (item.accommodationDescription?.trim()) {
+              formDataToSubmit.append(
+                "accommodationDescription",
+                item.accommodationDescription,
+              );
+            }
             formDataToSubmit.append(
               "accommodationStar",
               item.accommodationStar || "",
@@ -1194,19 +1209,19 @@ const Edit = () => {
               });
             }
             break;
-
           case "city":
             formDataToSubmit.append("city", item.city || "");
             break;
 
           case "scope":
             formDataToSubmit.append("scopeCategory", item.scopeCategory || "");
-            formDataToSubmit.append("scopeType", item.scopeType || "");
             formDataToSubmit.append("scopeTitle", item.scopeTitle || "");
-            formDataToSubmit.append(
-              "scopeDescription",
-              item.scopeDescription || "",
-            );
+            if (item.scopeDescription?.trim()) {
+              formDataToSubmit.append(
+                "scopeDescription",
+                item.scopeDescription,
+              );
+            }
             break;
 
           case "payment":

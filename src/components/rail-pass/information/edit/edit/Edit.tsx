@@ -1002,10 +1002,16 @@ const Edit = () => {
 
       const documentDataToSubmit: any = {
         type: "document",
-        docTitle: item.docTitle || "",
-        docDescription: item.docDescription || "",
         railpass: id!,
       };
+
+      if (item.docTitle && item.docTitle.trim()) {
+        documentDataToSubmit.docTitle = item.docTitle;
+      }
+
+      if (item.docDescription && item.docDescription.trim()) {
+        documentDataToSubmit.docDescription = item.docDescription;
+      }
 
       if (uploadedFileIds[i]) {
         documentDataToSubmit.filesAssociated = uploadedFileIds[i];

@@ -199,9 +199,6 @@ const TourPricelists = ({ tourId }: TourPricelistsProps) => {
               <p className="text-base md:text-lg font-semibold text-black uppercase">
                 Tour Packages
               </p>
-              <p className="text-xs font-normal text-gray-600">
-                Available packages and pricing for this tour
-              </p>
             </div>
           </div>
           <RiArrowUpSLine

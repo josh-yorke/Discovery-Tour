@@ -409,10 +409,19 @@ const Add = () => {
 
           const documentDataToSubmit: any = {
             type: "document",
-            docTitle: documentItem.docTitle,
-            docDescription: documentItem.docDescription,
             insurance: insuranceId,
           };
+
+          if (documentItem.docTitle && documentItem.docTitle.trim()) {
+            documentDataToSubmit.docTitle = documentItem.docTitle;
+          }
+
+          if (
+            documentItem.docDescription &&
+            documentItem.docDescription.trim()
+          ) {
+            documentDataToSubmit.docDescription = documentItem.docDescription;
+          }
 
           if (documentFileUploadIds[i]) {
             documentDataToSubmit.filesAssociated = documentFileUploadIds[i];

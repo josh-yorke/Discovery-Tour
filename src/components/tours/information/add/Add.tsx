@@ -272,12 +272,6 @@ const Add = () => {
             return;
           }
 
-          if (!accommodationItem.accommodationDescription?.trim()) {
-            alert("Accommodation description is required.");
-            setIsSubmitting(false);
-            return;
-          }
-
           const accommodationFormDataToSubmit = new FormData();
 
           accommodationFormDataToSubmit.append("type", "tour-accommodation");
@@ -285,10 +279,12 @@ const Add = () => {
             "accommodationName",
             accommodationItem.accommodationName,
           );
-          accommodationFormDataToSubmit.append(
-            "accommodationDescription",
-            accommodationItem.accommodationDescription,
-          );
+          if (accommodationItem.accommodationDescription?.trim()) {
+            accommodationFormDataToSubmit.append(
+              "accommodationDescription",
+              accommodationItem.accommodationDescription,
+            );
+          }
           accommodationFormDataToSubmit.append(
             "accommodationStar",
             accommodationItem.accommodationStar || "",
@@ -343,18 +339,19 @@ const Add = () => {
             "scopeCategory",
             scopeItem.scopeCategory,
           );
-          scopeFormDataToSubmit.append("scopeType", scopeItem.scopeType);
           scopeFormDataToSubmit.append("scopeTitle", scopeItem.scopeTitle);
-          scopeFormDataToSubmit.append(
-            "scopeDescription",
-            scopeItem.scopeDescription,
-          );
+
+          if (scopeItem.scopeDescription?.trim()) {
+            scopeFormDataToSubmit.append(
+              "scopeDescription",
+              scopeItem.scopeDescription,
+            );
+          }
           scopeFormDataToSubmit.append("tour", tourId);
 
           allSubmissions.push(scopeMutation.mutateAsync(scopeFormDataToSubmit));
         }
       }
-
       if (itineraryFormData && hasFormData(itineraryFormData)) {
         const { itineraryData } = itineraryFormData;
         const safeItineraryData = Array.isArray(itineraryData)
@@ -635,10 +632,19 @@ const Add = () => {
 
           const documentDataToSubmit: any = {
             type: "document",
-            docTitle: documentItem.docTitle,
-            docDescription: documentItem.docDescription,
             tour: tourId,
           };
+
+          if (documentItem.docTitle && documentItem.docTitle.trim()) {
+            documentDataToSubmit.docTitle = documentItem.docTitle;
+          }
+
+          if (
+            documentItem.docDescription &&
+            documentItem.docDescription.trim()
+          ) {
+            documentDataToSubmit.docDescription = documentItem.docDescription;
+          }
 
           if (documentFileUploadIds[i]) {
             documentDataToSubmit.filesAssociated = documentFileUploadIds[i];

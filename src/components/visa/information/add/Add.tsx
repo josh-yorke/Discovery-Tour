@@ -406,11 +406,22 @@ const Add = () => {
 
           const documentDataToSubmit: any = {
             type: "document",
-            docTitle: documentItem.docTitle,
-            docDescription: documentItem.docDescription,
             visa: visaId,
             filesAssociated: documentFileUploadIds[i] || "",
           };
+
+          // Only include docTitle if it has value (optional field)
+          if (documentItem.docTitle && documentItem.docTitle.trim()) {
+            documentDataToSubmit.docTitle = documentItem.docTitle;
+          }
+
+          // Only include docDescription if it has value (optional field)
+          if (
+            documentItem.docDescription &&
+            documentItem.docDescription.trim()
+          ) {
+            documentDataToSubmit.docDescription = documentItem.docDescription;
+          }
 
           if (
             documentItem.formattedLinksForDocument &&

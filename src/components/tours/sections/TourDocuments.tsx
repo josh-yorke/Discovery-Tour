@@ -97,6 +97,19 @@ const TourDocuments = ({ tourId }: TourDocumentsProps) => {
     enabled: !!tourId,
   });
 
+  const allFileIds = documents
+    ? documents.flatMap((doc) => doc.filesAssociated)
+    : [];
+
+  const fileQueries = useQueries({
+    queries: allFileIds.map((fileId) => ({
+      queryKey: ["tour-document-file", fileId],
+      queryFn: () => getVisaFile(fileId),
+      enabled: !!fileId && !!tourId && !!documents && documents.length > 0,
+      staleTime: 5 * 60 * 1000,
+    })),
+  });
+
   if (!tourId) return null;
 
   if (isLoadingDocuments) return <SectionLoader />;
@@ -109,17 +122,6 @@ const TourDocuments = ({ tourId }: TourDocumentsProps) => {
   if (!documents || documents.length === 0) {
     return null;
   }
-
-  const allFileIds = documents.flatMap((doc) => doc.filesAssociated);
-
-  const fileQueries = useQueries({
-    queries: allFileIds.map((fileId) => ({
-      queryKey: ["tour-document-file", fileId],
-      queryFn: () => getVisaFile(fileId),
-      enabled: !!fileId,
-      staleTime: 5 * 60 * 1000,
-    })),
-  });
 
   const filesMap = fileQueries.reduce(
     (acc, query) => {
@@ -145,9 +147,6 @@ const TourDocuments = ({ tourId }: TourDocumentsProps) => {
             <div className="flex flex-col">
               <p className="text-base md:text-lg font-semibold text-black uppercase">
                 Required Documents
-              </p>
-              <p className="text-xs font-normal text-gray-600">
-                All necessary documents for tour booking and participation
               </p>
             </div>
           </div>

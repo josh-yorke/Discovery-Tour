@@ -1506,10 +1506,19 @@ const Edit = () => {
 
           const documentDataToSubmit: any = {
             type: "document",
-            docTitle: documentItem.docTitle || "",
-            docDescription: documentItem.docDescription || "",
             visa: id,
           };
+
+          if (documentItem.docTitle && documentItem.docTitle.trim()) {
+            documentDataToSubmit.docTitle = documentItem.docTitle;
+          }
+
+          if (
+            documentItem.docDescription &&
+            documentItem.docDescription.trim()
+          ) {
+            documentDataToSubmit.docDescription = documentItem.docDescription;
+          }
 
           if (documentFileUploadIds[i]) {
             documentDataToSubmit.filesAssociated = documentFileUploadIds[i];
@@ -1536,12 +1545,12 @@ const Edit = () => {
             submissions.push(
               (mutation as any).mutateAsync({
                 id: editDocumentArray[i]._id,
-                data: documentDataToSubmit, // ✅ Send JSON instead of FormData
+                data: documentDataToSubmit,
               }),
             );
           } else {
             submissions.push(
-              (mutation as any).mutateAsync(documentDataToSubmit), // ✅ Send JSON instead of FormData
+              (mutation as any).mutateAsync(documentDataToSubmit),
             );
           }
         }

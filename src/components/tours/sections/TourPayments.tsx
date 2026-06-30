@@ -99,9 +99,6 @@ const TourPayments = ({ tourId }: TourPaymentsProps) => {
               <p className="text-base md:text-lg font-semibold text-black uppercase">
                 Payment Information
               </p>
-              <p className="text-xs font-normal text-gray-600">
-                Bank account details for tour payment
-              </p>
             </div>
           </div>
           <RiArrowUpSLine

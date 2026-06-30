@@ -154,16 +154,13 @@ const ConversionRates = () => {
 
   return (
     <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
-      <div className="w-full flex items-start gap-3">
+      <div className="w-full flex items-center gap-3">
         <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
           <RiMoneyDollarCircleFill size={20} className="text-white" />
         </div>
         <div className="flex flex-col">
           <p className="text-sm md:text-base font-semibold text-black uppercase">
             Currency Conversion Rates
-          </p>
-          <p className="text-xs font-normal text-gray-600">
-            Real-time exchange rates
           </p>
         </div>
       </div>

@@ -37,7 +37,6 @@ const Edit = ({
   country,
   type,
   mainDescription,
-  category,
   tags,
   images,
   mainLocationImages,
@@ -57,7 +56,6 @@ const Edit = ({
       country,
       type,
       mainDescription,
-      category,
       tags,
       images,
       mainLocationImages,
@@ -142,7 +140,6 @@ const Edit = ({
     formData.append("type", data.type);
     formData.append("title", data.title);
     formData.append("mainDescription", data.mainDescription || "");
-    formData.append("category", data.category);
     formData.append("mainLocationName", data.mainLocationName);
     formData.append("mainLocationDescription", data.mainLocationDescription);
 
@@ -178,7 +175,6 @@ const Edit = ({
   }, [tourTypesQuery.data]);
 
   const currentCountry = watch("country");
-  const currentCategory = watch("category");
 
   return (
     <>
@@ -218,15 +214,6 @@ const Edit = ({
                   No tour types available for this country
                 </p>
               )}
-
-            <InputOption
-              disabled={false}
-              style="bg-white w-full"
-              title="Category"
-              options={["international", "domestic"]}
-              value={currentCategory || ""}
-              {...register("category")}
-            />
 
             <Input
               style="bg-white"

@@ -41,14 +41,16 @@ const NAV_ITEMS = [
     label: "type",
     icon: <RiInformationFill size={20} />,
   },
-  { id: "documents", label: "Documents", icon: <RiFolder3Fill size={20} /> },
-  { id: "processes", label: "Processes", icon: <RiTimer2Fill size={20} /> },
   {
     id: "pricelists",
     label: "Pricelists",
     icon: <FaFileInvoiceDollar size={20} />,
   },
+  { id: "processes", label: "Processes", icon: <RiTimer2Fill size={20} /> },
   { id: "terms", label: "Terms", icon: <RiLayoutRight2Fill size={20} /> },
+
+  { id: "documents", label: "Documents", icon: <RiFolder3Fill size={20} /> },
+
   { id: "faqs", label: "FAQs", icon: <RiQuestionFill size={20} /> },
   {
     id: "conversion-rates",
@@ -198,13 +200,13 @@ const View = ({ _id, mainDescription, onDelete, country, type }: ViewProps) => {
           </div>,
         )}
 
-      {sectionData.documents &&
-        renderSection("documents", <Documents visaId={_id} />)}
-      {sectionData.processes &&
-        renderSection("processes", <Processes visaId={_id} />)}
       {sectionData.pricelists &&
         renderSection("pricelists", <Pricelists visaId={_id} />)}
+      {sectionData.processes &&
+        renderSection("processes", <Processes visaId={_id} />)}
       {sectionData.terms && renderSection("terms", <Terms visaId={_id} />)}
+      {sectionData.documents &&
+        renderSection("documents", <Documents visaId={_id} />)}
       {sectionData.faqs &&
         renderSection("faqs", <Faqs idType="visaId" id={_id} />)}
       {sectionData.conversionRates &&

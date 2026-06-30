@@ -24,54 +24,34 @@ interface ScopeFormProps {
   isDeletingScope?: boolean;
 }
 
-// Helper functions similar to pricelist form
 const hasScopeContent = (scope: {
   scopeCategory?: string;
-  scopeType?: string;
   scopeTitle?: string;
   scopeDescription?: string;
 }): boolean => {
   return (
     (scope.scopeCategory?.trim() ?? "").length > 0 ||
-    (scope.scopeType?.trim() ?? "").length > 0 ||
     (scope.scopeTitle?.trim() ?? "").length > 0 ||
-    (scope.scopeDescription?.trim() ?? "").length > 0
-  );
-};
-
-const hasCompleteScope = (scope: {
-  scopeCategory?: string;
-  scopeType?: string;
-  scopeTitle?: string;
-  scopeDescription?: string;
-}): boolean => {
-  return (
-    (scope.scopeCategory?.trim() ?? "").length > 0 &&
-    (scope.scopeType?.trim() ?? "").length > 0 &&
-    (scope.scopeTitle?.trim() ?? "").length > 0 &&
     (scope.scopeDescription?.trim() ?? "").length > 0
   );
 };
 
 const scopeSchema = z.object({
   scopeCategory: z.string().min(1, "Scope category is required"),
-  scopeType: z.string().min(1, "Scope type is required"),
   scopeTitle: z.string().min(1, "Scope title is required"),
-  scopeDescription: z.string().min(1, "Scope description is required"),
+  scopeDescription: z.string().optional(),
 });
 
 type ScopeSchemaType = {
   scopeCategory: string;
-  scopeType: string;
   scopeTitle: string;
-  scopeDescription: string;
+  scopeDescription?: string;
 };
 
 type FormData = { scopes: ScopeSchemaType[] };
 
 const DEFAULT_SCOPE: ScopeSchemaType = {
   scopeCategory: "",
-  scopeType: "",
   scopeTitle: "",
   scopeDescription: "",
 };
@@ -83,7 +63,6 @@ const mapEditDataToDefaultValues = (
 
   return editData.map((data) => ({
     scopeCategory: data?.scopeCategory || "",
-    scopeType: data?.scopeType || "",
     scopeTitle: data?.scopeTitle || "",
     scopeDescription: data?.scopeDescription || "",
   }));
@@ -117,15 +96,12 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
       const values = getValues();
       const scopeData: addScopeData[] = [];
       let isValid = true;
-      let hasAnyCompleteData = false;
 
       clearErrors();
 
       values.scopes.forEach((scope, index) => {
         const hasContent = hasScopeContent(scope);
-        const hasCompleteData = hasCompleteScope(scope);
 
-        // If there's any content at all, validate it
         if (hasContent) {
           const result = scopeSchema.safeParse(scope);
 
@@ -140,76 +116,17 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
                 });
               }
             });
-          }
-
-          // Only add to data array if it's complete
-          if (hasCompleteData) {
-            hasAnyCompleteData = true;
+          } else {
             scopeData.push({
               scopeCategory: scope.scopeCategory,
-              scopeType: scope.scopeType,
               scopeTitle: scope.scopeTitle,
-              scopeDescription: scope.scopeDescription,
+              scopeDescription: scope.scopeDescription || "",
             });
-          } else if (hasContent && !hasCompleteData) {
-            // If there's content but it's incomplete, show validation errors
-            isValid = false;
-            if (!scope.scopeCategory?.trim()) {
-              setError(`scopes.${index}.scopeCategory` as any, {
-                type: "manual",
-                message: "Scope category is required",
-              });
-            }
-            if (!scope.scopeType?.trim()) {
-              setError(`scopes.${index}.scopeType` as any, {
-                type: "manual",
-                message: "Scope type is required",
-              });
-            }
-            if (!scope.scopeTitle?.trim()) {
-              setError(`scopes.${index}.scopeTitle` as any, {
-                type: "manual",
-                message: "Scope title is required",
-              });
-            }
-            if (!scope.scopeDescription?.trim()) {
-              setError(`scopes.${index}.scopeDescription` as any, {
-                type: "manual",
-                message: "Scope description is required",
-              });
-            }
           }
         }
       });
 
-      // Additional check: if there's at least one scope with content but none are complete
-      const anyScopeHasContent = values.scopes.some((scope) =>
-        hasScopeContent(scope),
-      );
-      if (anyScopeHasContent && !hasAnyCompleteData) {
-        isValid = false;
-        // Find the first incomplete scope and highlight its error
-        const firstIncompleteIndex = values.scopes.findIndex(
-          (scope) => hasScopeContent(scope) && !hasCompleteScope(scope),
-        );
-        if (firstIncompleteIndex >= 0) {
-          const incompleteScope = values.scopes[firstIncompleteIndex];
-          if (!incompleteScope.scopeCategory?.trim()) {
-            setError(`scopes.${firstIncompleteIndex}.scopeCategory` as any, {
-              type: "manual",
-              message: "Scope category is required",
-            });
-          }
-          if (!incompleteScope.scopeType?.trim()) {
-            setError(`scopes.${firstIncompleteIndex}.scopeType` as any, {
-              type: "manual",
-              message: "Scope type is required",
-            });
-          }
-        }
-      }
-
-      return { isValid, scopeData, hasAnyCompleteData };
+      return { isValid, scopeData };
     }, [getValues, setError, clearErrors]);
 
     const addScope = useCallback(() => {
@@ -233,26 +150,8 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
       getFormData: async () => {
         const { isValid, scopeData } = validateAndGetFormData();
 
-        // Only return null if there are validation errors
-        if (!isValid) {
+        if (!isValid || scopeData.length === 0) {
           return null;
-        }
-
-        // Return data even if arrays are empty (form is valid but has no complete data)
-        // But in this case, we should check if we have any data to submit
-        if (scopeData.length === 0) {
-          // If user has entered any content but it's incomplete, don't submit
-          const values = getValues();
-          const anyScopeHasContent = values.scopes.some((scope) =>
-            hasScopeContent(scope),
-          );
-          if (anyScopeHasContent) {
-            // Show an alert or handle the case where there's partial data
-            console.log("Partial scope data exists but is incomplete");
-            return null;
-          }
-          // If no content at all, it's valid but empty
-          return { scopeData: [] };
         }
 
         return { scopeData };
@@ -265,8 +164,6 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
     const renderScopeForm = (field: { id: string }, index: number) => {
       const currentScope = watchScopes?.[index];
       const hasContent = hasScopeContent(currentScope);
-      // const categoryError = errors.scopes?.[index]?.scopeCategory?.message;
-      const typeError = errors.scopes?.[index]?.scopeType?.message;
       const titleError = errors.scopes?.[index]?.scopeTitle?.message;
       const descriptionError =
         errors.scopes?.[index]?.scopeDescription?.message;
@@ -286,30 +183,19 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
           )}
 
           <div className="w-full flex flex-col gap-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputOption
-                disabled={false}
-                style="bg-white w-full"
-                title="Scope Category"
-                options={["inclusion", "exclusion"]}
-                {...register(`scopes.${index}.scopeCategory` as const)}
-              />
-              <Input
-                style="bg-white"
-                disabled={false}
-                error={hasContent && typeError ? String(typeError) : ""}
-                title="Scope Type *"
-                placeholder="Enter scope type (e.g., Standard, Premium, Optional)"
-                type="text"
-                {...register(`scopes.${index}.scopeType` as const)}
-              />
-            </div>
+            <InputOption
+              disabled={false}
+              style="bg-white w-full"
+              title="Scope Category"
+              options={["inclusion", "exclusion"]}
+              {...register(`scopes.${index}.scopeCategory` as const)}
+            />
 
             <Input
               style="bg-white"
               disabled={false}
               error={hasContent && titleError ? String(titleError) : ""}
-              title="Scope Title *"
+              title="Scope Title"
               placeholder="Enter scope title (e.g., Transportation, Meals, Activities)"
               type="text"
               {...register(`scopes.${index}.scopeTitle` as const)}
@@ -320,27 +206,18 @@ const EditScopeForm = forwardRef<ScopeFormHandle, ScopeFormProps>(
               error={
                 hasContent && descriptionError ? String(descriptionError) : ""
               }
-              title="Scope Description *"
-              placeholder="Enter detailed description of what this scope includes"
+              title="Scope Description (Optional)"
+              placeholder="Enter detailed description of what this scope includes (optional)"
               {...register(`scopes.${index}.scopeDescription` as const)}
             />
 
             <div className="text-xs text-gray-500">
               <p>
-                • <strong>Scope category</strong> defines the main
-                classification (Inclusions/Exclusions/Requirements)
+                • Scope category defines the main classification
+                (Inclusions/Exclusions)
               </p>
-              <p>
-                • <strong>Scope type</strong> indicates the level or tier of the
-                scope
-              </p>
-              <p>
-                • <strong>Scope title</strong> should be clear and descriptive
-              </p>
-              <p>
-                • <strong>Provide comprehensive details</strong> in the
-                description
-              </p>
+              <p>• Scope title should be clear and descriptive</p>
+              <p>• Description is optional but recommended for clarity</p>
             </div>
           </div>
         </div>

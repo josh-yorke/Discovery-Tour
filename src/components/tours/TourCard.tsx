@@ -1,11 +1,5 @@
 import { useNavigate } from "react-router";
-import {
-  RiAddLine,
-  RiHashtag,
-  RiDeleteBin4Fill,
-  RiPencilFill,
-  RiMapPin2Fill,
-} from "react-icons/ri";
+import { RiDeleteBin4Fill, RiPencilFill, RiMapPin2Fill } from "react-icons/ri";
 import IconButton from "../button/IconButton";
 import ImageCard from "../cards/ImageCard";
 import LinkText from "../nav/LinkText";
@@ -14,6 +8,7 @@ import { PiPawPrintFill } from "react-icons/pi";
 import { getTourPricelist } from "../../hooks/visa/pricelist/getPriceList";
 import { getTourCities } from "../../hooks/visa/document/getDocument";
 import { FaFileInvoiceDollar } from "react-icons/fa";
+import GlassTag from "../tags/GlassTag";
 
 interface CardProps {
   id: string;
@@ -52,18 +47,9 @@ const currencySymbols: Record<string, string> = {
   GBP: "£",
 };
 
-const TourCard = ({
-  onDelete,
-  id,
-  images,
-  tags = [],
-  title,
-  type,
-}: CardProps) => {
+const TourCard = ({ onDelete, id, images, title, type }: CardProps) => {
   const navigate = useNavigate();
-  const [windowWidth, setWindowWidth] = useState<number>(
-    typeof window !== "undefined" ? window.innerWidth : 1024,
-  );
+
   const [priceList, setPriceList] = useState<PriceItem[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [showData, setShowData] = useState(false);
@@ -94,27 +80,6 @@ const TourCard = ({
     if (cities.length === 1) return cities[0];
     return `${cities.length} cities`;
   }, [cities]);
-
-  const displayTags = useMemo(() => {
-    if (!tags.length) return { visibleTags: [], overflowCount: 0 };
-
-    let maxVisibleTags = 2;
-
-    if (windowWidth >= 1024) {
-      maxVisibleTags = 3;
-    } else if (windowWidth >= 640) {
-      maxVisibleTags = 2;
-    }
-
-    const visibleTags = tags.slice(0, maxVisibleTags);
-    const overflowCount = Math.max(0, tags.length - maxVisibleTags);
-
-    return { visibleTags, overflowCount };
-  }, [tags, windowWidth]);
-
-  const truncateTag = (tag: string) => {
-    return tag.length <= 10 ? tag : tag.substring(0, 10) + "...";
-  };
 
   useEffect(() => {
     let mounted = true;
@@ -147,8 +112,6 @@ const TourCard = ({
       try {
         const data = await getTourPricelist(id);
         if (mounted) {
-          // getTourPricelist returns the data directly from res.data.data
-          // If it returns an array directly, use it; if it has a pricelists property, use that
           const priceData = Array.isArray(data) ? data : data?.pricelists || [];
           setPriceList(priceData);
           setShowData(true);
@@ -164,19 +127,6 @@ const TourCard = ({
       mounted = false;
     };
   }, [id]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    handleResize();
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   if (!showData) return null;
 
@@ -199,39 +149,10 @@ const TourCard = ({
         </div>
 
         <div className="absolute top-4 right-4 z-10">
-          <div className="flex px-4 py-2 rounded-lg items-center justify-start text-white bg-black/30 backdrop-blur-sm">
-            <p className="text-xs font-normal">{type.tourType}</p>
-          </div>
+          <GlassTag text={type.tourType} style="" icon />
         </div>
 
         <ImageCard url={images} style="" />
-
-        {tags.length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 z-10">
-            <div className="w-full flex flex-row gap-2 flex-wrap">
-              {displayTags.visibleTags.map((tag: string, index: number) => (
-                <div
-                  key={`${tag}-${index}`}
-                  className="flex flex-row gap-1 items-center justify-center px-3 py-1.5 rounded-full backdrop-blur-sm bg-white/20"
-                >
-                  <RiHashtag size={12} color="white" className="shrink-0" />
-                  <p className="text-xs font-medium text-white">
-                    {truncateTag(tag)}
-                  </p>
-                </div>
-              ))}
-
-              {displayTags.overflowCount > 0 && (
-                <div className="flex flex-row items-center justify-center px-3 py-1.5 rounded-full backdrop-blur-sm bg-white/20">
-                  <RiAddLine size={12} color="white" />
-                  <p className="text-xs font-medium text-white ml-1">
-                    {displayTags.overflowCount.toString()}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="flex flex-row flex-1 items-center justify-between px-2">

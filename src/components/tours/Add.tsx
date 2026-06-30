@@ -115,7 +115,6 @@ const Add = () => {
     formData.append("type", data.type);
     formData.append("title", data.title);
     formData.append("mainDescription", data.mainDescription || "");
-    formData.append("category", data.category);
     formData.append("mainLocationName", data.mainLocationName);
     formData.append("mainLocationDescription", data.mainLocationDescription);
 
@@ -183,14 +182,6 @@ const Add = () => {
                 No tour types available for this country
               </p>
             )}
-
-            <InputOption
-              disabled={false}
-              style="bg-white w-full"
-              title="Category"
-              options={["international", "domestic"]}
-              {...register("category")}
-            />
 
             <Input
               style="bg-white"

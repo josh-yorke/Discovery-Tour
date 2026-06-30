@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  RiHotelLine,
   RiArrowUpSLine,
   RiStarFill,
   RiStarLine,
@@ -17,6 +16,7 @@ import {
   RiNumber8,
   RiNumber9,
   RiCheckboxCircleFill,
+  RiBuildingFill,
 } from "react-icons/ri";
 import { getAccommodation } from "../../../hooks/tours/accomodation/accomodation";
 import SectionError from "../../error/SectionError";
@@ -86,20 +86,16 @@ const TourAccommodation = ({ tourId }: TourAccommodationProps) => {
     enabled: !!tourId,
   });
 
-  // Don't render anything if no tourId is provided
   if (!tourId) return null;
 
-  // Show loader if main query is loading
   if (isLoading) return <SectionLoader />;
 
-  // Show error if main query failed
   if (isError) return <SectionError error={error?.message} action={refetch} />;
 
   const sortedAccommodations = [...(accommodations || [])].sort(
     (a, b) => new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime(),
   );
 
-  // After loading and error checks, if no data, return null
   if (sortedAccommodations.length === 0) {
     return null;
   }
@@ -113,15 +109,12 @@ const TourAccommodation = ({ tourId }: TourAccommodationProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`p-2 ${primaryGradient} rounded-full`}>
-                <RiHotelLine size={20} className="text-white" />
+                <RiBuildingFill size={20} className="text-white" />
               </div>
               <div>
                 <h2 className="text-base md:text-lg font-semibold text-black uppercase">
                   Accommodation
                 </h2>
-                <p className="text-xs text-gray-600">
-                  Hotels and lodging for this tour
-                </p>
               </div>
             </div>
             <RiArrowUpSLine

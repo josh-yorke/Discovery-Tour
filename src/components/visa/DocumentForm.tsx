@@ -73,6 +73,24 @@ const mergedSchema = addDocumentSchema
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
     },
+  )
+  .refine(
+    (data) => {
+      if (
+        data.formattedLinksForDocument &&
+        data.formattedLinksForDocument.length > 0
+      ) {
+        const hasValidLinks = data.formattedLinksForDocument.every(
+          (link) => link.title?.trim() && link.link?.trim(),
+        );
+        return hasValidLinks;
+      }
+      return true;
+    },
+    {
+      message: "All formatted links must have title and URL",
+      path: ["formattedLinksForDocument"],
+    },
   );
 
 type MergedSchemaType = z.infer<typeof mergedSchema>;
@@ -135,8 +153,8 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
           });
         } else {
           documentData.push({
-            docTitle: document.docTitle,
-            docDescription: document.docDescription,
+            docTitle: document.docTitle || "",
+            docDescription: document.docDescription || "",
             formattedLinksForDocument:
               result.data.formattedLinksForDocument || [],
           });
@@ -296,7 +314,7 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
             style="bg-white"
             disabled={false}
             error={hasContent && docTitleError ? String(docTitleError) : ""}
-            title="Document Title"
+            title="Document Title (Optional)"
             placeholder="Enter document title (e.g., Visa Application Form, Requirements Checklist)"
             type="text"
             {...register(`documents.${index}.docTitle` as const)}
@@ -308,7 +326,7 @@ const DocumentForm = forwardRef<DocumentFormHandle>((_props, ref) => {
                 ? String(docDescriptionError)
                 : ""
             }
-            title="Document Description"
+            title="Document Description (Optional)"
             placeholder="Enter detailed document description and instructions"
             {...register(`documents.${index}.docDescription` as const)}
           />

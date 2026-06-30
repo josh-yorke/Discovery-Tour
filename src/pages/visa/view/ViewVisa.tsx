@@ -54,7 +54,7 @@ const ViewVisa = () => {
           <div className="relative aspect-5/6 md:aspect-8/3 w-full overflow-hidden">
             <InfiniteImageCarousel images={data.images} />
           </div>
-          <div className="w-full lg:w-9/10 flex flex-col py-6 gap-6 bg-gray-100">
+          <div className="w-full lg:w-9/10 flex flex-col py-6 gap-6 bg-gray-100 px-6">
             <View
               country={data.country}
               type={data.type}

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
-  RiCalendarCheckFill,
   RiArrowUpSLine,
   RiMapPinLine,
   RiHotelLine,
@@ -27,6 +26,7 @@ import {
   RiKnifeLine,
   RiCupLine,
   RiCakeLine,
+  RiCalendarTodoFill,
 } from "react-icons/ri";
 import { getItinerary } from "../../../hooks/tours/itinerary/itinerary";
 import SectionLoader from "../../loader/SectionLoader";
@@ -177,15 +177,12 @@ const TourItinerary = ({ tourId }: TourItineraryProps) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className={`p-2 ${primaryGradient} rounded-full`}>
-              <RiCalendarCheckFill size={20} className="text-white" />
+              <RiCalendarTodoFill size={20} className="text-white" />
             </div>
             <div>
               <h2 className="text-base md:text-lg font-semibold text-black uppercase">
                 Tour Itinerary
               </h2>
-              <p className="text-xs text-gray-600">
-                Daily schedule and activities for this tour
-              </p>
             </div>
           </div>
           <RiArrowUpSLine

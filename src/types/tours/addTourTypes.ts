@@ -11,7 +11,6 @@ export const addTourSchema = z.object({
       "At least one image is required",
     ),
   mainDescription: z.string().optional(),
-  category: z.string().min(2, "category is required"),
   mainLocationImages: z
     .any()
     .refine(

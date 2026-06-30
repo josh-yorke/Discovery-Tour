@@ -60,7 +60,6 @@ const EditTour = () => {
             country={data.country}
             type={data?.typeV2._id}
             tags={data.tags}
-            category={data.category}
             mainLocationName={data.mainLocationName}
             mainLocationDescription={data.mainLocationDescription}
           />

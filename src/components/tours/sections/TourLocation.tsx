@@ -7,7 +7,7 @@ import {
 import type { tourData } from "../../../types/tours/tourDataTypes";
 import { useState } from "react";
 import TitleText from "../../cards/TitleText";
-import Tags from "../../tags/Tags";
+
 import IconButton from "../../button/IconButton";
 import { useNavigate } from "react-router";
 import InfiniteImageCarousel from "../../cards/InfiniteImageCarousel";
@@ -18,41 +18,29 @@ interface Props extends tourData {
 
 const TourLocation = ({
   _id,
-  tags,
+
   mainDescription,
   title,
   mainLocationImages,
   mainLocationName,
-  mainLocationDescription,
   typeV2,
   onDelete,
 }: Props) => {
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = useState(true);
   const [isTourExpanded, setIsTourExpanded] = useState(true);
-
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
 
   const toggleTourExpand = () => {
     setIsTourExpanded(!isTourExpanded);
   };
 
   const hasMainDescription = mainDescription && mainDescription.trim() !== "";
-  const hasMainLocationDescription =
-    mainLocationDescription && mainLocationDescription.trim() !== "";
 
   return (
     <>
       <div className="w-full flex flex-col gap-6">
         <div className="w-full flex flex-col items-start justify-center gap-2">
           <TitleText style="text-[#1d2087]" title={title} />
-          <div className="w-full flex flex-wrap gap-2">
-            {tags.map((tag: string) => (
-              <Tags key={tag} title={tag} />
-            ))}
-          </div>
+
           <div className="w-full flex flex-row gap-2">
             <IconButton
               style="px-3 py-2 rounded-full bg-gray-200"
@@ -103,9 +91,6 @@ const TourLocation = ({
                   <p className="text-base md:text-lg font-semibold text-black uppercase">
                     About this Tour
                   </p>
-                  <p className="text-xs font-normal text-gray-600">
-                    Overview and main description
-                  </p>
                 </div>
               </div>
               <RiArrowUpSLine
@@ -123,44 +108,6 @@ const TourLocation = ({
                 <div className="w-full pt-2">
                   <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
                     {mainDescription}
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {hasMainLocationDescription && (
-          <div className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4">
-            <div className="w-full flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-                  <RiInformationFill size={20} className="text-white" />
-                </div>
-                <div className="flex flex-col">
-                  <p className="text-base md:text-lg font-semibold text-black uppercase">
-                    About {mainLocationName}
-                  </p>
-                  <p className="text-xs font-normal text-gray-600">
-                    Learn more about this destination
-                  </p>
-                </div>
-              </div>
-              <RiArrowUpSLine
-                size={24}
-                className={`cursor-pointer transition-transform duration-300 text-[#1d2087] ${
-                  isExpanded ? "rotate-180" : ""
-                }`}
-                onClick={toggleExpand}
-              />
-            </div>
-
-            {isExpanded && (
-              <>
-                <div className="w-full border-b border-black/6" />
-                <div className="w-full pt-2">
-                  <p className="text-sm font-normal text-gray-600 whitespace-pre-line">
-                    {mainLocationDescription}
                   </p>
                 </div>
               </>
