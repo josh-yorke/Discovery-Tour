@@ -9,7 +9,7 @@ interface TagProps {
 const GlassTag = ({ style, icon, text }: TagProps) => {
   return (
     <div
-      className={`${style} px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm text-white`}
+      className={`${style} px-4 py-2 rounded-full bg-black/40 backdrop-blur-sm text-white`}
     >
       {icon ?? icon}
       <p className="text-xs font-normal">{text}</p>

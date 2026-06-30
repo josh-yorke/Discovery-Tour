@@ -3,11 +3,11 @@ import {
   RiLayoutRight2Fill,
   RiMoneyCnyCircleFill,
   RiQuestionFill,
-  RiShoppingBasketFill,
   RiTimer2Fill,
   RiArrowDownSLine,
 } from "react-icons/ri";
 import { useState } from "react";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 export type FormType =
   | "pricelist"
@@ -28,7 +28,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
   const tabs = [
     {
       id: "pricelist" as const,
-      icon: RiShoppingBasketFill,
+      icon: FaFileInvoiceDollar,
       label: "Pricelist",
       description: "Pricing",
     },

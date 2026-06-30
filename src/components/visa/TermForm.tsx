@@ -51,6 +51,18 @@ const mergedSchema = addTermSchema
       message: "File title is required when a file is uploaded",
       path: ["fileTitle"],
     },
+  )
+  .refine(
+    (data) => {
+      if (hasTermContent(data)) {
+        return data.title?.trim().length >= 2;
+      }
+      return true;
+    },
+    {
+      message: "Term title is required when adding content",
+      path: ["title"],
+    },
   );
 
 type MergedSchemaType = z.infer<typeof mergedSchema>;

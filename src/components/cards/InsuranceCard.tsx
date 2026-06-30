@@ -1,40 +1,71 @@
 import {
-  RiAddLine,
-  RiWindow2Fill,
+  RiBuildingLine,
+  RiCalendarLine,
+  RiBuilding2Fill,
   RiDeleteBin4Fill,
   RiPencilFill,
-  RiBuildingLine,
-  RiMapPinLine,
-  RiCalendarLine,
 } from "react-icons/ri";
 import IconButton from "../button/IconButton";
 import ImageCard from "./ImageCard";
 import LinkText from "../nav/LinkText";
 import GlassTag from "../tags/GlassTag";
 import { useEffect, useMemo, useState } from "react";
+import { getInsurancePricelist } from "../../hooks/visa/pricelist/getPriceList";
 import { PiPawPrintFill } from "react-icons/pi";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface CardProps {
   id: string;
   title: string;
-  description: string;
   country: string;
-  insurancePartner: any | null;
+  insurancePartner: string | null;
   images: string[];
   onDelete: () => void;
   dateAdded: string;
   countryV2?: {
+    _id: string;
     country: string;
+    savedAt: string;
+    __v: number;
   } | null;
   insurancePartnerV2?: {
-    name?: string;
+    _id: string;
+    partnerName: string;
+    type: string;
+    logoImage: string;
+    websiteUrl: string;
+    dateAdded: string;
+    __v: number;
   } | null;
 }
+
+interface PriceItem {
+  _id: string;
+  plan: string;
+  fee: number;
+  description: string;
+  priceCurrency?: string;
+  currency?: string;
+  filesAssociated: string[];
+  insuranceId: string;
+  dateAdded: string;
+  __v: number;
+}
+
+const currencySymbols: Record<string, string> = {
+  USD: "$",
+  KRW: "₩",
+  JPY: "¥",
+  PHP: "₱",
+  EUR: "€",
+  GBP: "£",
+  AED: "د.إ",
+  SAR: "﷼",
+};
 
 const InsuranceCard = ({
   id,
   title,
-  description,
   images,
   country,
   insurancePartner,
@@ -43,53 +74,64 @@ const InsuranceCard = ({
   onDelete,
   dateAdded,
 }: CardProps) => {
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1024,
-  );
+  const [priceList, setPriceList] = useState<PriceItem[]>([]);
+  const [showData, setShowData] = useState(false);
 
   const displayCountry = countryV2?.country || country;
-  const displayPartner = insurancePartnerV2 || insurancePartner;
+  const displayPartner =
+    insurancePartnerV2?.partnerName || insurancePartner || "No partner";
 
-  const tags = useMemo(() => {
-    const tagArray = [];
-    if (displayCountry) tagArray.push(displayCountry);
-    if (displayPartner?.name) tagArray.push(displayPartner.name);
-    return tagArray;
-  }, [displayCountry, displayPartner]);
-
-  const displayTags = useMemo(() => {
-    if (!tags.length) return { visibleTags: [], overflowCount: 0 };
-
-    let maxVisibleTags = 2;
-
-    if (windowWidth >= 1024) {
-      maxVisibleTags = 3;
-    } else if (windowWidth >= 640) {
-      maxVisibleTags = 2;
+  const priceDisplay = useMemo(() => {
+    if (priceList.length === 0) {
+      return "Flexible";
     }
 
-    const visibleTags = tags.slice(0, maxVisibleTags);
-    const overflowCount = Math.max(0, tags.length - maxVisibleTags);
+    const minPriceItem = priceList.reduce((min, item) =>
+      item.fee < min.fee ? item : min,
+    );
 
-    return { visibleTags, overflowCount };
-  }, [tags, windowWidth]);
+    const minPrice = minPriceItem.fee;
+    const currency =
+      minPriceItem.priceCurrency || minPriceItem.currency || "USD";
+    const symbol = currencySymbols[currency] || currency;
 
-  const truncateTag = (tag: string) => {
-    return tag.length <= 10 ? tag : tag.substring(0, 10) + "...";
-  };
+    if (minPrice === 0 || minPrice < 0.01) {
+      return "Flexible";
+    }
+
+    return `from ${symbol}${minPrice.toLocaleString()}`;
+  }, [priceList]);
+
+  const formatDate = useMemo(() => {
+    return new Date(dateAdded).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }, [dateAdded]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    let mounted = true;
 
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
+    const fetchPriceList = async () => {
+      try {
+        const data = await getInsurancePricelist(id);
+        if (mounted) {
+          const priceData = Array.isArray(data) ? data : data?.pricelists || [];
+          setPriceList(priceData);
+          setShowData(true);
+        }
+      } catch (error) {
+        if (mounted) setShowData(true);
+      }
     };
 
-    handleResize();
-    window.addEventListener("resize", handleResize);
+    fetchPriceList();
 
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
   const handleEditClick = () => {
     window.location.href = `/insurance/edit/${id}`;
@@ -99,11 +141,7 @@ const InsuranceCard = ({
     window.location.href = `/insurance/view/${id}`;
   };
 
-  const formattedDate = new Date(dateAdded).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  if (!showData) return null;
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -125,7 +163,7 @@ const InsuranceCard = ({
 
         <div className="absolute top-4 right-4 z-10">
           <GlassTag
-            text={formattedDate}
+            text={formatDate}
             style="flex flex-row gap-1 items-center justify-center"
             icon={<RiCalendarLine size={12} color="white" />}
           />
@@ -133,46 +171,15 @@ const InsuranceCard = ({
 
         <ImageCard url={images} style="" />
 
-        {tags.length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 z-10">
-            <div className="w-full flex flex-row gap-2 flex-wrap">
-              {displayTags.visibleTags.map((tag: string, index: number) => {
-                // Choose icon based on tag type
-                const isCountry = tag === displayCountry;
-                return (
-                  <GlassTag
-                    key={`${tag}-${index}`}
-                    icon={
-                      isCountry ? (
-                        <RiMapPinLine
-                          size={12}
-                          color="white"
-                          className="shrink-0"
-                        />
-                      ) : (
-                        <RiBuildingLine
-                          size={12}
-                          color="white"
-                          className="shrink-0"
-                        />
-                      )
-                    }
-                    text={truncateTag(tag)}
-                    style="flex flex-row gap-1 items-center justify-center"
-                  />
-                );
-              })}
-
-              {displayTags.overflowCount > 0 && (
-                <GlassTag
-                  icon={<RiAddLine size={12} color="white" />}
-                  text={displayTags.overflowCount.toString()}
-                  style="flex flex-row items-center justify-center"
-                />
-              )}
-            </div>
+        <div className="absolute bottom-4 left-4 right-4 z-10">
+          <div className="w-full flex flex-row gap-2 flex-wrap">
+            <GlassTag
+              text={displayCountry}
+              style="flex flex-row gap-1 items-center justify-center"
+              icon={<RiBuildingLine size={12} color="white" />}
+            />
           </div>
-        )}
+        </div>
       </div>
 
       <div className="flex flex-row flex-1 items-center justify-between px-2">
@@ -180,14 +187,23 @@ const InsuranceCard = ({
           <LinkText
             title={title}
             url={`/insurance/view/${id}`}
-            style="w-full font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
+            style="font-bold text-[#1d2087] hover:text-[#1d2088] truncate"
           />
-          <div className="w-full flex items-center gap-1">
-            <RiWindow2Fill className="text-[#1d2087] shrink-0" size={16} />
-            <p className="text-xs font-normal truncate">{description}</p>
+          <div className="w-full flex flex-row items-center justify-start gap-2">
+            <div className="flex items-center justify-center gap-1 min-w-0">
+              <RiBuilding2Fill className="text-[#1d2087] shrink-0" size={16} />
+              <p className="text-xs font-normal truncate">{displayPartner}</p>
+            </div>
+            <div className="border h-full border-l border-black/60"></div>
+            <div className="flex items-center justify-center gap-1">
+              <FaFileInvoiceDollar
+                className="text-[#1d2087] shrink-0"
+                size={16}
+              />
+              <p className="text-xs font-normal truncate">{priceDisplay}</p>
+            </div>
           </div>
         </div>
-
         <div
           className="p-3 rounded-full bg-linear-to-br from-[#1d2087] to-[#393ca3] group cursor-pointer hover:scale-105 transition-transform duration-300"
           onClick={handleViewClick}

@@ -1,9 +1,4 @@
-import {
-  RiCarFill,
-  RiMoneyDollarCircleFill,
-  RiDeleteBin4Fill,
-  RiPencilFill,
-} from "react-icons/ri";
+import { RiCarFill, RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
 import { useQuery } from "@tanstack/react-query";
 import IconButton from "../button/IconButton";
 import ImageCard from "./ImageCard";
@@ -11,6 +6,7 @@ import LinkText from "../nav/LinkText";
 import GlassTag from "../tags/GlassTag";
 import { getTransportPricelists } from "../../hooks/visa/visa/getVisa";
 import { PiPawPrintFill } from "react-icons/pi";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface CardProps {
   _id: string;
@@ -31,7 +27,6 @@ interface PriceItem {
   currency?: string;
 }
 
-// Currency symbol mapping
 const currencySymbols: Record<string, string> = {
   USD: "$",
   KRW: "₩",
@@ -57,7 +52,6 @@ const TransportationCard = ({
         return { lowestPrice: null, currency: null };
       }
 
-      // Filter valid price items
       const validPriceItems = data.pricelists
         .filter(
           (item: PriceItem) =>
@@ -69,7 +63,6 @@ const TransportationCard = ({
         return { lowestPrice: null, currency: null };
       }
 
-      // Get the minimum price item
       const minPriceItem = validPriceItems.reduce(
         (min: PriceItem, item: PriceItem) =>
           parseFloat(item.fee.toString()) < parseFloat(min.fee.toString())
@@ -78,8 +71,6 @@ const TransportationCard = ({
       );
 
       const lowestPrice = parseFloat(minPriceItem.fee.toString());
-
-      // Get currency from the price item (handle both priceCurrency and currency fields)
       const currency =
         minPriceItem.priceCurrency || minPriceItem.currency || "USD";
 
@@ -96,9 +87,7 @@ const TransportationCard = ({
 
     if (!priceData || priceData.lowestPrice === null) {
       return (
-        <span className="text-xs font-semibold text-black/60">
-          No price available
-        </span>
+        <span className="text-xs font-semibold text-black/60">Flexible</span>
       );
     }
 
@@ -106,7 +95,7 @@ const TransportationCard = ({
 
     return (
       <span className="text-xs font-semibold text-black/60">
-        as low as {symbol}
+        from {symbol}
         {priceData.lowestPrice.toLocaleString()}
       </span>
     );
@@ -153,19 +142,19 @@ const TransportationCard = ({
             style="font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
           />
           <div className="w-full flex flex-row items-center justify-start gap-2">
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiMoneyDollarCircleFill
+            <div className="flex items-center gap-1">
+              <RiCarFill className="text-[#1d2087] shrink-0" size={16} />
+              <p className="text-xs font-normal truncate">{country}</p>
+            </div>
+            <div className="border h-full border-l border-black/60"></div>
+            <div className="flex items-center gap-1">
+              <FaFileInvoiceDollar
                 className="text-[#1d2087] shrink-0"
                 size={16}
               />
               <p className="text-xs font-normal truncate">
                 {renderPriceText()}
               </p>
-            </div>
-            <div className="border h-full border-l border-black/60"></div>
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiCarFill className="text-[#1d2087] shrink-0" size={16} />
-              <p className="text-xs font-normal truncate">{country}</p>
             </div>
           </div>
         </div>

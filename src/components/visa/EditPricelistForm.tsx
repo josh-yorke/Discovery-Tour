@@ -5,7 +5,6 @@ import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
 import { type addPricelistData } from "../../types/pricelist/addPricelistTypes";
 import Input from "../input/Input";
 import TextArea from "../input/TextArea";
-import EditFileInput from "../input/EditFileInput";
 import InputOption from "../input/InputOption";
 import type { editPricelistData } from "../../types/pricelist/pricelistDataTypes";
 import type { visaFileData } from "../../types/visafile/visaFileDataTypes";
@@ -104,10 +103,6 @@ const DEFAULT_PRICE_LIST: MergedSchemaType = {
   file: undefined,
 };
 
-const getCleanFileTitle = (title: string): string => {
-  return title?.replace(/^pricelist\s*-\s*/i, "") || "";
-};
-
 const mapEditDataToDefaultValues = (
   editData: editPricelistData[],
   fileData: visaFileData[],
@@ -128,12 +123,11 @@ const mapEditDataToDefaultValues = (
 };
 
 const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
-  ({ editData = [], fileData = [], onDeleteFile, onDeletePricelist }, ref) => {
+  ({ editData = [], fileData = [], onDeletePricelist }, ref) => {
     const {
       register,
       control,
       formState: { errors },
-      setValue,
       watch,
       getValues,
       clearErrors,
@@ -246,49 +240,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
       [remove, editData, onDeletePricelist, clearErrors],
     );
 
-    const handleFileSelect = useCallback(
-      (files: FileList | null, index: number) => {
-        if (!files || files.length === 0) {
-          setValue(`pricelists.${index}.file`, undefined);
-          setValue(`pricelists.${index}.fileTitle`, "");
-          clearErrors(`pricelists.${index}.fileTitle` as any);
-          clearErrors(`pricelists.${index}.file` as any);
-          return;
-        }
-
-        const currentPricelist = watchPricelists?.[index];
-        if (!hasCompletePricelist(currentPricelist)) {
-          setError(`pricelists.${index}.plan` as any, {
-            type: "manual",
-            message: "Complete all required fields before uploading a file",
-          });
-          return;
-        }
-
-        setValue(`pricelists.${index}.file`, files);
-
-        const currentFileTitle = watchPricelists?.[index]?.fileTitle;
-        if (!currentFileTitle) {
-          const fileName = files[0].name.split(".").slice(0, -1).join(".");
-          setValue(`pricelists.${index}.fileTitle`, fileName);
-        }
-
-        clearErrors(`pricelists.${index}.fileTitle` as any);
-        clearErrors(`pricelists.${index}.file` as any);
-      },
-      [setValue, watchPricelists, clearErrors, setError],
-    );
-
-    const handleClearFile = useCallback(
-      (index: number) => {
-        setValue(`pricelists.${index}.file`, undefined);
-        setValue(`pricelists.${index}.fileTitle`, "");
-        clearErrors(`pricelists.${index}.fileTitle` as any);
-        clearErrors(`pricelists.${index}.file` as any);
-      },
-      [setValue, clearErrors],
-    );
-
     useImperativeHandle(ref, () => ({
       getFormData: async () => {
         const { isValid, pricelistData, pricelistFileData } =
@@ -308,89 +259,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
         remove(index);
       },
     }));
-
-    const renderFileSection = (index: number) => {
-      const hasExistingFile =
-        fileData[index]?._id && !watchPricelists?.[index]?.file;
-      const hasNewFile = !!watchPricelists?.[index]?.file;
-      const currentFileData = fileData[index];
-      const currentPricelist = watchPricelists?.[index];
-      const hasContent = hasPricelistContent(currentPricelist);
-      const fileTitleError = errors.pricelists?.[index]?.fileTitle?.message;
-      const fileError = errors.pricelists?.[index]?.file?.message;
-      const planError = errors.pricelists?.[index]?.plan?.message;
-
-      return (
-        <div className="space-y-4">
-          <Input
-            style="bg-white"
-            disabled={false}
-            error={hasContent && fileTitleError ? String(fileTitleError) : ""}
-            title="Pricelist File Title"
-            placeholder="Enter pricelist file title"
-            type="text"
-            {...register(`pricelists.${index}.fileTitle` as const)}
-          />
-
-          <EditFileInput
-            title="Upload Pricelist File"
-            disabled={false}
-            setValue={(fieldName, value) => {
-              if (fieldName === "file") {
-                handleFileSelect(value as FileList, index);
-              }
-            }}
-            onChange={(files) => handleFileSelect(files, index)}
-            error={
-              hasContent && fileError
-                ? String(fileError)
-                : planError
-                  ? String(planError)
-                  : ""
-            }
-          />
-
-          {hasExistingFile && currentFileData && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex flex-row items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-900">
-                    Current File:
-                  </p>
-                  <p className="text-sm text-red-700 mt-1">
-                    {getCleanFileTitle(currentFileData.fileTitle)}
-                  </p>
-                </div>
-                <IconButton
-                  action={() => onDeleteFile?.(index, currentFileData._id!)}
-                  style="bg-red-600 hover:bg-red-500 text-xs text-white duration-300 px-4 py-3 rounded-lg"
-                  title=""
-                  icon={<RiDeleteBin4Fill size={16} />}
-                />
-              </div>
-            </div>
-          )}
-
-          {hasNewFile && watchPricelists[index]?.file && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-700 font-medium">
-                New file selected: {watchPricelists[index].file![0].name}
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                This will be uploaded as a new file.
-              </p>
-              <button
-                type="button"
-                onClick={() => handleClearFile(index)}
-                className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-              >
-                Clear selection
-              </button>
-            </div>
-          )}
-        </div>
-      );
-    };
 
     const renderPricelistForm = (field: { id: string }, index: number) => {
       const currentPricelist = watchPricelists?.[index];
@@ -457,8 +325,6 @@ const EditPricelistForm = forwardRef<PricelistFormHandle, PricelistFormProps>(
               placeholder="Enter detailed description of what this plan includes (optional)"
               {...register(`pricelists.${index}.description` as const)}
             />
-
-            {renderFileSection(index)}
           </div>
         </div>
       );

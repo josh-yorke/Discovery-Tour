@@ -1,19 +1,12 @@
-import {
-  RiMoneyDollarCircleFill,
-  RiClockwiseFill,
-  RiDeleteBin4Fill,
-  RiPencilFill,
-} from "react-icons/ri";
+import { RiSearch2Fill, RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
 import IconButton from "../../button/IconButton";
 import ImageCard from "../../cards/ImageCard";
 import LinkText from "../../nav/LinkText";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getVisaPricelists,
-  getVisaProcesses,
-} from "../../../hooks/visa/visa/getVisa";
+import { getVisaPricelists } from "../../../hooks/visa/visa/getVisa";
 import { PiPawPrintFill } from "react-icons/pi";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface CardProps {
   mainDescription: string;
@@ -47,12 +40,6 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
     enabled: !!id,
   });
 
-  const { data: processData, isLoading: isProcessLoading } = useQuery({
-    queryKey: ["visaProcesses", id],
-    queryFn: () => getVisaProcesses(id),
-    enabled: !!id,
-  });
-
   const { minPrice, currency, hasPriceData } = useMemo(() => {
     if (isPriceLoading || !priceData) {
       return { minPrice: null, currency: null, hasPriceData: false };
@@ -63,7 +50,6 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
       priceData.pricelists &&
       Array.isArray(priceData.pricelists)
     ) {
-      // Filter valid price items
       const validPriceItems = priceData.pricelists
         .filter(
           (item: PriceItem) =>
@@ -75,7 +61,6 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
         return { minPrice: null, currency: null, hasPriceData: false };
       }
 
-      // Get the minimum price item
       const minPriceItem = validPriceItems.reduce(
         (min: PriceItem, item: PriceItem) =>
           parseFloat(item.fee.toString()) < parseFloat(min.fee.toString())
@@ -84,8 +69,6 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
       );
 
       const min = parseFloat(minPriceItem.fee.toString());
-
-      // Get currency from the price item (handle both priceCurrency and currency fields)
       const currencyCode =
         minPriceItem.priceCurrency || minPriceItem.currency || "USD";
 
@@ -99,22 +82,6 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
     return { minPrice: null, currency: null, hasPriceData: false };
   }, [priceData, isPriceLoading]);
 
-  const { processCount, hasProcessData } = useMemo(() => {
-    if (isProcessLoading || !processData)
-      return { processCount: 0, hasProcessData: false };
-
-    if (
-      typeof processData === "object" &&
-      processData.processes &&
-      Array.isArray(processData.processes)
-    ) {
-      const count = processData.processes.length;
-      return { processCount: count, hasProcessData: count > 0 };
-    }
-
-    return { processCount: 0, hasProcessData: false };
-  }, [processData, isProcessLoading]);
-
   const handleEditClick = () => {
     window.location.href = `/visas/visa/edit/${id}`;
   };
@@ -123,7 +90,6 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
     window.location.href = `/visas/visa/view/${id}`;
   };
 
-  // Format price display with currency symbol
   const getPriceDisplay = () => {
     if (!hasPriceData || !minPrice || !currency) {
       return null;
@@ -153,33 +119,25 @@ const VisaCard = ({ onDelete, country, type, images, id }: CardProps) => {
           />
         </div>
 
-        <div className="absolute top-4 right-4 z-10">
-          <div className="flex px-4 py-2 rounded-lg items-center justify-start text-white bg-black/30 backdrop-blur-sm">
-            <p className="text-xs font-normal">{type} Visa</p>
-          </div>
-        </div>
-
         <ImageCard url={images} style="" />
       </div>
 
       <div className="flex flex-row flex-1 items-center justify-between px-2">
         <div className="w-3/4 flex flex-col gap-2 items-start justify-center">
           <LinkText
-            title={country}
+            title={type}
             url={`/visas/visa/view/${id}`}
             style="font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
           />
           <div className="w-full flex flex-row items-center justify-start gap-2">
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiClockwiseFill className="text-[#1d2087] shrink-0" size={16} />
-              <p className="text-xs font-normal truncate">
-                {hasProcessData ? `${processCount} processes` : "No process"}
-              </p>
+            <div className="flex items-center gap-1">
+              <RiSearch2Fill className="text-[#1d2087] shrink-0" size={16} />
+              <p className="text-xs font-normal truncate">{country}</p>
             </div>
             <div className="border h-full border-l border-black/60"></div>
             {hasPriceData && priceDisplay ? (
-              <div className="max-w-1/2 flex items-center gap-1">
-                <RiMoneyDollarCircleFill
+              <div className="flex items-center gap-1">
+                <FaFileInvoiceDollar
                   className="text-[#1d2087] shrink-0"
                   size={16}
                 />

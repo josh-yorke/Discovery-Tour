@@ -43,12 +43,9 @@ const InsuranceParent = ({ insurances, isLoading }: ParentProps) => {
               key={insurance._id}
               id={insurance._id}
               title={insurance.title}
-              description={insurance.description}
               images={insurance.images}
               country={insurance.countryV2?.country || insurance.country}
-              insurancePartner={
-                insurance.insurancePartnerV2 || insurance.insurancePartner
-              }
+              insurancePartner={insurance.insurancePartner}
               dateAdded={insurance.dateAdded}
               onDelete={() => {
                 handleDelete(insurance._id);

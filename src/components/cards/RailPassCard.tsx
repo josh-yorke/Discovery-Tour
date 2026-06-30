@@ -1,9 +1,4 @@
-import {
-  RiMoneyDollarCircleFill,
-  RiTrainFill,
-  RiDeleteBin4Fill,
-  RiPencilFill,
-} from "react-icons/ri";
+import { RiTrainFill, RiDeleteBin4Fill, RiPencilFill } from "react-icons/ri";
 import { useQuery } from "@tanstack/react-query";
 import IconButton from "../button/IconButton";
 import ImageCard from "./ImageCard";
@@ -11,6 +6,7 @@ import LinkText from "../nav/LinkText";
 import GlassTag from "../tags/GlassTag";
 import { getPassPricelists } from "../../hooks/visa/visa/getVisa";
 import { PiPawPrintFill } from "react-icons/pi";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface CardProps {
   _id: string;
@@ -57,7 +53,6 @@ const RailPassCard = ({
         return { lowestPrice: null, currency: null };
       }
 
-      // Filter valid price items
       const validPriceItems = data.pricelists
         .filter(
           (item: PriceItem) =>
@@ -69,7 +64,6 @@ const RailPassCard = ({
         return { lowestPrice: null, currency: null };
       }
 
-      // Get the minimum price item
       const minPriceItem = validPriceItems.reduce(
         (min: PriceItem, item: PriceItem) =>
           parseFloat(item.fee.toString()) < parseFloat(min.fee.toString())
@@ -78,7 +72,6 @@ const RailPassCard = ({
       );
 
       const lowestPrice = parseFloat(minPriceItem.fee.toString());
-
       const currency =
         minPriceItem.priceCurrency || minPriceItem.currency || "USD";
 
@@ -95,9 +88,7 @@ const RailPassCard = ({
 
     if (!priceData || priceData.lowestPrice === null) {
       return (
-        <span className="text-xs font-semibold text-black/60">
-          No price available
-        </span>
+        <span className="text-xs font-semibold text-black/60">Flexible</span>
       );
     }
 
@@ -105,7 +96,7 @@ const RailPassCard = ({
 
     return (
       <span className="text-xs font-semibold text-black/60">
-        as low as {symbol}
+        from {symbol}
         {priceData.lowestPrice.toLocaleString()}
       </span>
     );
@@ -152,19 +143,19 @@ const RailPassCard = ({
             style="font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
           />
           <div className="w-full flex flex-row items-center justify-start gap-2">
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiMoneyDollarCircleFill
+            <div className="flex items-center gap-1">
+              <RiTrainFill className="text-[#1d2087] shrink-0" size={16} />
+              <p className="text-xs font-normal truncate">{category}</p>
+            </div>
+            <div className="border h-full border-l border-black/60"></div>
+            <div className="flex items-center gap-1">
+              <FaFileInvoiceDollar
                 className="text-[#1d2087] shrink-0"
                 size={16}
               />
               <p className="text-xs font-normal truncate">
                 {renderPriceText()}
               </p>
-            </div>
-            <div className="border h-full border-l border-black/60"></div>
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiTrainFill className="text-[#1d2087] shrink-0" size={16} />
-              <p className="text-xs font-normal truncate">{category}</p>
             </div>
           </div>
         </div>

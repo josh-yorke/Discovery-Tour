@@ -11,7 +11,6 @@ import {
   RiNumber7,
   RiNumber8,
   RiNumber9,
-  RiShoppingBasketFill,
   RiArrowUpSLine,
 } from "react-icons/ri";
 import api from "../../../hooks/axios/axios";
@@ -19,6 +18,7 @@ import { getVisaFile } from "../../../hooks/visa/visa/getVisa";
 import { getTourPricelist } from "../../../hooks/visa/pricelist/getPriceList";
 import SectionLoader from "../../loader/SectionLoader";
 import SectionError from "../../error/SectionError";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface FileData {
   _id: string;
@@ -193,7 +193,7 @@ const TourPricelists = ({ tourId }: TourPricelistsProps) => {
         <div className="w-full flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-              <RiShoppingBasketFill size={20} className="text-white" />
+              <FaFileInvoiceDollar size={20} className="text-white" />
             </div>
             <div className="flex flex-col">
               <p className="text-base md:text-lg font-semibold text-black uppercase">

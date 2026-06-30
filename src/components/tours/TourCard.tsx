@@ -2,16 +2,18 @@ import { useNavigate } from "react-router";
 import {
   RiAddLine,
   RiHashtag,
-  RiLandscapeAiFill,
   RiDeleteBin4Fill,
   RiPencilFill,
-  RiFlag2Fill,
+  RiMapPin2Fill,
 } from "react-icons/ri";
 import IconButton from "../button/IconButton";
 import ImageCard from "../cards/ImageCard";
 import LinkText from "../nav/LinkText";
 import { useMemo, useState, useEffect } from "react";
 import { PiPawPrintFill } from "react-icons/pi";
+import { getTourPricelist } from "../../hooks/visa/pricelist/getPriceList";
+import { getTourCities } from "../../hooks/visa/document/getDocument";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface CardProps {
   id: string;
@@ -28,19 +30,70 @@ interface CardProps {
   onDelete: () => void;
 }
 
+interface PriceItem {
+  _id: string;
+  plan: string;
+  fee: number;
+  description: string;
+  priceCurrency?: string;
+  currency?: string;
+  filesAssociated: string[];
+  tour: string;
+  dateAdded: string;
+  __v: number;
+}
+
+const currencySymbols: Record<string, string> = {
+  USD: "$",
+  KRW: "₩",
+  JPY: "¥",
+  PHP: "₱",
+  EUR: "€",
+  GBP: "£",
+};
+
 const TourCard = ({
   onDelete,
   id,
-  country,
   images,
-  mainLocationName,
   tags = [],
   title,
+  type,
 }: CardProps) => {
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState<number>(
     typeof window !== "undefined" ? window.innerWidth : 1024,
   );
+  const [priceList, setPriceList] = useState<PriceItem[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [showData, setShowData] = useState(false);
+
+  const priceDisplay = useMemo(() => {
+    if (priceList.length === 0) {
+      return "Flexible";
+    }
+
+    const minPriceItem = priceList.reduce((min, item) =>
+      item.fee < min.fee ? item : min,
+    );
+
+    const minPrice = minPriceItem.fee;
+    const currency =
+      minPriceItem.priceCurrency || minPriceItem.currency || "USD";
+    const symbol = currencySymbols[currency] || currency;
+
+    if (minPrice === 0 || minPrice < 0.01) {
+      return "Flexible";
+    }
+
+    return `from ${symbol}${minPrice.toLocaleString()}`;
+  }, [priceList]);
+
+  const formatCitiesDisplay = useMemo(() => {
+    if (cities.length === 0) return "No cities included";
+    if (cities.length === 1) return cities[0];
+    return `${cities.length} cities`;
+  }, [cities]);
 
   const displayTags = useMemo(() => {
     if (!tags.length) return { visibleTags: [], overflowCount: 0 };
@@ -64,6 +117,55 @@ const TourCard = ({
   };
 
   useEffect(() => {
+    let mounted = true;
+
+    const fetchCities = async () => {
+      if (!id) return;
+
+      try {
+        const data = await getTourCities(id);
+        if (mounted && data?.cities) {
+          setCities(data.cities as string[]);
+        }
+      } catch (error) {
+        console.error("Error fetching cities:", error);
+        setCities([]);
+      }
+    };
+
+    fetchCities();
+
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchPriceList = async () => {
+      try {
+        const data = await getTourPricelist(id);
+        if (mounted) {
+          // getTourPricelist returns the data directly from res.data.data
+          // If it returns an array directly, use it; if it has a pricelists property, use that
+          const priceData = Array.isArray(data) ? data : data?.pricelists || [];
+          setPriceList(priceData);
+          setShowData(true);
+        }
+      } catch (error) {
+        if (mounted) setShowData(true);
+      }
+    };
+
+    fetchPriceList();
+
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
 
     const handleResize = () => {
@@ -76,10 +178,11 @@ const TourCard = ({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  if (!showData) return null;
+
   return (
     <div className="w-full flex flex-col gap-4">
       <div className="relative w-full aspect-3/2 rounded-3xl overflow-hidden">
-        {/* Edit/Delete buttons - positioned like the first card's tour type badge */}
         <div className="absolute top-4 left-4 z-10 flex flex-row gap-2">
           <IconButton
             action={() => navigate(`/tours/edit/${id}`)}
@@ -93,6 +196,12 @@ const TourCard = ({
             icon={<RiDeleteBin4Fill size={16} />}
             style="bg-white/80 text-[#1d2087] rounded-full p-2 hover:scale-110 backdrop-blur-sm"
           />
+        </div>
+
+        <div className="absolute top-4 right-4 z-10">
+          <div className="flex px-4 py-2 rounded-lg items-center justify-start text-white bg-black/30 backdrop-blur-sm">
+            <p className="text-xs font-normal">{type.tourType}</p>
+          </div>
         </div>
 
         <ImageCard url={images} style="" />
@@ -130,20 +239,22 @@ const TourCard = ({
           <LinkText
             title={title}
             url={`/tours/view/${id}`}
-            style="font-bold text-[#1d2087] hover:text-[#1d2087] truncate"
+            style="font-bold text-[#1d2087] hover:text-[#1d2088] truncate"
           />
           <div className="w-full flex flex-row items-center justify-start gap-2">
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiLandscapeAiFill
+            <div className="flex items-center justify-center gap-1 min-w-0">
+              <RiMapPin2Fill className="text-[#1d2087] shrink-0" size={16} />
+              <p className="text-xs font-normal truncate">
+                {formatCitiesDisplay}
+              </p>
+            </div>
+            <div className="border h-full border-l border-black/60"></div>
+            <div className="flex items-center justify-center gap-1">
+              <FaFileInvoiceDollar
                 className="text-[#1d2087] shrink-0"
                 size={16}
               />
-              <p className="text-xs font-normal truncate">{mainLocationName}</p>
-            </div>
-            <div className="border h-full border-l border-black/60"></div>
-            <div className="max-w-1/2 flex items-center gap-1">
-              <RiFlag2Fill className="text-[#1d2087] shrink-0" size={16} />
-              <p className="text-xs font-normal truncate">{country} tour</p>
+              <p className="text-xs font-normal truncate">{priceDisplay}</p>
             </div>
           </div>
         </div>

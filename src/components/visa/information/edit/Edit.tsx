@@ -1437,7 +1437,9 @@ const Edit = () => {
           const termFormDataToSubmit = new FormData();
           termFormDataToSubmit.append("type", "terms");
           termFormDataToSubmit.append("title", termItem.title || "");
-          termFormDataToSubmit.append("terms", termItem.terms || "");
+          if (termItem.terms && termItem.terms.trim()) {
+            termFormDataToSubmit.append("terms", termItem.terms);
+          }
           termFormDataToSubmit.append("visa", id);
 
           if (termFileUploadIds[i]) {
@@ -1502,7 +1504,6 @@ const Edit = () => {
         for (let i = 0; i < safeDocumentData.length; i++) {
           const documentItem = safeDocumentData[i];
 
-          // ✅ Create JSON object instead of FormData
           const documentDataToSubmit: any = {
             type: "document",
             docTitle: documentItem.docTitle || "",
@@ -1514,7 +1515,6 @@ const Edit = () => {
             documentDataToSubmit.filesAssociated = documentFileUploadIds[i];
           }
 
-          // ✅ Add formattedLinksForDocument if they exist
           if (
             documentItem.formattedLinksForDocument &&
             documentItem.formattedLinksForDocument.length > 0

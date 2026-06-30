@@ -5,7 +5,6 @@ import { type addVisaFileData } from "../../types/visafile/addVisaFileTypes";
 import { type addPricelistData } from "../../types/pricelist/addPricelistTypes";
 import Input from "../input/Input";
 import TextArea from "../input/TextArea";
-import FileInput from "../input/FileInput";
 import IconButton from "../button/IconButton";
 import { RiAddFill, RiDeleteBin4Fill } from "react-icons/ri";
 import NumberInput from "../input/NumberInput";
@@ -91,7 +90,6 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     register,
     control,
     formState: { errors },
-    setValue,
     watch,
     getValues,
     clearErrors,
@@ -168,40 +166,6 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
     [remove, clearErrors],
   );
 
-  const handleFileSelect = useCallback(
-    (files: FileList | null, index: number) => {
-      if (!files || files.length === 0) {
-        setValue(`pricelists.${index}.file`, undefined);
-        setValue(`pricelists.${index}.fileTitle`, "");
-        clearErrors(`pricelists.${index}.fileTitle` as any);
-        clearErrors(`pricelists.${index}.file` as any);
-        return;
-      }
-
-      setValue(`pricelists.${index}.file`, files);
-
-      const currentFileTitle = watchPricelists?.[index]?.fileTitle;
-      if (!currentFileTitle) {
-        const fileName = files[0].name.split(".").slice(0, -1).join(".");
-        setValue(`pricelists.${index}.fileTitle`, fileName);
-      }
-
-      clearErrors(`pricelists.${index}.fileTitle` as any);
-      clearErrors(`pricelists.${index}.file` as any);
-    },
-    [setValue, watchPricelists, clearErrors],
-  );
-
-  const handleClearFile = useCallback(
-    (index: number) => {
-      setValue(`pricelists.${index}.file`, undefined);
-      setValue(`pricelists.${index}.fileTitle`, "");
-      clearErrors(`pricelists.${index}.fileTitle` as any);
-      clearErrors(`pricelists.${index}.file` as any);
-    },
-    [setValue, clearErrors],
-  );
-
   useImperativeHandle(ref, () => ({
     getFormData: async () => {
       const { isValid, pricelistData, pricelistFileData } =
@@ -214,65 +178,6 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
       return { pricelistData, pricelistFileData };
     },
   }));
-
-  const renderFileSection = (index: number) => {
-    const currentPricelist = watchPricelists?.[index];
-    const hasNewFile = !!currentPricelist?.file;
-    const fileName = currentPricelist?.file?.[0]?.name || "";
-    const hasContent = hasPricelistContent(currentPricelist);
-    const fileTitleError = errors.pricelists?.[index]?.fileTitle?.message;
-    const fileError = errors.pricelists?.[index]?.file?.message;
-
-    return (
-      <div className="space-y-4">
-        <Input
-          style="bg-white"
-          disabled={false}
-          error={hasContent && fileTitleError ? String(fileTitleError) : ""}
-          title="Pricelist File Title"
-          placeholder="Enter pricelist file title"
-          type="text"
-          {...register(`pricelists.${index}.fileTitle` as const)}
-        />
-
-        <FileInput
-          title="Upload Pricelist File"
-          disabled={false}
-          setValue={(fieldName, value) => {
-            if (fieldName === "file") {
-              handleFileSelect(value as FileList, index);
-            }
-          }}
-          onChange={(files) => handleFileSelect(files, index)}
-          error={hasContent && fileError ? String(fileError) : ""}
-        />
-
-        {hasNewFile && fileName && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-700 font-medium">
-              New file selected: {fileName}
-            </p>
-            <p className="text-xs text-green-600 mt-1">
-              This will be uploaded as a new file.
-            </p>
-            <button
-              type="button"
-              onClick={() => handleClearFile(index)}
-              className="text-xs text-green-700 hover:text-green-900 underline mt-2"
-            >
-              Clear selection
-            </button>
-          </div>
-        )}
-
-        <div className="text-xs text-gray-500">
-          <p>• File is optional for each price plan</p>
-          <p>• File title is required if you upload a file</p>
-          <p>• If you don't enter a file title, the filename will be used</p>
-        </div>
-      </div>
-    );
-  };
 
   const renderPricelistForm = (field: { id: string }, index: number) => {
     const currentPricelist = watchPricelists?.[index];
@@ -341,8 +246,6 @@ const PricelistForm = forwardRef<PricelistFormHandle>((_props, ref) => {
             placeholder="Enter detailed description of what this plan includes (optional)"
             {...register(`pricelists.${index}.description` as const)}
           />
-
-          {renderFileSection(index)}
 
           <div className="text-xs text-gray-500">
             <p>• Fields marked with * are required</p>

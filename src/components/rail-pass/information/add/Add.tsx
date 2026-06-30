@@ -357,7 +357,10 @@ const Add = () => {
           const termFormDataToSubmit = new FormData();
           termFormDataToSubmit.append("type", "terms");
           termFormDataToSubmit.append("title", termItem.title);
-          termFormDataToSubmit.append("terms", termItem.terms);
+
+          if (termItem.terms && termItem.terms.trim()) {
+            termFormDataToSubmit.append("terms", termItem.terms);
+          }
           termFormDataToSubmit.append("railpass", railPassId);
 
           if (termFileUploadIds[i]) {

@@ -1,5 +1,16 @@
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { RiFolder3Fill, RiLinkM } from "react-icons/ri";
+import { RiFolder3Fill, RiLinkM, RiCheckboxCircleFill } from "react-icons/ri";
+import {
+  RiNumber1,
+  RiNumber2,
+  RiNumber3,
+  RiNumber4,
+  RiNumber5,
+  RiNumber6,
+  RiNumber7,
+  RiNumber8,
+  RiNumber9,
+} from "react-icons/ri";
 import api from "../../../../hooks/axios/axios";
 import {
   getVisaDocuments,
@@ -83,6 +94,25 @@ const getFormattedLinksArray = (links: any): FormattedLink[] => {
   return [links];
 };
 
+const getStepIcon = (index: number) => {
+  const icons = [
+    <RiNumber1 size={16} />,
+    <RiNumber2 size={16} />,
+    <RiNumber3 size={16} />,
+    <RiNumber4 size={16} />,
+    <RiNumber5 size={16} />,
+    <RiNumber6 size={16} />,
+    <RiNumber7 size={16} />,
+    <RiNumber8 size={16} />,
+    <RiNumber9 size={16} />,
+  ];
+  return (
+    icons[index] || (
+      <RiCheckboxCircleFill className="text-[#1d2087]" size={16} />
+    )
+  );
+};
+
 const Documents = ({ visaId }: DocumentsProps) => {
   const {
     data: documentsData,
@@ -138,16 +168,13 @@ const Documents = ({ visaId }: DocumentsProps) => {
       className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4"
       id="documents"
     >
-      <div className="w-full flex items-start gap-3">
+      <div className="w-full flex items-center gap-3">
         <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
           <RiFolder3Fill size={20} className="text-white" />
         </div>
         <div className="flex flex-col">
           <p className="text-base md:text-lg font-semibold text-black uppercase">
             Required Documents
-          </p>
-          <p className="text-xs font-normal text-gray-600">
-            All necessary documents for visa application
           </p>
         </div>
       </div>
@@ -162,7 +189,7 @@ const Documents = ({ visaId }: DocumentsProps) => {
         </div>
       ) : (
         <div className="w-full space-y-4 sm:space-y-6">
-          {documents.map((document) => {
+          {documents.map((document, index) => {
             const documentFiles = document.filesAssociated
               .map((fileId) => filesMap[fileId])
               .filter(Boolean);
@@ -177,21 +204,28 @@ const Documents = ({ visaId }: DocumentsProps) => {
 
             return (
               <div key={document._id} className="space-y-3 sm:space-y-4">
-                <div className="flex flex-col gap-1 sm:gap-2">
-                  <p className="text-base font-semibold text-[#1d2087]">
-                    {document.title}
-                  </p>
-                  <pre className="text-sm font-normal text-gray-800 whitespace-pre-wrap font-sans">
-                    {document.description}
-                  </pre>
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 text-white bg-[#1d2087]">
+                    {getStepIcon(index)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-2">
+                      <p className="text-base font-semibold text-[#1d2087]">
+                        {document.title}
+                      </p>
+                    </div>
+                    <pre className="text-xs md:text-sm font-normal text-gray-600 mt-2 whitespace-pre-wrap font-sans">
+                      {document.description}
+                    </pre>
+                  </div>
                 </div>
 
                 {formattedLinks.length > 0 && (
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 ml-11 sm:ml-14">
                     <div className="w-full flex flex-row items-center justify-start gap-2 flex-wrap">
-                      {formattedLinks.map((link, index) => (
+                      {formattedLinks.map((link, linkIndex) => (
                         <button
-                          key={link._id || index}
+                          key={link._id || linkIndex}
                           onClick={() => window.open(link.link, "_blank")}
                           className="flex flex-row items-center justify-center gap-1 px-4 py-2 rounded-full bg-white inset-shadow-sm shadow-black text-sm font-semibold cursor-pointer"
                         >
@@ -207,7 +241,7 @@ const Documents = ({ visaId }: DocumentsProps) => {
                 )}
 
                 {document.filesAssociated.length > 0 && (
-                  <div className="space-y-3 sm:space-y-4">
+                  <div className="space-y-3 sm:space-y-4 ml-11 sm:ml-14">
                     {isErrorFiles && (
                       <div className="p-3 bg-red-50 border border-red-200 rounded-2xl">
                         <p className="text-red-600 text-xs sm:text-sm">

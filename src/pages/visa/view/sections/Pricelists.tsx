@@ -10,7 +10,6 @@ import {
   RiNumber7,
   RiNumber8,
   RiNumber9,
-  RiShoppingBasketFill,
 } from "react-icons/ri";
 import api from "../../../../hooks/axios/axios";
 import {
@@ -19,6 +18,7 @@ import {
 } from "../../../../hooks/visa/visa/getVisa";
 import SectionLoader from "../../../../components/loader/SectionLoader";
 import SectionError from "../../../../components/error/SectionError";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface FileData {
   _id: string;
@@ -187,18 +187,13 @@ const Pricelists = ({ visaId }: PricelistsProps) => {
       className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4"
       id="pricelist"
     >
-      <div className="w-full flex items-start gap-3">
+      <div className="w-full flex items-center gap-3">
         <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
-          <RiShoppingBasketFill size={20} className="text-white" />{" "}
+          <FaFileInvoiceDollar size={20} className="text-white" />{" "}
         </div>
-        <div className="flex flex-col">
-          <p className="text-base md:text-lg font-semibold text-black uppercase">
-            Price List
-          </p>
-          <p className="text-xs font-normal text-gray-600">
-            Available plans and pricing for visa application
-          </p>
-        </div>
+        <p className="text-base md:text-lg font-semibold text-black uppercase">
+          Price
+        </p>
       </div>
 
       <div className="w-full border-b border-black/6" />

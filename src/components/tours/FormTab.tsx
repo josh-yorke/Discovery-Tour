@@ -3,7 +3,6 @@ import {
   RiMapPinAddFill,
   RiListCheck2,
   RiCalendarTodoFill,
-  RiShoppingBasketFill,
   RiTimer2Fill,
   RiMoneyCnyCircleFill,
   RiFolder3Fill,
@@ -13,6 +12,7 @@ import {
 } from "react-icons/ri";
 import { useState } from "react";
 import type { FormType } from "./information/add/Add";
+import { FaFileInvoiceDollar } from "react-icons/fa";
 
 interface FormTabsProps {
   formType: FormType;
@@ -49,7 +49,7 @@ const FormTabs: React.FC<FormTabsProps> = ({ formType, setFormType }) => {
     },
     {
       id: "pricelist" as const,
-      icon: RiShoppingBasketFill,
+      icon: FaFileInvoiceDollar,
       label: "Pricelist",
       description: "Pricing",
     },

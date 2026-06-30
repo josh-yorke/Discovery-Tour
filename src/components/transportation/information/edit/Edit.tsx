@@ -1120,7 +1120,10 @@ const Edit = () => {
       } else if (formType === "term") {
         formDataToSubmit.append("type", "terms");
         formDataToSubmit.append("title", item.title || "");
-        formDataToSubmit.append("terms", item.terms || "");
+
+        if (item.terms && item.terms.trim()) {
+          formDataToSubmit.append("terms", item.terms);
+        }
       }
 
       if (uploadedFileIds[i]) {

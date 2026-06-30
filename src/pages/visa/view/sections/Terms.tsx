@@ -150,16 +150,13 @@ const Terms = ({ visaId }: TermsProps) => {
       className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4"
       id="term"
     >
-      <div className="w-full flex items-start gap-3">
+      <div className="w-full flex items-center gap-3">
         <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
           <RiLayoutRight2Fill size={20} className="text-white" />{" "}
         </div>
         <div className="flex flex-col">
           <p className="text-base md:text-lg font-semibold text-black uppercase">
             Terms and Conditions
-          </p>
-          <p className="text-xs font-normal text-gray-600">
-            Important terms and conditions for visa application
           </p>
         </div>
       </div>

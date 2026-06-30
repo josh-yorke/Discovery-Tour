@@ -137,10 +137,8 @@ const Processes = ({ visaId }: ProcessesProps) => {
   const isLoading =
     isLoadingProcesses || (processes.length > 0 && isLoadingFiles);
 
-  // Don't render anything if no visaId is provided
   if (!visaId) return null;
 
-  // Don't render anything if there are no processes (and not loading or in error state)
   if (!isLoading && !isErrorProcesses && processes.length === 0) {
     return null;
   }
@@ -156,16 +154,13 @@ const Processes = ({ visaId }: ProcessesProps) => {
       className="w-full bg-white p-4 sm:p-6 rounded-3xl flex flex-col items-center gap-4"
       id="process"
     >
-      <div className="w-full flex items-start gap-3">
+      <div className="w-full flex items-center gap-3">
         <div className="p-2 bg-linear-to-r from-[#1d2087] to-[#393ca3] rounded-full">
           <RiTimer2Fill size={20} className="text-white" />
         </div>
         <div className="flex flex-col">
           <p className="text-base md:text-lg font-semibold text-black uppercase">
             Application Process
-          </p>
-          <p className="text-xs font-normal text-gray-600">
-            Step-by-step guide for visa application
           </p>
         </div>
       </div>

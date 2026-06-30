@@ -58,3 +58,20 @@ export const getInsuranceDocument = async (id?: string) => {
     throw new Error(message);
   }
 };
+
+export const getTourCities = async (id: string) => {
+  try {
+    const res = await api.get(
+      `/tour-dependent-fields/public?type=tour-city&tourId=${id}`,
+    );
+
+    const cities = [...new Set(res.data.data.map((item: any) => item.city))];
+    console.log(cities);
+    return {
+      cities,
+    };
+  } catch (error: any) {
+    const message = error.response.data.message || error;
+    throw new Error(message);
+  }
+};

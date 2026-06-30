@@ -44,17 +44,10 @@ const hasTermContent = (term: {
   );
 };
 
-const hasCompleteTerm = (term: { title?: string; terms?: string }): boolean => {
-  return (
-    (term.title?.trim() ?? "").length > 0 &&
-    (term.terms?.trim() ?? "").length > 0
-  );
-};
-
 const mergedSchema = z
   .object({
     title: z.string().min(1, "Term title is required"),
-    terms: z.string().min(1, "Terms content is required"),
+    terms: z.string().optional(),
     fileTitle: z.string().optional(),
     file: z.any().optional(),
   })
@@ -73,7 +66,7 @@ const mergedSchema = z
 
 type MergedSchemaType = {
   title: string;
-  terms: string;
+  terms?: string;
   fileTitle?: string;
   file?: FileList;
 };
@@ -124,8 +117,6 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       },
     });
 
-    console.log(editData);
-
     const { fields, append, remove } = useFieldArray({
       control,
       name: "terms",
@@ -146,14 +137,12 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
       const termData: addTermData[] = [];
       const termFileData: addVisaFileData[] = [];
       let isValid = true;
-      let hasAnyCompleteData = false;
 
       clearErrors();
 
       values.terms.forEach((term, index) => {
         const hasContent = hasTermContent(term);
         const hasFile = (term.file?.length ?? 0) > 0;
-        const hasCompleteData = hasCompleteTerm(term);
 
         if (hasContent) {
           const result = mergedSchema.safeParse(term);
@@ -169,46 +158,29 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
                 });
               }
             });
-          }
-
-          if (hasCompleteData) {
-            hasAnyCompleteData = true;
+          } else {
             termData.push({
               title: term.title,
-              terms: term.terms,
+              terms: term.terms || "",
             });
 
             termFileData.push({
               fileTitle: term.fileTitle || "",
               file: term.file,
             });
-          } else if (hasContent && !hasCompleteData) {
-            isValid = false;
-            if (!term.title?.trim()) {
-              setError(`terms.${index}.title` as any, {
-                type: "manual",
-                message: "Term title is required",
-              });
-            }
-            if (!term.terms?.trim()) {
-              setError(`terms.${index}.terms` as any, {
-                type: "manual",
-                message: "Terms content is required",
-              });
-            }
           }
 
-          if (hasFile && !hasCompleteData) {
+          if (hasFile && !term.title?.trim()) {
             isValid = false;
             setError(`terms.${index}.title` as any, {
               type: "manual",
-              message: "Complete all fields before uploading a file",
+              message: "Title is required when uploading a file",
             });
           }
         }
       });
 
-      return { isValid, termData, termFileData, hasAnyCompleteData };
+      return { isValid, termData, termFileData };
     }, [getValues, setError, clearErrors]);
 
     const addTerm = useCallback(() => {
@@ -239,10 +211,10 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
         }
 
         const currentTerm = watchTerms?.[index];
-        if (!hasCompleteTerm(currentTerm)) {
+        if (!currentTerm?.title?.trim()) {
           setError(`terms.${index}.title` as any, {
             type: "manual",
-            message: "Complete all fields before uploading a file",
+            message: "Title is required before uploading a file",
           });
           return;
         }
@@ -367,7 +339,7 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
           )}
 
           <div className="text-xs text-gray-500">
-            <p>• Complete all fields before uploading a file</p>
+            <p>• Complete title before uploading a file</p>
             <p>• File title is required if you upload a file</p>
             <p>• If you upload a new file, it will replace the existing one</p>
           </div>
@@ -408,8 +380,8 @@ const EditTermForm = forwardRef<TermFormHandle, TermFormProps>(
             <TextArea
               disabled={false}
               error={hasContent && termsError ? String(termsError) : ""}
-              title="Terms and Conditions *"
-              placeholder="Enter terms and conditions"
+              title="Terms and Conditions (Optional)"
+              placeholder="Enter terms and conditions (optional)"
               {...register(`terms.${index}.terms` as const)}
             />
 

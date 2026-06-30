@@ -11,8 +11,14 @@ export const addBlogSchema = z.object({
     ),
   status: z.string(),
   tags: z
-    .array(z.string().min(1, "Tag cannot be empty"))
-    .min(1, "Minimum of 1 tag required"),
+    .array(
+      z
+        .string()
+        .min(1, "Tag cannot be empty")
+        .max(20, "Tag cannot exceed 20 characters"),
+    )
+    .min(1, "Minimum of 1 tag required")
+    .max(2, "Maximum of 2 tags allowed"),
   relatedLinks: z.array(z.string()),
   readingTimeUnit: z.string().min(2, "this field is required"),
   readingTimeValue: z.number().min(1, "this field is required"),
